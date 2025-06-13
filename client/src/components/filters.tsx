@@ -67,7 +67,7 @@ export function Filters({
             onClick={() => onRatingChange(rating === "alright" ? "" : "alright")}
             className={rating === "alright" ? "bg-orange-500 hover:bg-orange-600" : ""}
           >
-            <Minus className="w-4 h-4 mr-1" strokeWidth={3} /> Alright
+            Alright
           </Button>
           <Button
             variant={rating === "dislike" ? "default" : "outline"}
