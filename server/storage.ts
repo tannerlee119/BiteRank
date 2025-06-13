@@ -17,7 +17,7 @@ export interface IStorage {
   // Users
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  createUser(user: { email: string; displayName: string; passwordHash: string }): Promise<User>;
 
   // Restaurants
   getRestaurantByNameAndLocation(name: string, location: string): Promise<Restaurant | undefined>;
@@ -58,8 +58,12 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const result = await db.insert(users).values(insertUser).returning();
+  async createUser(insertUser: { email: string; displayName: string; passwordHash: string }): Promise<User> {
+    const result = await db.insert(users).values({
+      email: insertUser.email,
+      displayName: insertUser.displayName,
+      passwordHash: insertUser.passwordHash,
+    }).returning();
     return result[0];
   }
 
@@ -88,32 +92,6 @@ export class DatabaseStorage implements IStorage {
     location?: string;
     search?: string;
   }): Promise<ReviewWithRestaurant[]> {
-    let query = db
-      .select({
-        id: reviews.id,
-        userId: reviews.userId,
-        restaurantId: reviews.restaurantId,
-        rating: reviews.rating,
-        score: reviews.score,
-        note: reviews.note,
-        favoriteDishes: reviews.favoriteDishes,
-        photoUrls: reviews.photoUrls,
-        labels: reviews.labels,
-        createdAt: reviews.createdAt,
-        restaurant: {
-          id: restaurants.id,
-          name: restaurants.name,
-          location: restaurants.location,
-          cuisine: restaurants.cuisine,
-          googleRating: restaurants.googleRating,
-          yelpRating: restaurants.yelpRating,
-          createdAt: restaurants.createdAt,
-        }
-      })
-      .from(reviews)
-      .innerJoin(restaurants, eq(reviews.restaurantId, restaurants.id))
-      .where(eq(reviews.userId, userId));
-
     // Apply filters
     const conditions = [eq(reviews.userId, userId)];
 
@@ -137,9 +115,32 @@ export class DatabaseStorage implements IStorage {
       conditions.push(ilike(restaurants.location, locationPattern));
     }
 
-    query = query.where(and(...conditions));
-
-    const result = await query.orderBy(desc(reviews.createdAt));
+    const result = await db
+      .select({
+        id: reviews.id,
+        userId: reviews.userId,
+        restaurantId: reviews.restaurantId,
+        rating: reviews.rating,
+        score: reviews.score,
+        note: reviews.note,
+        favoriteDishes: reviews.favoriteDishes,
+        photoUrls: reviews.photoUrls,
+        labels: reviews.labels,
+        createdAt: reviews.createdAt,
+        restaurant: {
+          id: restaurants.id,
+          name: restaurants.name,
+          location: restaurants.location,
+          cuisine: restaurants.cuisine,
+          googleRating: restaurants.googleRating,
+          yelpRating: restaurants.yelpRating,
+          createdAt: restaurants.createdAt,
+        }
+      })
+      .from(reviews)
+      .innerJoin(restaurants, eq(reviews.restaurantId, restaurants.id))
+      .where(and(...conditions))
+      .orderBy(desc(reviews.createdAt));
     
     return result.map(row => ({
       id: row.id,

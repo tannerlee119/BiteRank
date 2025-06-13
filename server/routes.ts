@@ -151,18 +151,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Parse comma-separated strings into arrays
       const favoriteDishes = reviewData.favoriteDishes 
         ? reviewData.favoriteDishes.split(',').map(dish => dish.trim()).filter(dish => dish.length > 0)
-        : undefined;
+        : null;
       
       const labels = reviewData.labels
         ? reviewData.labels.split(',').map(label => label.trim()).filter(label => label.length > 0)
-        : undefined;
+        : null;
 
       const review = await storage.createReview(req.session.userId!, restaurant.id, {
         rating: reviewData.rating,
         score,
-        note: reviewData.note,
+        note: reviewData.note || null,
         favoriteDishes,
-        photoUrls: [],
+        photoUrls: null,
         labels,
       });
 
