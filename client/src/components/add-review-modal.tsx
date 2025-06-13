@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -85,6 +86,9 @@ export function AddReviewModal({ open, onOpenChange }: AddReviewModalProps) {
           <DialogTitle className="text-2xl font-bold text-neutral-900">
             Add Restaurant Review
           </DialogTitle>
+          <DialogDescription>
+            Rate and review a restaurant to add it to your personal collection.
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -207,7 +211,7 @@ export function AddReviewModal({ open, onOpenChange }: AddReviewModalProps) {
                     <FormControl>
                       <div className="px-3">
                         <Slider
-                          value={[field.value]}
+                          value={[field.value ?? 7.5]}
                           onValueChange={(value) => {
                             field.onChange(value[0]);
                             setNumericalScore(value);
@@ -219,7 +223,7 @@ export function AddReviewModal({ open, onOpenChange }: AddReviewModalProps) {
                         />
                         <div className="flex justify-between text-xs text-gray-500 mt-1">
                           <span>0</span>
-                          <span className="font-semibold text-lg text-gray-800">{(field.value || 7.5).toFixed(1)}</span>
+                          <span className="font-semibold text-lg text-gray-800">{(field.value ?? 7.5).toFixed(1)}</span>
                           <span>10</span>
                         </div>
                       </div>
