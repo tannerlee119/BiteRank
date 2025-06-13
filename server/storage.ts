@@ -10,8 +10,8 @@ import {
   type ReviewWithRestaurant
 } from "@shared/schema";
 import { eq, desc, and, ilike, or, count } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/neon-http";
-import { neon } from "@neondatabase/serverless";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 
 export interface IStorage {
   // Users
@@ -44,27 +44,57 @@ if (!connectionString) {
   throw new Error("DATABASE_URL environment variable is required");
 }
 
-const sqlConnection = neon(connectionString);
-export const db = drizzle(sqlConnection);
+let sqlConnection: any;
+let db: any;
+
+try {
+  sqlConnection = postgres(connectionString, {
+    ssl: 'require',
+    max: 1,
+    idle_timeout: 20,
+    connect_timeout: 10
+  });
+  db = drizzle(sqlConnection);
+} catch (error) {
+  console.error("Database connection setup error:", error);
+  throw error;
+}
+
+export { db };
 
 export class DatabaseStorage implements IStorage {
   async getUser(id: string): Promise<User | undefined> {
-    const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
-    return result[0];
+    try {
+      const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+      return result[0];
+    } catch (error) {
+      console.error("Database error in getUser:", error);
+      throw new Error(`Database connection failed: ${error.message}`);
+    }
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
-    return result[0];
+    try {
+      const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+      return result[0];
+    } catch (error) {
+      console.error("Database error in getUserByEmail:", error);
+      throw new Error(`Database connection failed: ${error.message}`);
+    }
   }
 
   async createUser(insertUser: { email: string; displayName: string; passwordHash: string }): Promise<User> {
-    const result = await db.insert(users).values({
-      email: insertUser.email,
-      displayName: insertUser.displayName,
-      passwordHash: insertUser.passwordHash,
-    }).returning();
-    return result[0];
+    try {
+      const result = await db.insert(users).values({
+        email: insertUser.email,
+        displayName: insertUser.displayName,
+        passwordHash: insertUser.passwordHash,
+      }).returning();
+      return result[0];
+    } catch (error) {
+      console.error("Database error in createUser:", error);
+      throw new Error(`Database connection failed: ${error.message}`);
+    }
   }
 
   async getRestaurantByNameAndLocation(name: string, location: string): Promise<Restaurant | undefined> {
