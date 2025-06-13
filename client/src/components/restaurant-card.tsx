@@ -57,7 +57,7 @@ export function RestaurantCard({ review }: RestaurantCardProps) {
             </p>
             {review.restaurant.cuisine && (
               <p className="text-sm text-gray-500 mt-1 capitalize">
-                {review.restaurant.cuisine} cuisine
+                {review.restaurant.cuisine}
               </p>
             )}
           </div>
