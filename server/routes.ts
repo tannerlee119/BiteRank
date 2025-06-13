@@ -132,21 +132,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Calculate score based on rating
-      let score: number;
-      switch (reviewData.rating) {
-        case 'like':
-          score = 8.5; // Representative score in 6.7-10 range
-          break;
-        case 'alright':
-          score = 5.0; // Representative score in 3.4-6.6 range
-          break;
-        case 'dislike':
-          score = 2.0; // Representative score in 0-3.3 range
-          break;
-        default:
-          score = 5.0;
-      }
+      // Use the precise score from the frontend (Beli-style rating)
+      const score = reviewData.score;
 
       // Parse comma-separated strings into arrays
       const favoriteDishes = reviewData.favoriteDishes 

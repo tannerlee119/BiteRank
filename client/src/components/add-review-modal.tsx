@@ -72,7 +72,7 @@ export function AddReviewModal({ open, onOpenChange }: AddReviewModalProps) {
   });
 
   const onSubmit = (data: InsertReview) => {
-    createReviewMutation.mutate(data);
+    createReviewMutation.mutate({ ...data, score: numericalScore[0] });
   };
 
   return (
@@ -124,7 +124,13 @@ export function AddReviewModal({ open, onOpenChange }: AddReviewModalProps) {
                     <FormLabel>Rating *</FormLabel>
                     <FormControl>
                       <RadioGroup
-                        onValueChange={field.onChange}
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          // Update numerical score based on rating category
+                          if (value === "like") setNumericalScore([8.5]);
+                          else if (value === "alright") setNumericalScore([5.0]);
+                          else if (value === "dislike") setNumericalScore([2.0]);
+                        }}
                         defaultValue={field.value}
                         className="grid grid-cols-3 gap-3"
                       >
@@ -183,6 +189,29 @@ export function AddReviewModal({ open, onOpenChange }: AddReviewModalProps) {
                   </FormItem>
                 )}
               />
+
+              {/* Numerical Score Slider */}
+              <div className="space-y-3">
+                <FormLabel>Precise Score (0-10)</FormLabel>
+                <div className="px-3">
+                  <Slider
+                    value={numericalScore}
+                    onValueChange={setNumericalScore}
+                    max={10}
+                    min={0}
+                    step={0.1}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>0</span>
+                    <span className="font-semibold text-lg text-gray-800">{numericalScore[0].toFixed(1)}</span>
+                    <span>10</span>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500">
+                  Fine-tune your rating - this helps compare restaurants more precisely
+                </p>
+              </div>
             </div>
 
             {/* Optional Fields */}
