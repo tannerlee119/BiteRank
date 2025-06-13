@@ -42,6 +42,7 @@ export function AddReviewModal({ open, onOpenChange }: AddReviewModalProps) {
       restaurantName: "",
       restaurantLocation: "",
       rating: "like",
+      score: 7.5,
       note: "",
       favoriteDishes: "",
       labels: "",
@@ -72,7 +73,9 @@ export function AddReviewModal({ open, onOpenChange }: AddReviewModalProps) {
   });
 
   const onSubmit = (data: InsertReview) => {
-    createReviewMutation.mutate({ ...data, score: numericalScore[0] });
+    console.log("Form data:", data);
+    console.log("Form errors:", form.formState.errors);
+    createReviewMutation.mutate(data);
   };
 
   return (
@@ -127,9 +130,13 @@ export function AddReviewModal({ open, onOpenChange }: AddReviewModalProps) {
                         onValueChange={(value) => {
                           field.onChange(value);
                           // Update numerical score based on rating category
-                          if (value === "like") setNumericalScore([8.5]);
-                          else if (value === "alright") setNumericalScore([5.0]);
-                          else if (value === "dislike") setNumericalScore([2.0]);
+                          let newScore = 7.5;
+                          if (value === "like") newScore = 8.5;
+                          else if (value === "alright") newScore = 5.0;
+                          else if (value === "dislike") newScore = 2.0;
+                          
+                          setNumericalScore([newScore]);
+                          form.setValue("score", newScore);
                         }}
                         defaultValue={field.value}
                         className="grid grid-cols-3 gap-3"
@@ -191,27 +198,39 @@ export function AddReviewModal({ open, onOpenChange }: AddReviewModalProps) {
               />
 
               {/* Numerical Score Slider */}
-              <div className="space-y-3">
-                <FormLabel>Precise Score (0-10)</FormLabel>
-                <div className="px-3">
-                  <Slider
-                    value={numericalScore}
-                    onValueChange={setNumericalScore}
-                    max={10}
-                    min={0}
-                    step={0.1}
-                    className="w-full"
-                  />
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
-                    <span>0</span>
-                    <span className="font-semibold text-lg text-gray-800">{numericalScore[0].toFixed(1)}</span>
-                    <span>10</span>
-                  </div>
-                </div>
-                <p className="text-xs text-gray-500">
-                  Fine-tune your rating - this helps compare restaurants more precisely
-                </p>
-              </div>
+              <FormField
+                control={form.control}
+                name="score"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Precise Score (0-10)</FormLabel>
+                    <FormControl>
+                      <div className="px-3">
+                        <Slider
+                          value={[field.value]}
+                          onValueChange={(value) => {
+                            field.onChange(value[0]);
+                            setNumericalScore(value);
+                          }}
+                          max={10}
+                          min={0}
+                          step={0.1}
+                          className="w-full"
+                        />
+                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                          <span>0</span>
+                          <span className="font-semibold text-lg text-gray-800">{(field.value || 7.5).toFixed(1)}</span>
+                          <span>10</span>
+                        </div>
+                      </div>
+                    </FormControl>
+                    <p className="text-xs text-gray-500">
+                      Fine-tune your rating - this helps compare restaurants more precisely
+                    </p>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
             {/* Optional Fields */}
