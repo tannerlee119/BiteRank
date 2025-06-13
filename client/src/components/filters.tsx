@@ -14,18 +14,26 @@ interface FiltersProps {
   search: string;
   location: string;
   rating: string;
+  cuisine: string;
+  tags: string;
   onSearchChange: (value: string) => void;
   onLocationChange: (value: string) => void;
   onRatingChange: (value: string) => void;
+  onCuisineChange: (value: string) => void;
+  onTagsChange: (value: string) => void;
 }
 
 export function Filters({
   search,
   location,
   rating,
+  cuisine,
+  tags,
   onSearchChange,
   onLocationChange,
   onRatingChange,
+  onCuisineChange,
+  onTagsChange,
 }: FiltersProps) {
   return (
     <Card className="p-6 mb-6">
@@ -50,6 +58,41 @@ export function Filters({
               value={location}
               onChange={(e) => onLocationChange(e.target.value)}
               className="pl-10"
+            />
+          </div>
+
+          <div className="w-full sm:w-48">
+            <Select value={cuisine} onValueChange={onCuisineChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Any cuisine" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Cuisines</SelectItem>
+                <SelectItem value="american">American</SelectItem>
+                <SelectItem value="italian">Italian</SelectItem>
+                <SelectItem value="chinese">Chinese</SelectItem>
+                <SelectItem value="japanese">Japanese</SelectItem>
+                <SelectItem value="mexican">Mexican</SelectItem>
+                <SelectItem value="indian">Indian</SelectItem>
+                <SelectItem value="thai">Thai</SelectItem>
+                <SelectItem value="french">French</SelectItem>
+                <SelectItem value="mediterranean">Mediterranean</SelectItem>
+                <SelectItem value="korean">Korean</SelectItem>
+                <SelectItem value="pizza">Pizza</SelectItem>
+                <SelectItem value="burgers">Burgers</SelectItem>
+                <SelectItem value="sushi">Sushi</SelectItem>
+                <SelectItem value="cafe">Cafe</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="w-full sm:w-48">
+            <Input
+              type="text"
+              placeholder="Search tags..."
+              value={tags}
+              onChange={(e) => onTagsChange(e.target.value)}
             />
           </div>
         </div>

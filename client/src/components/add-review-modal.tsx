@@ -25,6 +25,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Slider } from "@/components/ui/slider";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ThumbsUp, Minus, ThumbsDown } from "lucide-react";
 
 interface AddReviewModalProps {
@@ -42,6 +49,7 @@ export function AddReviewModal({ open, onOpenChange }: AddReviewModalProps) {
     defaultValues: {
       restaurantName: "",
       restaurantLocation: "",
+      restaurantCuisine: "",
       rating: "like",
       score: 7.5,
       note: "",
@@ -118,6 +126,54 @@ export function AddReviewModal({ open, onOpenChange }: AddReviewModalProps) {
                     <FormControl>
                       <Input placeholder="Address, city, or coordinates" {...field} />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="restaurantCuisine"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cuisine Type</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select cuisine type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="american">American</SelectItem>
+                        <SelectItem value="italian">Italian</SelectItem>
+                        <SelectItem value="chinese">Chinese</SelectItem>
+                        <SelectItem value="japanese">Japanese</SelectItem>
+                        <SelectItem value="mexican">Mexican</SelectItem>
+                        <SelectItem value="indian">Indian</SelectItem>
+                        <SelectItem value="thai">Thai</SelectItem>
+                        <SelectItem value="french">French</SelectItem>
+                        <SelectItem value="mediterranean">Mediterranean</SelectItem>
+                        <SelectItem value="korean">Korean</SelectItem>
+                        <SelectItem value="vietnamese">Vietnamese</SelectItem>
+                        <SelectItem value="greek">Greek</SelectItem>
+                        <SelectItem value="turkish">Turkish</SelectItem>
+                        <SelectItem value="spanish">Spanish</SelectItem>
+                        <SelectItem value="german">German</SelectItem>
+                        <SelectItem value="british">British</SelectItem>
+                        <SelectItem value="brazilian">Brazilian</SelectItem>
+                        <SelectItem value="bbq">BBQ</SelectItem>
+                        <SelectItem value="seafood">Seafood</SelectItem>
+                        <SelectItem value="vegetarian">Vegetarian</SelectItem>
+                        <SelectItem value="pizza">Pizza</SelectItem>
+                        <SelectItem value="burgers">Burgers</SelectItem>
+                        <SelectItem value="sushi">Sushi</SelectItem>
+                        <SelectItem value="cafe">Cafe</SelectItem>
+                        <SelectItem value="bakery">Bakery</SelectItem>
+                        <SelectItem value="fast-food">Fast Food</SelectItem>
+                        <SelectItem value="fine-dining">Fine Dining</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

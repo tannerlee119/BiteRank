@@ -103,11 +103,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Review routes
   app.get("/api/reviews", requireAuth, async (req, res) => {
     try {
-      const { rating, location, search } = req.query;
+      const { rating, location, search, cuisine, tags } = req.query;
       const reviews = await storage.getUserReviews(req.session.userId!, {
         rating: rating as string,
         location: location as string,
         search: search as string,
+        cuisine: cuisine as string,
+        tags: tags as string,
       });
       res.json(reviews);
     } catch (error: any) {
@@ -129,6 +131,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         restaurant = await storage.createRestaurant({
           name: reviewData.restaurantName,
           location: reviewData.restaurantLocation,
+          cuisine: reviewData.restaurantCuisine,
         });
       }
 
