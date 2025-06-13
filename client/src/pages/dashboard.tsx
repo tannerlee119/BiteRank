@@ -23,7 +23,7 @@ export default function Dashboard() {
       if (rating) params.append("rating", rating);
       if (location && location.trim()) params.append("location", location);
       if (search) params.append("search", search);
-      if (cuisine && cuisine !== "all") params.append("cuisine", cuisine);
+      if (cuisine && cuisine.trim()) params.append("cuisine", cuisine);
       if (tags) params.append("tags", tags);
       
       const response = await fetch(`/api/reviews?${params.toString()}`, {

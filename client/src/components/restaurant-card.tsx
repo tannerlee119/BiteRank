@@ -55,6 +55,11 @@ export function RestaurantCard({ review }: RestaurantCardProps) {
               <MapPin className="w-4 h-4 mr-1" />
               {review.restaurant.location}
             </p>
+            {review.restaurant.cuisine && (
+              <p className="text-sm text-gray-500 mt-1 capitalize">
+                {review.restaurant.cuisine} cuisine
+              </p>
+            )}
           </div>
           <div className="flex items-center space-x-3">
             <div className="text-right">

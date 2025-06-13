@@ -146,10 +146,15 @@ export class DatabaseStorage implements IStorage {
     }
 
     if (filters?.tags && filters.tags.trim()) {
-      // For now, we'll search in the note field as well for tags
-      // In a future update, we can implement proper array searching
+      // Search in labels and note fields for tags
       const tagPattern = `%${filters.tags.trim()}%`;
-      conditions.push(ilike(reviews.note, tagPattern));
+      conditions.push(
+        or(
+          ilike(reviews.note, tagPattern),
+          // Search for tag in the labels field (stored as comma-separated string)
+          sql`array_to_string(${reviews.labels}, ',') ILIKE ${tagPattern}`
+        )!
+      );
     }
 
     const result = await db

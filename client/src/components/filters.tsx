@@ -62,29 +62,12 @@ export function Filters({
           </div>
 
           <div className="w-full sm:w-48">
-            <Select value={cuisine} onValueChange={onCuisineChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Any cuisine" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Cuisines</SelectItem>
-                <SelectItem value="american">American</SelectItem>
-                <SelectItem value="italian">Italian</SelectItem>
-                <SelectItem value="chinese">Chinese</SelectItem>
-                <SelectItem value="japanese">Japanese</SelectItem>
-                <SelectItem value="mexican">Mexican</SelectItem>
-                <SelectItem value="indian">Indian</SelectItem>
-                <SelectItem value="thai">Thai</SelectItem>
-                <SelectItem value="french">French</SelectItem>
-                <SelectItem value="mediterranean">Mediterranean</SelectItem>
-                <SelectItem value="korean">Korean</SelectItem>
-                <SelectItem value="pizza">Pizza</SelectItem>
-                <SelectItem value="burgers">Burgers</SelectItem>
-                <SelectItem value="sushi">Sushi</SelectItem>
-                <SelectItem value="cafe">Cafe</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
-              </SelectContent>
-            </Select>
+            <Input
+              type="text"
+              placeholder="Any cuisine..."
+              value={cuisine}
+              onChange={(e) => onCuisineChange(e.target.value)}
+            />
           </div>
 
           <div className="w-full sm:w-48">
