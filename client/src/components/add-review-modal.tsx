@@ -172,7 +172,7 @@ export function AddReviewModal({ open, onOpenChange }: AddReviewModalProps) {
                             }`}
                           >
                             <div className="w-8 h-8 text-orange-500 mx-auto mb-2 flex items-center justify-center border-2 border-orange-500 rounded-full">
-                              <Minus className="w-4 h-4" />
+                              <Minus className="w-4 h-4" strokeWidth={3} />
                             </div>
                             <div className="font-semibold text-gray-700">It's alright</div>
                             <div className="text-xs text-gray-500">Score: 3.4-6.6</div>

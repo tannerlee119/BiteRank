@@ -42,7 +42,7 @@ export function StatsCards() {
             <p className="text-3xl font-bold">{stats?.alrightCount || 0}</p>
           </div>
           <div className="w-8 h-8 text-orange-200 flex items-center justify-center border-2 border-orange-200 rounded-full">
-            <Minus className="w-4 h-4" />
+            <Minus className="w-4 h-4" strokeWidth={3} />
           </div>
         </div>
       </div>
