@@ -60,7 +60,7 @@ export function Filters({
             onClick={() => onRatingChange(rating === "like" ? "" : "like")}
             className={rating === "like" ? "bg-green-500 hover:bg-green-600" : ""}
           >
-            👍 Loved
+            Loved
           </Button>
           <Button
             variant={rating === "alright" ? "default" : "outline"}
@@ -74,7 +74,7 @@ export function Filters({
             onClick={() => onRatingChange(rating === "dislike" ? "" : "dislike")}
             className={rating === "dislike" ? "bg-red-500 hover:bg-red-600" : ""}
           >
-            👎 Not For Me
+            Not For Me
           </Button>
         </div>
       </div>
