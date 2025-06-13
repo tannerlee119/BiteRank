@@ -67,7 +67,7 @@ export function Filters({
                 <SelectValue placeholder="Any cuisine" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Cuisines</SelectItem>
+                <SelectItem value="all">All Cuisines</SelectItem>
                 <SelectItem value="american">American</SelectItem>
                 <SelectItem value="italian">Italian</SelectItem>
                 <SelectItem value="chinese">Chinese</SelectItem>

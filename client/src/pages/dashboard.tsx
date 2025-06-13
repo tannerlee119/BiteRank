@@ -13,14 +13,18 @@ export default function Dashboard() {
   const [search, setSearch] = useState("");
   const [location, setLocation] = useState("");
   const [rating, setRating] = useState("");
+  const [cuisine, setCuisine] = useState("");
+  const [tags, setTags] = useState("");
 
   const { data: reviews, isLoading } = useQuery<ReviewWithRestaurant[]>({
-    queryKey: ["/api/reviews", { rating, location, search }],
+    queryKey: ["/api/reviews", { rating, location, search, cuisine, tags }],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (rating) params.append("rating", rating);
       if (location && location.trim()) params.append("location", location);
       if (search) params.append("search", search);
+      if (cuisine && cuisine !== "all") params.append("cuisine", cuisine);
+      if (tags) params.append("tags", tags);
       
       const response = await fetch(`/api/reviews?${params.toString()}`, {
         credentials: "include",
@@ -55,9 +59,13 @@ export default function Dashboard() {
           search={search}
           location={location}
           rating={rating}
+          cuisine={cuisine}
+          tags={tags}
           onSearchChange={setSearch}
           onLocationChange={setLocation}
           onRatingChange={setRating}
+          onCuisineChange={setCuisine}
+          onTagsChange={setTags}
         />
 
         {/* Restaurant Grid */}

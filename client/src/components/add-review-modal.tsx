@@ -137,7 +137,7 @@ export function AddReviewModal({ open, onOpenChange }: AddReviewModalProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Cuisine Type</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value || ""}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select cuisine type" />
