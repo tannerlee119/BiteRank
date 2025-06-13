@@ -9,7 +9,9 @@ import {
   type Review,
   type ReviewWithRestaurant
 } from "@shared/schema";
-import { eq, desc, and, ilike, or } from "drizzle-orm";
+import { eq, desc, and, ilike, or, count } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/neon-http";
+import { neon } from "@neondatabase/serverless";
 
 export interface IStorage {
   // Users
@@ -36,62 +38,49 @@ export interface IStorage {
   deleteReview(reviewId: string, userId: string): Promise<boolean>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-  private restaurants: Map<string, Restaurant>;
-  private reviews: Map<string, Review>;
-  private currentUserId: number;
-  private currentRestaurantId: number;
-  private currentReviewId: number;
+// Initialize database connection
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+  throw new Error("DATABASE_URL environment variable is required");
+}
 
-  constructor() {
-    this.users = new Map();
-    this.restaurants = new Map();
-    this.reviews = new Map();
-    this.currentUserId = 1;
-    this.currentRestaurantId = 1;
-    this.currentReviewId = 1;
-  }
+const sqlConnection = neon(connectionString);
+export const db = drizzle(sqlConnection);
 
-  private generateUuid(): string {
-    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-  }
-
+export class DatabaseStorage implements IStorage {
   async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+    const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+    return result[0];
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(user => user.email === email);
+    const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+    return result[0];
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.generateUuid();
-    const user: User = {
-      ...insertUser,
-      id,
-      createdAt: new Date(),
-    };
-    this.users.set(id, user);
-    return user;
+    const result = await db.insert(users).values(insertUser).returning();
+    return result[0];
   }
 
   async getRestaurantByNameAndLocation(name: string, location: string): Promise<Restaurant | undefined> {
-    return Array.from(this.restaurants.values()).find(
-      restaurant => restaurant.name.toLowerCase() === name.toLowerCase() && 
-                   restaurant.location.toLowerCase() === location.toLowerCase()
-    );
+    const result = await db.select()
+      .from(restaurants)
+      .where(and(
+        ilike(restaurants.name, name),
+        ilike(restaurants.location, location)
+      ))
+      .limit(1);
+    return result[0];
   }
 
   async createRestaurant(insertRestaurant: InsertRestaurant): Promise<Restaurant> {
-    const id = this.generateUuid();
-    const restaurant: Restaurant = {
+    const result = await db.insert(restaurants).values({
       ...insertRestaurant,
-      id,
-      createdAt: new Date(),
-    };
-    this.restaurants.set(id, restaurant);
-    return restaurant;
+      googleRating: null,
+      yelpRating: null,
+    }).returning();
+    return result[0];
   }
 
   async getUserReviews(userId: string, filters?: {
@@ -99,51 +88,84 @@ export class MemStorage implements IStorage {
     location?: string;
     search?: string;
   }): Promise<ReviewWithRestaurant[]> {
-    const userReviews = Array.from(this.reviews.values())
-      .filter(review => review.userId === userId)
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    let query = db
+      .select({
+        id: reviews.id,
+        userId: reviews.userId,
+        restaurantId: reviews.restaurantId,
+        rating: reviews.rating,
+        score: reviews.score,
+        note: reviews.note,
+        favoriteDishes: reviews.favoriteDishes,
+        photoUrls: reviews.photoUrls,
+        labels: reviews.labels,
+        createdAt: reviews.createdAt,
+        restaurant: {
+          id: restaurants.id,
+          name: restaurants.name,
+          location: restaurants.location,
+          cuisine: restaurants.cuisine,
+          googleRating: restaurants.googleRating,
+          yelpRating: restaurants.yelpRating,
+          createdAt: restaurants.createdAt,
+        }
+      })
+      .from(reviews)
+      .innerJoin(restaurants, eq(reviews.restaurantId, restaurants.id))
+      .where(eq(reviews.userId, userId));
 
-    let filteredReviews = userReviews;
+    // Apply filters
+    const conditions = [eq(reviews.userId, userId)];
 
     if (filters?.rating) {
-      filteredReviews = filteredReviews.filter(review => review.rating === filters.rating);
+      conditions.push(eq(reviews.rating, filters.rating as any));
     }
 
     if (filters?.search) {
-      const searchLower = filters.search.toLowerCase();
-      filteredReviews = filteredReviews.filter(review => {
-        const restaurant = this.restaurants.get(review.restaurantId);
-        return restaurant?.name.toLowerCase().includes(searchLower) ||
-               restaurant?.location.toLowerCase().includes(searchLower) ||
-               review.note?.toLowerCase().includes(searchLower) ||
-               review.favoriteDishes?.some(dish => dish.toLowerCase().includes(searchLower));
-      });
+      const searchPattern = `%${filters.search}%`;
+      conditions.push(
+        or(
+          ilike(restaurants.name, searchPattern),
+          ilike(restaurants.location, searchPattern),
+          ilike(reviews.note, searchPattern)
+        )!
+      );
     }
 
     if (filters?.location) {
-      filteredReviews = filteredReviews.filter(review => {
-        const restaurant = this.restaurants.get(review.restaurantId);
-        return restaurant?.location.toLowerCase().includes(filters.location!.toLowerCase());
-      });
+      const locationPattern = `%${filters.location}%`;
+      conditions.push(ilike(restaurants.location, locationPattern));
     }
 
-    return filteredReviews.map(review => ({
-      ...review,
-      restaurant: this.restaurants.get(review.restaurantId)!,
+    query = query.where(and(...conditions));
+
+    const result = await query.orderBy(desc(reviews.createdAt));
+    
+    return result.map(row => ({
+      id: row.id,
+      userId: row.userId,
+      restaurantId: row.restaurantId,
+      rating: row.rating,
+      score: row.score,
+      note: row.note,
+      favoriteDishes: row.favoriteDishes,
+      photoUrls: row.photoUrls,
+      labels: row.labels,
+      createdAt: row.createdAt,
+      restaurant: row.restaurant
     }));
   }
 
   async createReview(userId: string, restaurantId: string, review: Omit<Review, 'id' | 'userId' | 'restaurantId' | 'createdAt'>): Promise<Review> {
-    const id = this.generateUuid();
-    const newReview: Review = {
+    const result = await db.insert(reviews).values({
       ...review,
-      id,
       userId,
       restaurantId,
-      createdAt: new Date(),
-    };
-    this.reviews.set(id, newReview);
-    return newReview;
+      favoriteDishes: review.favoriteDishes || null,
+      photoUrls: review.photoUrls || null,
+      labels: review.labels || null,
+    }).returning();
+    return result[0];
   }
 
   async getUserReviewStats(userId: string): Promise<{
@@ -151,23 +173,46 @@ export class MemStorage implements IStorage {
     alrightCount: number;
     dislikedCount: number;
   }> {
-    const userReviews = Array.from(this.reviews.values()).filter(review => review.userId === userId);
-    
-    return {
-      likedCount: userReviews.filter(review => review.rating === 'like').length,
-      alrightCount: userReviews.filter(review => review.rating === 'alright').length,
-      dislikedCount: userReviews.filter(review => review.rating === 'dislike').length,
+    const stats = await db
+      .select({
+        rating: reviews.rating,
+        count: count()
+      })
+      .from(reviews)
+      .where(eq(reviews.userId, userId))
+      .groupBy(reviews.rating);
+
+    const result = {
+      likedCount: 0,
+      alrightCount: 0,
+      dislikedCount: 0,
     };
+
+    stats.forEach(stat => {
+      switch (stat.rating) {
+        case 'like':
+          result.likedCount = stat.count;
+          break;
+        case 'alright':
+          result.alrightCount = stat.count;
+          break;
+        case 'dislike':
+          result.dislikedCount = stat.count;
+          break;
+      }
+    });
+
+    return result;
   }
 
   async deleteReview(reviewId: string, userId: string): Promise<boolean> {
-    const review = this.reviews.get(reviewId);
-    if (review && review.userId === userId) {
-      this.reviews.delete(reviewId);
-      return true;
-    }
-    return false;
+    const result = await db
+      .delete(reviews)
+      .where(and(eq(reviews.id, reviewId), eq(reviews.userId, userId)))
+      .returning();
+    
+    return result.length > 0;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
