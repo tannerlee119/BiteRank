@@ -44,30 +44,21 @@ if (!connectionString) {
   throw new Error("DATABASE_URL environment variable is required");
 }
 
-let sqlConnection: any;
-let db: any;
+const sqlConnection = postgres(connectionString, {
+  ssl: 'require',
+  max: 1,
+  idle_timeout: 20,
+  connect_timeout: 10
+});
 
-try {
-  sqlConnection = postgres(connectionString, {
-    ssl: 'require',
-    max: 1,
-    idle_timeout: 20,
-    connect_timeout: 10
-  });
-  db = drizzle(sqlConnection);
-} catch (error) {
-  console.error("Database connection setup error:", error);
-  throw error;
-}
-
-export { db };
+export const db = drizzle(sqlConnection);
 
 export class DatabaseStorage implements IStorage {
   async getUser(id: string): Promise<User | undefined> {
     try {
       const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
       return result[0];
-    } catch (error) {
+    } catch (error: any) {
       console.error("Database error in getUser:", error);
       throw new Error(`Database connection failed: ${error.message}`);
     }
@@ -77,7 +68,7 @@ export class DatabaseStorage implements IStorage {
     try {
       const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
       return result[0];
-    } catch (error) {
+    } catch (error: any) {
       console.error("Database error in getUserByEmail:", error);
       throw new Error(`Database connection failed: ${error.message}`);
     }
@@ -91,7 +82,7 @@ export class DatabaseStorage implements IStorage {
         passwordHash: insertUser.passwordHash,
       }).returning();
       return result[0];
-    } catch (error) {
+    } catch (error: any) {
       console.error("Database error in createUser:", error);
       throw new Error(`Database connection failed: ${error.message}`);
     }
