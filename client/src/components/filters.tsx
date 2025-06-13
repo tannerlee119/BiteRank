@@ -1,4 +1,4 @@
-import { Search, MapPin } from "lucide-react";
+import { Search, MapPin, Minus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -67,7 +67,7 @@ export function Filters({
             onClick={() => onRatingChange(rating === "alright" ? "" : "alright")}
             className={rating === "alright" ? "bg-orange-500 hover:bg-orange-600" : ""}
           >
-            ⊖ Alright
+            <Minus className="w-4 h-4 mr-1" strokeWidth={3} /> Alright
           </Button>
           <Button
             variant={rating === "dislike" ? "default" : "outline"}
