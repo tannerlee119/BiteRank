@@ -19,7 +19,7 @@ export default function Dashboard() {
     queryFn: async () => {
       const params = new URLSearchParams();
       if (rating) params.append("rating", rating);
-      if (location) params.append("location", location);
+      if (location && location !== "all") params.append("location", location);
       if (search) params.append("search", search);
       
       const response = await fetch(`/api/reviews?${params.toString()}`, {

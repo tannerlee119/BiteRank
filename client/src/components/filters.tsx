@@ -50,7 +50,7 @@ export function Filters({
               </div>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Locations</SelectItem>
+              <SelectItem value="all">All Locations</SelectItem>
               <SelectItem value="san francisco">San Francisco</SelectItem>
               <SelectItem value="new york">New York</SelectItem>
               <SelectItem value="los angeles">Los Angeles</SelectItem>
