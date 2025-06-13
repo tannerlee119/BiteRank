@@ -23,7 +23,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { ThumbsUp, Meh, ThumbsDown } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
+import { ThumbsUp, Minus, ThumbsDown } from "lucide-react";
 
 interface AddReviewModalProps {
   open: boolean;
@@ -33,6 +34,7 @@ interface AddReviewModalProps {
 export function AddReviewModal({ open, onOpenChange }: AddReviewModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [numericalScore, setNumericalScore] = useState([7.5]);
 
   const form = useForm<InsertReview>({
     resolver: zodResolver(insertReviewSchema),
@@ -152,7 +154,9 @@ export function AddReviewModal({ open, onOpenChange }: AddReviewModalProps) {
                                 : "border-gray-300"
                             }`}
                           >
-                            <Meh className="w-8 h-8 text-orange-500 mx-auto mb-2" />
+                            <div className="w-8 h-8 text-orange-500 mx-auto mb-2 flex items-center justify-center border-2 border-orange-500 rounded-full">
+                              <Minus className="w-4 h-4" />
+                            </div>
                             <div className="font-semibold text-gray-700">It's alright</div>
                             <div className="text-xs text-gray-500">Score: 3.4-6.6</div>
                           </label>

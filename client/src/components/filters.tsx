@@ -42,20 +42,16 @@ export function Filters({
             />
           </div>
 
-          <Select value={location} onValueChange={onLocationChange}>
-            <SelectTrigger className="w-full sm:w-48">
-              <div className="flex items-center">
-                <MapPin className="w-4 h-4 mr-2 text-gray-400" />
-                <SelectValue placeholder="All Locations" />
-              </div>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Locations</SelectItem>
-              <SelectItem value="san francisco">San Francisco</SelectItem>
-              <SelectItem value="new york">New York</SelectItem>
-              <SelectItem value="los angeles">Los Angeles</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="relative w-full sm:w-48">
+            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              type="text"
+              placeholder="Any location..."
+              value={location}
+              onChange={(e) => onLocationChange(e.target.value)}
+              className="pl-10"
+            />
+          </div>
         </div>
 
         <div className="flex space-x-2">
@@ -71,7 +67,7 @@ export function Filters({
             onClick={() => onRatingChange(rating === "alright" ? "" : "alright")}
             className={rating === "alright" ? "bg-orange-500 hover:bg-orange-600" : ""}
           >
-            😐 Alright
+            ⊖ Alright
           </Button>
           <Button
             variant={rating === "dislike" ? "default" : "outline"}

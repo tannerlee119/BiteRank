@@ -131,8 +131,8 @@ export class DatabaseStorage implements IStorage {
       );
     }
 
-    if (filters?.location && filters.location !== "all") {
-      const locationPattern = `%${filters.location}%`;
+    if (filters?.location && filters.location.trim()) {
+      const locationPattern = `%${filters.location.trim()}%`;
       conditions.push(ilike(restaurants.location, locationPattern));
     }
 
