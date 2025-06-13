@@ -1,0 +1,151 @@
+Here's a **Product Requirements Document (PRD)** for your food reviewing website inspired by *Beli*, with Supabase as the backend.
+
+---
+
+## 📄 Product Requirements Document (PRD)
+
+**Project Name:** BiteRank
+**Purpose:** A personalized food review and discovery platform with a simple feedback system, restaurant ranking logic, and Supabase backend.
+
+---
+
+### 1. **Overview**
+
+BiteRank allows users to track and categorize restaurants they’ve visited by rating them as:
+
+* 👍 "I like it"
+* 😐 "It’s alright"
+* 👎 "I didn’t like it"
+
+These ratings map to a numeric scale and organize restaurants into three brackets for clarity. Additional optional metadata like photos, favorite dishes, and personal notes can be added. A location field is required. The system is backed by Supabase with plans for a scalable scraper, and Google login support.
+
+---
+
+### 2. **Core Features**
+
+#### A. **Restaurant Review Submission**
+
+* **Required Fields:**
+
+  * Restaurant name (string)
+  * Location (string – address, city, or map coordinates)
+  * Rating (enum: "Like", "Alright", "Didn't like")
+* **Optional Fields:**
+
+  * Favorite dishes (array of strings)
+  * Photos (array of URLs)
+  * Personal note (text)
+  * Tags/labels (array of strings, e.g., “cozy”, “cheap eats”, etc.)
+
+#### B. **Scoring System**
+
+* Ratings mapped to numerical brackets:
+
+  * 👍 "Like it" → **Score: 10–6.7**
+  * 😐 "It’s alright" → **Score: 6.6–3.4**
+  * 👎 "Didn’t like it" → **Score: 3.3–0**
+* Brackets used for sorting and filtering in the UI.
+
+#### C. **Restaurant Browsing**
+
+* Ability to view your rated restaurants categorized by the score brackets.
+* Filters:
+
+  * Cuisine type (when available)
+  * Location
+  * Score bracket
+
+#### D. **Authentication**
+
+* Basic login system with:
+
+  * Email/password (Supabase Auth)
+  * Google OAuth login (using Supabase Auth integration)
+* Session persistence and basic user profile storage (e.g., display name, email).
+
+#### E. **Backend / Database (Supabase)**
+
+Tables:
+
+1. **Users**
+
+   * id (UUID, PK)
+   * email
+   * display\_name
+   * auth\_provider
+
+2. **Restaurants**
+
+   * id (UUID, PK)
+   * name (string)
+   * location (string)
+   * cuisine (string, nullable)
+   * google\_rating (float, nullable)
+   * yelp\_rating (float, nullable)
+
+3. **Reviews**
+
+   * id (UUID, PK)
+   * user\_id (FK to Users)
+   * restaurant\_id (FK to Restaurants)
+   * rating (enum: Like, Alright, Didn’t Like)
+   * score (float, calculated or assigned based on rating)
+   * note (text, optional)
+   * favorite\_dishes (array\[string], optional)
+   * photo\_urls (array\[string], optional)
+   * labels (array\[string], optional)
+   * created\_at (timestamp)
+
+---
+
+### 3. **Future Features**
+
+#### A. **Web Scraper (Roadmap Q2)**
+
+* Scrape restaurant data from Google Maps, Yelp:
+
+  * Name, location, cuisine, Google/Yelp rating
+* Store results in **Restaurants** table
+* Tag scraped entries as `source = "scraper"` to distinguish
+
+#### B. **Explore Page**
+
+* Discover new restaurants based on:
+
+  * Your history
+  * Ratings from others (if social features are enabled)
+  * Proximity or cuisine
+
+#### C. **Social Features (Optional V2)**
+
+* Follow friends
+* See where your friends have eaten
+* “Want to try” list
+
+---
+
+### 4. **Tech Stack**
+
+* **Frontend:** React / Next.js or React Native (if mobile-first)
+* **Backend:** Supabase (PostgreSQL + Auth + Storage)
+* **Scraping Tool:** Puppeteer / Playwright + CRON job (Node.js)
+* **Hosting:** Vercel / Netlify (frontend) + Supabase backend
+
+---
+
+### 5. **MVP Scope Checklist**
+
+| Feature                                 | Included in MVP |
+| --------------------------------------- | --------------- |
+| Submit review                           | ✅               |
+| View and filter reviews                 | ✅               |
+| Score-based sorting                     | ✅               |
+| Location (required)                     | ✅               |
+| Optional fields (notes, photos, dishes) | ✅               |
+| Supabase DB structure                   | ✅               |
+| Google login                            | ✅               |
+| Scraper                                 | ❌ (future)      |
+
+---
+
+Would you like the Supabase schema for the tables as SQL next?
