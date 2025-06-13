@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
-import { Heart, Meh, ThumbsDown } from "lucide-react";
+import { Heart, Minus, ThumbsDown } from "lucide-react";
 
 export function StatsCards() {
   const { data: stats, isLoading } = useQuery<{
@@ -41,7 +41,9 @@ export function StatsCards() {
             <p className="text-orange-100 text-sm font-medium">It's Alright</p>
             <p className="text-3xl font-bold">{stats?.alrightCount || 0}</p>
           </div>
-          <Meh className="text-2xl text-orange-200" />
+          <div className="w-8 h-8 text-orange-200 flex items-center justify-center border-2 border-orange-200 rounded-full">
+            <Minus className="w-4 h-4" />
+          </div>
         </div>
       </div>
 
