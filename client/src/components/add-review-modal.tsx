@@ -252,6 +252,7 @@ export function AddReviewModal({ open, onOpenChange }: AddReviewModalProps) {
                           placeholder="What did you think? Any memorable experiences?"
                           rows={3}
                           {...field}
+                          value={field.value || ""}
                         />
                       </FormControl>
                       <FormMessage />

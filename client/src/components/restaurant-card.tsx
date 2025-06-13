@@ -56,9 +56,17 @@ export function RestaurantCard({ review }: RestaurantCardProps) {
               {review.restaurant.location}
             </p>
           </div>
-          <Badge className={`${getRatingColor(review.rating)} text-white`}>
-            {getRatingLabel(review.rating)}
-          </Badge>
+          <div className="flex items-center space-x-3">
+            <div className="text-right">
+              <div className="text-2xl font-bold text-neutral-900">
+                {review.score.toFixed(1)}
+              </div>
+              <div className="text-xs text-gray-500">out of 10</div>
+            </div>
+            <Badge className={`${getRatingColor(review.rating)} text-white`}>
+              {getRatingLabel(review.rating)}
+            </Badge>
+          </div>
         </div>
 
         {review.note && (
