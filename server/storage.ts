@@ -9,7 +9,7 @@ import {
   type Review,
   type ReviewWithRestaurant
 } from "@shared/schema";
-import { eq, desc, and, ilike, or, count } from "drizzle-orm";
+import { eq, desc, and, ilike, or, count, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 
@@ -28,6 +28,8 @@ export interface IStorage {
     rating?: string;
     location?: string;
     search?: string;
+    cuisine?: string;
+    tags?: string;
   }): Promise<ReviewWithRestaurant[]>;
   createReview(userId: string, restaurantId: string, review: Omit<Review, 'id' | 'userId' | 'restaurantId' | 'createdAt'>): Promise<Review>;
   getUserReviewStats(userId: string): Promise<{
@@ -112,6 +114,8 @@ export class DatabaseStorage implements IStorage {
     rating?: string;
     location?: string;
     search?: string;
+    cuisine?: string;
+    tags?: string;
   }): Promise<ReviewWithRestaurant[]> {
     // Apply filters
     const conditions = [eq(reviews.userId, userId)];
@@ -131,9 +135,26 @@ export class DatabaseStorage implements IStorage {
       );
     }
 
-    if (filters?.location && filters.location !== "all") {
-      const locationPattern = `%${filters.location}%`;
+    if (filters?.location && filters.location.trim()) {
+      const locationPattern = `%${filters.location.trim()}%`;
       conditions.push(ilike(restaurants.location, locationPattern));
+    }
+
+    if (filters?.cuisine && filters.cuisine.trim()) {
+      const cuisinePattern = `%${filters.cuisine.trim()}%`;
+      conditions.push(ilike(restaurants.cuisine, cuisinePattern));
+    }
+
+    if (filters?.tags && filters.tags.trim()) {
+      // Search in labels and note fields for tags
+      const tagPattern = `%${filters.tags.trim()}%`;
+      conditions.push(
+        or(
+          ilike(reviews.note, tagPattern),
+          // Search for tag in the labels field (stored as comma-separated string)
+          sql`array_to_string(${reviews.labels}, ',') ILIKE ${tagPattern}`
+        )!
+      );
     }
 
     const result = await db

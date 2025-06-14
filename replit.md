@@ -106,6 +106,12 @@ The application uses PostgreSQL with three main tables:
 ## Changelog
 
 - June 13, 2025. Initial setup
+- June 13, 2025. Added cuisine selection and filtering:
+  - Added cuisine field to restaurant creation and review modal
+  - Implemented flexible text-based cuisine filtering (replaces preset dropdown)
+  - Enhanced tag search functionality to search both labels and notes
+  - Added cuisine display on restaurant cards
+  - Updated backend storage to handle cuisine and tag filtering
 
 ## User Preferences
 

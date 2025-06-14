@@ -103,11 +103,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Review routes
   app.get("/api/reviews", requireAuth, async (req, res) => {
     try {
-      const { rating, location, search } = req.query;
+      const { rating, location, search, cuisine, tags } = req.query;
       const reviews = await storage.getUserReviews(req.session.userId!, {
         rating: rating as string,
         location: location as string,
         search: search as string,
+        cuisine: cuisine as string,
+        tags: tags as string,
       });
       res.json(reviews);
     } catch (error: any) {
@@ -129,24 +131,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         restaurant = await storage.createRestaurant({
           name: reviewData.restaurantName,
           location: reviewData.restaurantLocation,
+          cuisine: reviewData.restaurantCuisine,
         });
       }
 
-      // Calculate score based on rating
-      let score: number;
-      switch (reviewData.rating) {
-        case 'like':
-          score = 8.5; // Representative score in 6.7-10 range
-          break;
-        case 'alright':
-          score = 5.0; // Representative score in 3.4-6.6 range
-          break;
-        case 'dislike':
-          score = 2.0; // Representative score in 0-3.3 range
-          break;
-        default:
-          score = 5.0;
-      }
+      // Use the precise score from the frontend (Beli-style rating)
+      const score = reviewData.score;
 
       // Parse comma-separated strings into arrays
       const favoriteDishes = reviewData.favoriteDishes 

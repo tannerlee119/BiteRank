@@ -1,4 +1,4 @@
-import { Search, MapPin } from "lucide-react";
+import { Search, MapPin, Minus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,18 +14,26 @@ interface FiltersProps {
   search: string;
   location: string;
   rating: string;
+  cuisine: string;
+  tags: string;
   onSearchChange: (value: string) => void;
   onLocationChange: (value: string) => void;
   onRatingChange: (value: string) => void;
+  onCuisineChange: (value: string) => void;
+  onTagsChange: (value: string) => void;
 }
 
 export function Filters({
   search,
   location,
   rating,
+  cuisine,
+  tags,
   onSearchChange,
   onLocationChange,
   onRatingChange,
+  onCuisineChange,
+  onTagsChange,
 }: FiltersProps) {
   return (
     <Card className="p-6 mb-6">
@@ -42,20 +50,34 @@ export function Filters({
             />
           </div>
 
-          <Select value={location} onValueChange={onLocationChange}>
-            <SelectTrigger className="w-full sm:w-48">
-              <div className="flex items-center">
-                <MapPin className="w-4 h-4 mr-2 text-gray-400" />
-                <SelectValue placeholder="All Locations" />
-              </div>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Locations</SelectItem>
-              <SelectItem value="san francisco">San Francisco</SelectItem>
-              <SelectItem value="new york">New York</SelectItem>
-              <SelectItem value="los angeles">Los Angeles</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="relative w-full sm:w-48">
+            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              type="text"
+              placeholder="Any location..."
+              value={location}
+              onChange={(e) => onLocationChange(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+
+          <div className="w-full sm:w-48">
+            <Input
+              type="text"
+              placeholder="Any cuisine..."
+              value={cuisine}
+              onChange={(e) => onCuisineChange(e.target.value)}
+            />
+          </div>
+
+          <div className="w-full sm:w-48">
+            <Input
+              type="text"
+              placeholder="Search tags..."
+              value={tags}
+              onChange={(e) => onTagsChange(e.target.value)}
+            />
+          </div>
         </div>
 
         <div className="flex space-x-2">
@@ -64,21 +86,21 @@ export function Filters({
             onClick={() => onRatingChange(rating === "like" ? "" : "like")}
             className={rating === "like" ? "bg-green-500 hover:bg-green-600" : ""}
           >
-            👍 Loved
+            Loved
           </Button>
           <Button
             variant={rating === "alright" ? "default" : "outline"}
             onClick={() => onRatingChange(rating === "alright" ? "" : "alright")}
             className={rating === "alright" ? "bg-orange-500 hover:bg-orange-600" : ""}
           >
-            😐 Alright
+            Alright
           </Button>
           <Button
             variant={rating === "dislike" ? "default" : "outline"}
             onClick={() => onRatingChange(rating === "dislike" ? "" : "dislike")}
             className={rating === "dislike" ? "bg-red-500 hover:bg-red-600" : ""}
           >
-            👎 Not For Me
+            Not For Me
           </Button>
         </div>
       </div>

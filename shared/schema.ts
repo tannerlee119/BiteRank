@@ -52,13 +52,14 @@ export const insertReviewSchema = createInsertSchema(reviews).omit({
   id: true,
   userId: true,
   restaurantId: true,
-  score: true,
   createdAt: true,
 }).extend({
   restaurantName: z.string().min(1, "Restaurant name is required"),
   restaurantLocation: z.string().min(1, "Location is required"),
+  restaurantCuisine: z.string().optional(),
   favoriteDishes: z.string().optional(),
   labels: z.string().optional(),
+  score: z.number().min(0).max(10),
 });
 
 export type User = typeof users.$inferSelect;
