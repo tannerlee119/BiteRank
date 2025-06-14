@@ -168,17 +168,17 @@ export function AddReviewModal({ open, onOpenChange }: AddReviewModalProps) {
                         className="grid grid-cols-3 gap-3"
                       >
                         <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="dislike" id="dislike" className="sr-only" />
+                          <RadioGroupItem value="like" id="like" className="sr-only" />
                           <label
-                            htmlFor="dislike"
-                            className={`cursor-pointer border-2 rounded-lg p-4 text-center hover:border-red-500 hover:bg-red-50 transition-colors flex-1 ${
-                              field.value === "dislike"
-                                ? "border-red-500 bg-red-50"
+                            htmlFor="like"
+                            className={`cursor-pointer border-2 rounded-lg p-4 text-center hover:border-green-500 hover:bg-green-50 transition-colors flex-1 ${
+                              field.value === "like"
+                                ? "border-green-500 bg-green-50"
                                 : "border-gray-300"
                             }`}
                           >
-                            <ThumbsDown className="w-8 h-8 text-red-500 mx-auto mb-2" />
-                            <div className="font-semibold text-gray-700">I didn't like it</div>
+                            <ThumbsUp className="w-8 h-8 text-green-500 mx-auto mb-2" />
+                            <div className="font-semibold text-gray-700">I like it</div>
                           </label>
                         </div>
 
@@ -200,17 +200,17 @@ export function AddReviewModal({ open, onOpenChange }: AddReviewModalProps) {
                         </div>
 
                         <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="like" id="like" className="sr-only" />
+                          <RadioGroupItem value="dislike" id="dislike" className="sr-only" />
                           <label
-                            htmlFor="like"
-                            className={`cursor-pointer border-2 rounded-lg p-4 text-center hover:border-green-500 hover:bg-green-50 transition-colors flex-1 ${
-                              field.value === "like"
-                                ? "border-green-500 bg-green-50"
+                            htmlFor="dislike"
+                            className={`cursor-pointer border-2 rounded-lg p-4 text-center hover:border-red-500 hover:bg-red-50 transition-colors flex-1 ${
+                              field.value === "dislike"
+                                ? "border-red-500 bg-red-50"
                                 : "border-gray-300"
                             }`}
                           >
-                            <ThumbsUp className="w-8 h-8 text-green-500 mx-auto mb-2" />
-                            <div className="font-semibold text-gray-700">I like it</div>
+                            <ThumbsDown className="w-8 h-8 text-red-500 mx-auto mb-2" />
+                            <div className="font-semibold text-gray-700">I didn't like it</div>
                           </label>
                         </div>
                       </RadioGroup>
@@ -232,17 +232,8 @@ export function AddReviewModal({ open, onOpenChange }: AddReviewModalProps) {
                         <Slider
                           value={[field.value ?? 7.5]}
                           onValueChange={(value) => {
-                            const newValue = value[0];
-                            field.onChange(newValue);
-                            setNumericalScore([newValue]);
-                            // Update rating category based on score
-                            if (newValue >= 6.7) {
-                              form.setValue("rating", "like");
-                            } else if (newValue >= 3.4) {
-                              form.setValue("rating", "alright");
-                            } else {
-                              form.setValue("rating", "dislike");
-                            }
+                            field.onChange(value[0]);
+                            setNumericalScore(value);
                           }}
                           max={10}
                           min={0}
@@ -251,195 +242,7 @@ export function AddReviewModal({ open, onOpenChange }: AddReviewModalProps) {
                         />
                         <div className="flex justify-between text-xs text-gray-500 mt-1">
                           <span>0</span>
-                          <div 
-                            className="font-semibold text-lg text-gray-800 cursor-pointer hover:text-primary transition-colors"
-                            onClick={(e) => {
-                              const target = e.currentTarget;
-                              const input = document.createElement('input');
-                              input.type = 'number';
-                              input.min = '0';
-                              input.max = '10';
-                              input.step = '0.1';
-                              input.value = (field.value ?? 7.5).toString();
-                              input.className = 'w-16 text-center font-semibold text-lg text-gray-800 border rounded px-1 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none';
-                              
-                              const handleInput = (e: Event) => {
-                                const target = e.target as HTMLInputElement;
-                                let value = parseFloat(target.value);
-                                
-                                // Handle invalid inputs
-                                if (isNaN(value)) {
-                                  value = 0;
-                                } else if (value < 0) {
-                                  value = 0;
-                                } else if (value > 10) {
-                                  value = 10;
-                                }
-                                
-                                // Only allow one decimal point
-                                if (target.value.split('.').length > 2) {
-                                  target.value = target.value.slice(0, target.value.lastIndexOf('.'));
-                                }
-                                // Limit to one decimal place
-                                if (target.value.includes('.')) {
-                                  const [whole, decimal] = target.value.split('.');
-                                  if (decimal && decimal.length > 1) {
-                                    target.value = `${whole}.${decimal[0]}`;
-                                  }
-                                }
-                                
-                                // Update the input value if it was clamped
-                                if (value !== parseFloat(target.value)) {
-                                  target.value = value.toString();
-                                }
-                                
-                                field.onChange(value);
-                                setNumericalScore([value]);
-                                // Update rating category based on score
-                                if (value >= 6.7) {
-                                  form.setValue("rating", "like");
-                                } else if (value >= 3.4) {
-                                  form.setValue("rating", "alright");
-                                } else {
-                                  form.setValue("rating", "dislike");
-                                }
-                              };
-
-                              const handleKeyDown = (e: KeyboardEvent) => {
-                                if (e.key === 'Enter') {
-                                  e.preventDefault();
-                                  const value = parseFloat(input.value);
-                                  if (!isNaN(value)) {
-                                    field.onChange(value);
-                                    setNumericalScore([value]);
-                                  }
-                                  input.blur();
-                                }
-                              };
-
-                              const handleBlur = () => {
-                                const value = parseFloat(input.value);
-                                if (!isNaN(value)) {
-                                  field.onChange(value);
-                                  setNumericalScore([value]);
-                                }
-                                
-                                input.removeEventListener('input', handleInput);
-                                input.removeEventListener('keydown', handleKeyDown);
-                                input.removeEventListener('blur', handleBlur);
-                                
-                                // Create a new div to replace the input
-                                const scoreDiv = document.createElement('div');
-                                scoreDiv.className = 'font-semibold text-lg text-gray-800 cursor-pointer hover:text-primary transition-colors';
-                                scoreDiv.textContent = (field.value ?? 7.5).toFixed(1);
-                                
-                                // Add click handler to the new div
-                                scoreDiv.onclick = (e) => {
-                                  const newInput = document.createElement('input');
-                                  newInput.type = 'number';
-                                  newInput.min = '0';
-                                  newInput.max = '10';
-                                  newInput.step = '0.1';
-                                  newInput.value = (field.value ?? 7.5).toString();
-                                  newInput.className = 'w-16 text-center font-semibold text-lg text-gray-800 border rounded px-1 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none';
-                                  
-                                  const handleNewInput = (e: Event) => {
-                                    const target = e.target as HTMLInputElement;
-                                    let value = parseFloat(target.value);
-                                    
-                                    // Handle invalid inputs
-                                    if (isNaN(value)) {
-                                      value = 0;
-                                    } else if (value < 0) {
-                                      value = 0;
-                                    } else if (value > 10) {
-                                      value = 10;
-                                    }
-                                    
-                                    // Only allow one decimal point
-                                    if (target.value.split('.').length > 2) {
-                                      target.value = target.value.slice(0, target.value.lastIndexOf('.'));
-                                    }
-                                    // Limit to one decimal place
-                                    if (target.value.includes('.')) {
-                                      const [whole, decimal] = target.value.split('.');
-                                      if (decimal && decimal.length > 1) {
-                                        target.value = `${whole}.${decimal[0]}`;
-                                      }
-                                    }
-                                    
-                                    // Update the input value if it was clamped
-                                    if (value !== parseFloat(target.value)) {
-                                      target.value = value.toString();
-                                    }
-                                    
-                                    field.onChange(value);
-                                    setNumericalScore([value]);
-                                    // Update rating category based on score
-                                    if (value >= 6.7) {
-                                      form.setValue("rating", "like");
-                                    } else if (value >= 3.4) {
-                                      form.setValue("rating", "alright");
-                                    } else {
-                                      form.setValue("rating", "dislike");
-                                    }
-                                  };
-
-                                  const handleNewKeyDown = (e: KeyboardEvent) => {
-                                    if (e.key === 'Enter') {
-                                      e.preventDefault();
-                                      const value = parseFloat(newInput.value);
-                                      if (!isNaN(value)) {
-                                        field.onChange(value);
-                                        setNumericalScore([value]);
-                                      }
-                                      newInput.blur();
-                                    }
-                                  };
-
-                                  const handleNewBlur = () => {
-                                    const value = parseFloat(newInput.value);
-                                    if (!isNaN(value)) {
-                                      field.onChange(value);
-                                      setNumericalScore([value]);
-                                    }
-                                    
-                                    newInput.removeEventListener('input', handleNewInput);
-                                    newInput.removeEventListener('keydown', handleNewKeyDown);
-                                    newInput.removeEventListener('blur', handleNewBlur);
-                                    
-                                    // Create a new div to replace the input
-                                    const newScoreDiv = document.createElement('div');
-                                    newScoreDiv.className = 'font-semibold text-lg text-gray-800 cursor-pointer hover:text-primary transition-colors';
-                                    newScoreDiv.textContent = (field.value ?? 7.5).toFixed(1);
-                                    newScoreDiv.onclick = scoreDiv.onclick;
-                                    
-                                    newInput.replaceWith(newScoreDiv);
-                                  };
-
-                                  newInput.addEventListener('input', handleNewInput);
-                                  newInput.addEventListener('keydown', handleNewKeyDown);
-                                  newInput.addEventListener('blur', handleNewBlur);
-                                  newInput.focus();
-                                  newInput.select();
-                                  
-                                  scoreDiv.replaceWith(newInput);
-                                };
-                                
-                                input.replaceWith(scoreDiv);
-                              };
-
-                              input.addEventListener('input', handleInput);
-                              input.addEventListener('keydown', handleKeyDown);
-                              input.addEventListener('blur', handleBlur);
-                              input.focus();
-                              input.select();
-                              
-                              target.replaceWith(input);
-                            }}
-                          >
-                            {(field.value ?? 7.5).toFixed(1)}
-                          </div>
+                          <span className="font-semibold text-lg text-gray-800">{(field.value ?? 7.5).toFixed(1)}</span>
                           <span>10</span>
                         </div>
                       </div>

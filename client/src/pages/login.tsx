@@ -175,9 +175,7 @@ export default function LoginPage() {
                       type="button"
                       variant="outline"
                       className="w-full"
-                      onClick={() => {
-                        window.location.href = "https://51ab2663-1922-45a4-9cd0-6438c10cad6e-00-1ccr9928hu4r6.janeway.replit.dev/api/auth/google";
-                      }}
+                      onClick={() => window.location.href = "/api/auth/google"}
                     >
                       <FcGoogle className="mr-2 h-4 w-4" />
                       Sign in with Google
@@ -265,9 +263,7 @@ export default function LoginPage() {
                       type="button"
                       variant="outline"
                       className="w-full"
-                      onClick={() => {
-                        window.location.href = "https://51ab2663-1922-45a4-9cd0-6438c10cad6e-00-1ccr9928hu4r6.janeway.replit.dev/api/auth/google";
-                      }}
+                      onClick={() => window.location.href = "/api/auth/google"}
                     >
                       <FcGoogle className="mr-2 h-4 w-4" />
                       Sign up with Google

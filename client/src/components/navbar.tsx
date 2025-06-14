@@ -52,11 +52,11 @@ export function Navbar({ onAddReview }: NavbarProps) {
                   <Button variant="ghost" className="flex items-center space-x-2">
                     <Avatar className="w-8 h-8">
                       <AvatarFallback className="bg-primary text-white text-sm">
-                        {user?.displayName ? user.displayName.charAt(0).toUpperCase() : '?'}
+                        {user.displayName.charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     <span className="text-sm font-medium text-gray-700 hidden sm:block">
-                      {user?.displayName || 'User'}
+                      {user.displayName}
                     </span>
                   </Button>
                 </DropdownMenuTrigger>
