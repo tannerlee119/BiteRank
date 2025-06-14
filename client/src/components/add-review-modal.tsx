@@ -168,17 +168,17 @@ export function AddReviewModal({ open, onOpenChange }: AddReviewModalProps) {
                         className="grid grid-cols-3 gap-3"
                       >
                         <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="like" id="like" className="sr-only" />
+                          <RadioGroupItem value="dislike" id="dislike" className="sr-only" />
                           <label
-                            htmlFor="like"
-                            className={`cursor-pointer border-2 rounded-lg p-4 text-center hover:border-green-500 hover:bg-green-50 transition-colors flex-1 ${
-                              field.value === "like"
-                                ? "border-green-500 bg-green-50"
+                            htmlFor="dislike"
+                            className={`cursor-pointer border-2 rounded-lg p-4 text-center hover:border-red-500 hover:bg-red-50 transition-colors flex-1 ${
+                              field.value === "dislike"
+                                ? "border-red-500 bg-red-50"
                                 : "border-gray-300"
                             }`}
                           >
-                            <ThumbsUp className="w-8 h-8 text-green-500 mx-auto mb-2" />
-                            <div className="font-semibold text-gray-700">I like it</div>
+                            <ThumbsDown className="w-8 h-8 text-red-500 mx-auto mb-2" />
+                            <div className="font-semibold text-gray-700">I didn't like it</div>
                           </label>
                         </div>
 
@@ -200,17 +200,17 @@ export function AddReviewModal({ open, onOpenChange }: AddReviewModalProps) {
                         </div>
 
                         <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="dislike" id="dislike" className="sr-only" />
+                          <RadioGroupItem value="like" id="like" className="sr-only" />
                           <label
-                            htmlFor="dislike"
-                            className={`cursor-pointer border-2 rounded-lg p-4 text-center hover:border-red-500 hover:bg-red-50 transition-colors flex-1 ${
-                              field.value === "dislike"
-                                ? "border-red-500 bg-red-50"
+                            htmlFor="like"
+                            className={`cursor-pointer border-2 rounded-lg p-4 text-center hover:border-green-500 hover:bg-green-50 transition-colors flex-1 ${
+                              field.value === "like"
+                                ? "border-green-500 bg-green-50"
                                 : "border-gray-300"
                             }`}
                           >
-                            <ThumbsDown className="w-8 h-8 text-red-500 mx-auto mb-2" />
-                            <div className="font-semibold text-gray-700">I didn't like it</div>
+                            <ThumbsUp className="w-8 h-8 text-green-500 mx-auto mb-2" />
+                            <div className="font-semibold text-gray-700">I like it</div>
                           </label>
                         </div>
                       </RadioGroup>
