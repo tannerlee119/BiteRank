@@ -1,4 +1,4 @@
-import { Search, MapPin, Minus } from "lucide-react";
+import { Search, MapPin, ArrowUpDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,11 +16,13 @@ interface FiltersProps {
   rating: string;
   cuisine: string;
   tags: string;
+  sortBy: string;
   onSearchChange: (value: string) => void;
   onLocationChange: (value: string) => void;
   onRatingChange: (value: string) => void;
   onCuisineChange: (value: string) => void;
   onTagsChange: (value: string) => void;
+  onSortChange: (value: string) => void;
 }
 
 export function Filters({
@@ -29,11 +31,13 @@ export function Filters({
   rating,
   cuisine,
   tags,
+  sortBy,
   onSearchChange,
   onLocationChange,
   onRatingChange,
   onCuisineChange,
   onTagsChange,
+  onSortChange,
 }: FiltersProps) {
   return (
     <Card className="p-6 mb-6">
@@ -77,6 +81,22 @@ export function Filters({
               value={tags}
               onChange={(e) => onTagsChange(e.target.value)}
             />
+          </div>
+
+          <div className="w-full sm:w-48">
+            <Select value={sortBy} onValueChange={onSortChange}>
+              <SelectTrigger>
+                <ArrowUpDown className="w-4 h-4 mr-2" />
+                <SelectValue placeholder="Sort by..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Default</SelectItem>
+                <SelectItem value="rating-high">Highest Rated</SelectItem>
+                <SelectItem value="rating-low">Lowest Rated</SelectItem>
+                <SelectItem value="newest">Newest First</SelectItem>
+                <SelectItem value="oldest">Oldest First</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 

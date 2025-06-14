@@ -15,8 +15,9 @@ export default function Dashboard() {
   const [rating, setRating] = useState("");
   const [cuisine, setCuisine] = useState("");
   const [tags, setTags] = useState("");
+  const [sortBy, setSortBy] = useState("");
 
-  const { data: reviews, isLoading } = useQuery<ReviewWithRestaurant[]>({
+  const { data: reviewsData, isLoading } = useQuery<ReviewWithRestaurant[]>({
     queryKey: ["/api/reviews", { rating, location, search, cuisine, tags }],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -37,6 +38,22 @@ export default function Dashboard() {
       return response.json();
     },
   });
+
+  // Apply client-side sorting
+  const reviews = reviewsData ? [...reviewsData].sort((a, b) => {
+    switch (sortBy) {
+      case "rating-high":
+        return (b.score || 0) - (a.score || 0);
+      case "rating-low":
+        return (a.score || 0) - (b.score || 0);
+      case "newest":
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      case "oldest":
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      default:
+        return 0;
+    }
+  }) : reviewsData;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -61,11 +78,13 @@ export default function Dashboard() {
           rating={rating}
           cuisine={cuisine}
           tags={tags}
+          sortBy={sortBy}
           onSearchChange={setSearch}
           onLocationChange={setLocation}
           onRatingChange={setRating}
           onCuisineChange={setCuisine}
           onTagsChange={setTags}
+          onSortChange={setSortBy}
         />
 
         {/* Restaurant Grid */}
