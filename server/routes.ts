@@ -4,6 +4,9 @@ import { storage } from "./storage";
 import { insertUserSchema, insertReviewSchema } from "@shared/schema";
 import bcrypt from "bcrypt";
 import session from "express-session";
+import passport from "passport";
+import { Strategy as GoogleStrategy, Profile } from "passport-google-oauth20";
+import type { VerifyCallback } from "passport-google-oauth20";
 
 declare module 'express-session' {
   interface SessionData {
@@ -23,6 +26,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   }));
 
+  // Initialize Passport
+  app.use(passport.initialize());
+  app.use(passport.session());
+
+  // Passport serialization
+  passport.serializeUser((user: any, done) => {
+    done(null, user.id);
+  });
+
+  passport.deserializeUser(async (id: string, done) => {
+    try {
+      const user = await storage.getUser(id);
+      done(null, user);
+    } catch (error) {
+      done(error, null);
+    }
+  });
+
+  // Google OAuth Strategy
+  passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID!,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    callbackURL: "/api/auth/google/callback",
+  }, async (accessToken: string, refreshToken: string, profile: Profile, done: VerifyCallback) => {
+    try {
+      // Check if user exists
+      let user = await storage.getUserByEmail(profile.emails![0].value);
+      
+      if (!user) {
+        // Create new user if doesn't exist
+        user = await storage.createUser({
+          email: profile.emails![0].value,
+          displayName: profile.displayName,
+          passwordHash: "", // No password for Google users
+        });
+      }
+      
+      return done(null, user);
+    } catch (error) {
+      return done(error as Error, undefined);
+    }
+  }));
+
   // Auth middleware
   const requireAuth = (req: any, res: any, next: any) => {
     if (!req.session.userId) {
@@ -30,6 +76,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     next();
   };
+
+  // Google OAuth routes
+  app.get("/api/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
+
+  app.get("/api/auth/google/callback", 
+    passport.authenticate("google", { failureRedirect: "/login" }),
+    (req: any, res) => {
+      req.session.userId = req.user.id;
+      res.redirect("/");
+    }
+  );
 
   // Auth routes
   app.post("/api/auth/register", async (req, res) => {
