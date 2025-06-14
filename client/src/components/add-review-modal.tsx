@@ -232,12 +232,13 @@ export function AddReviewModal({ open, onOpenChange }: AddReviewModalProps) {
                         <Slider
                           value={[field.value ?? 7.5]}
                           onValueChange={(value) => {
-                            field.onChange(value[0]);
-                            setNumericalScore(value);
+                            const newValue = value[0];
+                            field.onChange(newValue);
+                            setNumericalScore([newValue]);
                             // Update rating category based on score
-                            if (value[0] >= 6.7) {
+                            if (newValue >= 6.7) {
                               form.setValue("rating", "like");
-                            } else if (value[0] >= 3.4) {
+                            } else if (newValue >= 3.4) {
                               form.setValue("rating", "alright");
                             } else {
                               form.setValue("rating", "dislike");
