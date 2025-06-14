@@ -234,6 +234,14 @@ export function AddReviewModal({ open, onOpenChange }: AddReviewModalProps) {
                           onValueChange={(value) => {
                             field.onChange(value[0]);
                             setNumericalScore(value);
+                            // Update rating category based on score
+                            if (value[0] >= 6.7) {
+                              form.setValue("rating", "like");
+                            } else if (value[0] >= 3.4) {
+                              form.setValue("rating", "alright");
+                            } else {
+                              form.setValue("rating", "dislike");
+                            }
                           }}
                           max={10}
                           min={0}
@@ -242,7 +250,64 @@ export function AddReviewModal({ open, onOpenChange }: AddReviewModalProps) {
                         />
                         <div className="flex justify-between text-xs text-gray-500 mt-1">
                           <span>0</span>
-                          <span className="font-semibold text-lg text-gray-800">{(field.value ?? 7.5).toFixed(1)}</span>
+                          <div 
+                            className="font-semibold text-lg text-gray-800 cursor-pointer hover:text-primary transition-colors"
+                            onClick={() => {
+                              const input = document.createElement('input');
+                              input.type = 'number';
+                              input.min = '0';
+                              input.max = '10';
+                              input.step = '0.1';
+                              input.value = (field.value ?? 7.5).toString();
+                              input.className = 'w-16 text-center font-semibold text-lg text-gray-800 border rounded px-1';
+                              
+                              const handleInput = (e: Event) => {
+                                const target = e.target as HTMLInputElement;
+                                // Only allow one decimal point
+                                if (target.value.split('.').length > 2) {
+                                  target.value = target.value.slice(0, target.value.lastIndexOf('.'));
+                                }
+                                // Limit to one decimal place
+                                if (target.value.includes('.')) {
+                                  const [whole, decimal] = target.value.split('.');
+                                  if (decimal && decimal.length > 1) {
+                                    target.value = `${whole}.${decimal[0]}`;
+                                  }
+                                }
+                                const value = parseFloat(target.value);
+                                if (!isNaN(value) && value >= 0 && value <= 10) {
+                                  field.onChange(value);
+                                  setNumericalScore([value]);
+                                  // Update rating category based on score
+                                  if (value >= 6.7) {
+                                    form.setValue("rating", "like");
+                                  } else if (value >= 3.4) {
+                                    form.setValue("rating", "alright");
+                                  } else {
+                                    form.setValue("rating", "dislike");
+                                  }
+                                }
+                              };
+
+                              const handleBlur = () => {
+                                input.removeEventListener('input', handleInput);
+                                input.removeEventListener('blur', handleBlur);
+                                input.remove();
+                              };
+
+                              input.addEventListener('input', handleInput);
+                              input.addEventListener('blur', handleBlur);
+                              input.focus();
+                              input.select();
+
+                              const scoreElement = document.querySelector('.font-semibold.text-lg.text-gray-800');
+                              if (scoreElement) {
+                                scoreElement.replaceWith(input);
+                              }
+                            }}
+                          >
+                            {(field.value ?? 7.5).toFixed(1)}
+                          </div>
                           <span>10</span>
                         </div>
                       </div>
