@@ -15,7 +15,7 @@ export default function Dashboard() {
   const [rating, setRating] = useState("");
   const [cuisine, setCuisine] = useState("");
   const [tags, setTags] = useState("");
-  const [sortBy, setSortBy] = useState("");
+  const [sortBy, setSortBy] = useState("default");
 
   const { data: reviewsData, isLoading } = useQuery<ReviewWithRestaurant[]>({
     queryKey: ["/api/reviews", { rating, location, search, cuisine, tags }],
@@ -50,6 +50,7 @@ export default function Dashboard() {
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       case "oldest":
         return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      case "default":
       default:
         return 0;
     }

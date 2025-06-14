@@ -90,7 +90,7 @@ export function Filters({
                 <SelectValue placeholder="Sort by..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Default</SelectItem>
+                <SelectItem value="default">Default</SelectItem>
                 <SelectItem value="rating-high">Highest Rated</SelectItem>
                 <SelectItem value="rating-low">Lowest Rated</SelectItem>
                 <SelectItem value="newest">Newest First</SelectItem>
