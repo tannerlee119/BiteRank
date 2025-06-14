@@ -79,12 +79,15 @@ export function RestaurantCard({ review }: RestaurantCardProps) {
         )}
 
         {review.favoriteDishes && review.favoriteDishes.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4">
-            {review.favoriteDishes.map((dish, index) => (
-              <Badge key={index} variant="secondary" className="text-xs">
-                {dish}
-              </Badge>
-            ))}
+          <div className="mb-4">
+            <h4 className="text-sm font-semibold text-gray-700 mb-2">Favorite Dishes:</h4>
+            <div className="flex flex-wrap gap-2">
+              {review.favoriteDishes.map((dish, index) => (
+                <Badge key={index} variant="secondary" className="text-xs bg-blue-100 text-blue-800 border-blue-200 font-medium">
+                  {dish}
+                </Badge>
+              ))}
+            </div>
           </div>
         )}
 
