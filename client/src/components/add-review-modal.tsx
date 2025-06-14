@@ -259,7 +259,7 @@ export function AddReviewModal({ open, onOpenChange }: AddReviewModalProps) {
                               input.max = '10';
                               input.step = '0.1';
                               input.value = (field.value ?? 7.5).toString();
-                              input.className = 'w-16 text-center font-semibold text-lg text-gray-800 border rounded px-1';
+                              input.className = 'w-16 text-center font-semibold text-lg text-gray-800 border rounded px-1 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none';
                               
                               const handleInput = (e: Event) => {
                                 const target = e.target as HTMLInputElement;
@@ -296,8 +296,16 @@ export function AddReviewModal({ open, onOpenChange }: AddReviewModalProps) {
                                 }
                               };
 
+                              const handleBlur = () => {
+                                input.removeEventListener('input', handleInput);
+                                input.removeEventListener('keydown', handleKeyDown);
+                                input.removeEventListener('blur', handleBlur);
+                                input.remove();
+                              };
+
                               input.addEventListener('input', handleInput);
                               input.addEventListener('keydown', handleKeyDown);
+                              input.addEventListener('blur', handleBlur);
                               input.focus();
                               input.select();
 
