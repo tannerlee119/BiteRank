@@ -36,7 +36,10 @@ export function useAuth() {
       const response = await apiRequest("POST", "/api/auth/login", credentials);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Immediately set the user data in the cache
+      queryClient.setQueryData(["/api/auth/me"], data.user);
+      // Also invalidate to ensure fresh data
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
     },
   });
@@ -46,7 +49,10 @@ export function useAuth() {
       const response = await apiRequest("POST", "/api/auth/register", userData);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Immediately set the user data in the cache
+      queryClient.setQueryData(["/api/auth/me"], data.user);
+      // Also invalidate to ensure fresh data
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
     },
   });
