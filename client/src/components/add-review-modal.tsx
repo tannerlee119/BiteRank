@@ -179,7 +179,6 @@ export function AddReviewModal({ open, onOpenChange }: AddReviewModalProps) {
                           >
                             <ThumbsUp className="w-8 h-8 text-green-500 mx-auto mb-2" />
                             <div className="font-semibold text-gray-700">I like it</div>
-                            <div className="text-xs text-gray-500">Score: 6.7-10</div>
                           </label>
                         </div>
 
@@ -197,7 +196,6 @@ export function AddReviewModal({ open, onOpenChange }: AddReviewModalProps) {
                               <Minus className="w-4 h-4" strokeWidth={3} />
                             </div>
                             <div className="font-semibold text-gray-700">It's alright</div>
-                            <div className="text-xs text-gray-500">Score: 3.4-6.6</div>
                           </label>
                         </div>
 
@@ -213,7 +211,6 @@ export function AddReviewModal({ open, onOpenChange }: AddReviewModalProps) {
                           >
                             <ThumbsDown className="w-8 h-8 text-red-500 mx-auto mb-2" />
                             <div className="font-semibold text-gray-700">I didn't like it</div>
-                            <div className="text-xs text-gray-500">Score: 0-3.3</div>
                           </label>
                         </div>
                       </RadioGroup>
