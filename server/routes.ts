@@ -21,7 +21,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: false, // Set to true in production with HTTPS
+      secure: true, // Set to true for HTTPS
       maxAge: 24 * 60 * 60 * 1000 // 24 hours
     }
   }));
@@ -48,7 +48,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID!,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    callbackURL: "/api/auth/google/callback",
+    callbackURL: "https://51ab2663-1922-45a4-9cd0-6438c10cad6e-00-1ccr9928hu4r6.janeway.replit.dev/api/auth/google/callback",
   }, async (accessToken: string, refreshToken: string, profile: Profile, done: VerifyCallback) => {
     try {
       // Check if user exists
