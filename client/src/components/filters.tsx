@@ -42,8 +42,8 @@ export function Filters({
   return (
     <Card className="p-6 mb-6">
       <div className="flex flex-col space-y-4">
-        <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-          <div className="relative flex-1">
+        <div className="flex flex-wrap gap-4">
+          <div className="relative flex-1 min-w-[220px]">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
               type="text"
@@ -54,7 +54,7 @@ export function Filters({
             />
           </div>
 
-          <div className="relative w-full sm:w-48">
+          <div className="relative w-full sm:w-48 min-w-[150px]">
             <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
               type="text"
@@ -65,7 +65,7 @@ export function Filters({
             />
           </div>
 
-          <div className="w-full sm:w-48">
+          <div className="w-full sm:w-48 min-w-[150px]">
             <Input
               type="text"
               placeholder="Any cuisine..."
@@ -74,7 +74,7 @@ export function Filters({
             />
           </div>
 
-          <div className="w-full sm:w-48">
+          <div className="w-full sm:w-48 min-w-[150px]">
             <Input
               type="text"
               placeholder="Search tags..."
@@ -83,7 +83,7 @@ export function Filters({
             />
           </div>
 
-          <div className="w-full sm:w-48">
+          <div className="w-full sm:w-48 min-w-[120px]">
             <Select value={sortBy} onValueChange={onSortChange}>
               <SelectTrigger>
                 <ArrowUpDown className="w-4 h-4 mr-2" />
