@@ -126,14 +126,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     (req, res, next) => {
       console.log('Received Google callback');
       passport.authenticate("google", { 
-        failureRedirect: "/login",
+        failureRedirect: "https://51ab2663-1922-45a4-9cd0-6438c10cad6e-00-1ccr9928hu4r6.janeway.replit.dev/login",
         failureMessage: true
       })(req, res, next);
     },
     (req: any, res) => {
       console.log('Google authentication successful, setting session');
       req.session.userId = req.user.id;
-      res.redirect("/");
+      res.redirect("https://51ab2663-1922-45a4-9cd0-6438c10cad6e-00-1ccr9928hu4r6.janeway.replit.dev");
     }
   );
 
