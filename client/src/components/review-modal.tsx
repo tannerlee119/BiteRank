@@ -85,23 +85,10 @@ export function ReviewModal({ review, open, onOpenChange }: ReviewModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
-        <DialogHeader className="space-y-4">
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-2xl font-bold text-neutral-900">
-              {review.restaurant.name}
-            </DialogTitle>
-            {!isEditing && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsEditing(true)}
-                className="text-gray-500 hover:text-primary -mr-2"
-              >
-                <Edit2 className="w-4 h-4 mr-2" />
-                Edit Review
-              </Button>
-            )}
-          </div>
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold text-neutral-900">
+            {review.restaurant.name}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -226,17 +213,28 @@ export function ReviewModal({ review, open, onOpenChange }: ReviewModalProps) {
                   </div>
                 </div>
               )}
+
+              {/* Date and Edit Button */}
+              <div className="flex items-center justify-between text-sm text-gray-500 pt-4 border-t">
+                <span>
+                  Reviewed on {new Date(review.createdAt).toLocaleDateString("en-US", {
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsEditing(true)}
+                  className="text-gray-500 hover:text-primary"
+                >
+                  <Edit2 className="w-4 h-4 mr-2" />
+                  Edit Review
+                </Button>
+              </div>
             </>
           )}
-
-          {/* Date */}
-          <div className="text-sm text-gray-500">
-            Reviewed on {new Date(review.createdAt).toLocaleDateString("en-US", {
-              month: "long",
-              day: "numeric",
-              year: "numeric",
-            })}
-          </div>
         </div>
       </DialogContent>
     </Dialog>
