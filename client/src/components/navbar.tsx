@@ -1,14 +1,16 @@
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { Utensils, Plus, LogOut, User } from "lucide-react";
+import { Utensils, Plus, LogOut, User, Search, BarChart2, Settings } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
 
 interface NavbarProps {
   onAddReview: () => void;
@@ -38,9 +40,24 @@ export function Navbar({ onAddReview }: NavbarProps) {
             <Link href="/" className="text-gray-700 hover:text-primary font-medium transition-colors">
               Dashboard
             </Link>
+            <Link href="/my-reviews" className="text-gray-700 hover:text-primary font-medium transition-colors">
+              My Reviews
+            </Link>
+            <Link href="/stats" className="text-gray-700 hover:text-primary font-medium transition-colors">
+              Statistics
+            </Link>
           </div>
 
           <div className="flex items-center space-x-4">
+            <div className="hidden md:flex relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                type="search"
+                placeholder="Search restaurants..."
+                className="pl-10 w-64"
+              />
+            </div>
+            
             <Button onClick={onAddReview} className="bg-primary hover:bg-primary/90">
               <Plus className="w-4 h-4 mr-2" />
               Add Review
@@ -67,6 +84,13 @@ export function Navbar({ onAddReview }: NavbarProps) {
                       Edit Profile
                     </Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/settings" className="flex items-center cursor-pointer">
+                      <Settings className="w-4 h-4 mr-2" />
+                      Settings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
                     <LogOut className="w-4 h-4 mr-2" />
                     Logout
