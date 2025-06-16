@@ -51,7 +51,7 @@ export function RestaurantCard({ review, onClick }: RestaurantCardProps) {
       onClick={onClick}
     >
       <CardContent className="p-6">
-        <div className="flex items-start justify-between mb-3">
+        <div className="flex items-start justify-between">
           <div className="flex-1">
             <h3 className="text-xl font-semibold text-neutral-900 mb-1">
               {review.restaurant.name}
@@ -79,34 +79,7 @@ export function RestaurantCard({ review, onClick }: RestaurantCardProps) {
           </div>
         </div>
 
-        {review.note && (
-          <p className="text-gray-700 text-sm mb-3">{review.note}</p>
-        )}
-
-        {review.favoriteDishes && review.favoriteDishes.length > 0 && (
-          <div className="mb-4">
-            <h4 className="text-sm font-semibold text-gray-700 mb-2">Favorite Dishes:</h4>
-            <div className="flex flex-wrap gap-2">
-              {review.favoriteDishes.map((dish, index) => (
-                <Badge key={index} variant="secondary" className="text-xs bg-blue-100 text-blue-800 border-blue-200 font-medium">
-                  {dish}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {review.labels && review.labels.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4">
-            {review.labels.map((label, index) => (
-              <Badge key={index} variant="outline" className="text-xs">
-                {label}
-              </Badge>
-            ))}
-          </div>
-        )}
-
-        <div className="flex items-center justify-between text-sm text-gray-500">
+        <div className="flex items-center justify-between text-sm text-gray-500 mt-4">
           <span>
             {new Date(review.createdAt).toLocaleDateString("en-US", {
               month: "short",
