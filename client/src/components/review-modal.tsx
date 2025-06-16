@@ -101,7 +101,7 @@ export function ReviewModal({ review, open, onOpenChange }: ReviewModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-neutral-900">
             {review.restaurant.name}
