@@ -53,6 +53,11 @@ export function ReviewModal({ review, open, onOpenChange }: ReviewModalProps) {
       // Invalidate and refetch the reviews query to ensure fresh data
       queryClient.invalidateQueries({ queryKey: ["/api/reviews"] });
       
+      // Update the local review object to reflect changes immediately
+      if (review) {
+        Object.assign(review, updatedReview);
+      }
+      
       toast({
         title: "Review updated",
         description: "Your review has been updated successfully.",
@@ -144,6 +149,27 @@ export function ReviewModal({ review, open, onOpenChange }: ReviewModalProps) {
                   value={editedReview.favoriteDishes.join(", ")}
                   onChange={(e) => {
                     const value = e.target.value;
+                    // Only split and process when the user isn't actively typing
+                    // Allow normal typing including commas and spaces
+                    if (value.endsWith(", ") || value.endsWith(",")) {
+                      // User just finished typing an item
+                      const items = value.split(",").map(item => item.trim()).filter(item => item.length > 0);
+                      setEditedReview(prev => ({
+                        ...prev,
+                        favoriteDishes: items
+                      }));
+                    } else {
+                      // User is still typing, keep the raw value
+                      const items = value === "" ? [] : [value];
+                      setEditedReview(prev => ({
+                        ...prev,
+                        favoriteDishes: items
+                      }));
+                    }
+                  }}
+                  onBlur={(e) => {
+                    // Process the final value when user finishes editing
+                    const value = e.target.value;
                     const items = value.split(",").map(item => item.trim()).filter(item => item.length > 0);
                     setEditedReview(prev => ({
                       ...prev,
@@ -161,6 +187,27 @@ export function ReviewModal({ review, open, onOpenChange }: ReviewModalProps) {
                 <Input
                   value={editedReview.labels.join(", ")}
                   onChange={(e) => {
+                    const value = e.target.value;
+                    // Only split and process when the user isn't actively typing
+                    // Allow normal typing including commas and spaces
+                    if (value.endsWith(", ") || value.endsWith(",")) {
+                      // User just finished typing an item
+                      const items = value.split(",").map(item => item.trim()).filter(item => item.length > 0);
+                      setEditedReview(prev => ({
+                        ...prev,
+                        labels: items
+                      }));
+                    } else {
+                      // User is still typing, keep the raw value
+                      const items = value === "" ? [] : [value];
+                      setEditedReview(prev => ({
+                        ...prev,
+                        labels: items
+                      }));
+                    }
+                  }}
+                  onBlur={(e) => {
+                    // Process the final value when user finishes editing
                     const value = e.target.value;
                     const items = value.split(",").map(item => item.trim()).filter(item => item.length > 0);
                     setEditedReview(prev => ({
