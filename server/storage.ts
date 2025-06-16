@@ -37,6 +37,7 @@ export interface IStorage {
     note?: string;
     favoriteDishes?: string[];
     labels?: string[];
+    cuisine?: string;
   }): Promise<Review | undefined>;
   getUserReviewStats(userId: string): Promise<{
     likedCount: number;
@@ -241,6 +242,7 @@ export class DatabaseStorage implements IStorage {
     note?: string;
     favoriteDishes?: string[];
     labels?: string[];
+    cuisine?: string;
   }): Promise<Review | undefined> {
     const result = await db
       .update(reviews)
@@ -248,6 +250,7 @@ export class DatabaseStorage implements IStorage {
         ...(data.note !== undefined && { note: data.note }),
         ...(data.favoriteDishes !== undefined && { favoriteDishes: data.favoriteDishes }),
         ...(data.labels !== undefined && { labels: data.labels }),
+        ...(data.cuisine !== undefined && { cuisine: data.cuisine }),
       })
       .where(and(eq(reviews.id, id), eq(reviews.userId, userId)))
       .returning();
