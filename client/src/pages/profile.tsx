@@ -11,6 +11,7 @@ export function ProfilePage() {
   const [displayName, setDisplayName] = useState(user?.displayName || "");
   const [email, setEmail] = useState(user?.email || "");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
@@ -23,6 +24,17 @@ export function ProfilePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+
+    // Validate passwords match if password is being changed
+    if (password && password !== confirmPassword) {
+      toast({
+        title: "Error",
+        description: "Passwords don't match",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
 
     try {
       await updateUser({
@@ -77,6 +89,18 @@ export function ProfilePage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             minLength={6}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="confirmPassword">Confirm New Password</Label>
+          <Input
+            id="confirmPassword"
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            minLength={6}
+            disabled={!password}
+            placeholder={password ? "Confirm your new password" : "Enter a new password first"}
           />
         </div>
         <div className="flex justify-end space-x-4">
