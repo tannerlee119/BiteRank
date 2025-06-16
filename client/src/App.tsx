@@ -7,11 +7,13 @@ import { useAuth } from "@/hooks/use-auth";
 import Dashboard from "@/pages/dashboard";
 import LoginPage from "@/pages/login";
 import NotFound from "@/pages/not-found";
+import { ProfilePage } from "@/pages/profile";
 
 function AuthenticatedApp() {
   return (
     <Switch>
       <Route path="/" component={Dashboard} />
+      <Route path="/profile" component={ProfilePage} />
       <Route component={NotFound} />
     </Switch>
   );

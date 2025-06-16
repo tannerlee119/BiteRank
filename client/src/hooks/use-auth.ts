@@ -68,14 +68,27 @@ export function useAuth() {
     },
   });
 
+  const updateUserMutation = useMutation({
+    mutationFn: async (userData: { displayName?: string; email?: string; password?: string }) => {
+      const response = await apiRequest("PUT", "/api/auth/profile", userData);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(["/api/auth/me"], data.user);
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+    },
+  });
+
   return {
     user,
     isLoading,
     login: loginMutation.mutateAsync,
     register: registerMutation.mutateAsync,
     logout: logoutMutation.mutateAsync,
+    updateUser: updateUserMutation.mutateAsync,
     isLoginPending: loginMutation.isPending,
     isRegisterPending: registerMutation.isPending,
     isLogoutPending: logoutMutation.isPending,
+    isUpdatePending: updateUserMutation.isPending,
   };
 }

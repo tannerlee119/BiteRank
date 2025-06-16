@@ -100,6 +100,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put("/api/auth/profile", requireAuth, async (req, res) => {
+    try {
+      const { displayName, email, password } = req.body;
+      const userId = req.session.userId!;
+
+      // If email is being changed, check if it's already taken
+      if (email) {
+        const existingUser = await storage.getUserByEmail(email);
+        if (existingUser && existingUser.id !== userId) {
+          return res.status(400).json({ message: "Email already in use" });
+        }
+      }
+
+      // If password is being changed, hash it
+      let passwordHash;
+      if (password) {
+        passwordHash = await bcrypt.hash(password, 10);
+      }
+
+      const updatedUser = await storage.updateUser(userId, {
+        displayName,
+        email,
+        passwordHash,
+      });
+
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      res.json({ 
+        user: { 
+          id: updatedUser.id, 
+          email: updatedUser.email, 
+          displayName: updatedUser.displayName 
+        } 
+      });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
   // Review routes
   app.get("/api/reviews", requireAuth, async (req, res) => {
     try {

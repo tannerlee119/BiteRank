@@ -18,6 +18,7 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: { email: string; displayName: string; passwordHash: string }): Promise<User>;
+  updateUser(id: string, data: { displayName?: string; email?: string; passwordHash?: string }): Promise<User | undefined>;
 
   // Restaurants
   getRestaurantByNameAndLocation(name: string, location: string): Promise<Restaurant | undefined>;
@@ -86,6 +87,24 @@ export class DatabaseStorage implements IStorage {
       return result[0];
     } catch (error: any) {
       console.error("Database error in createUser:", error);
+      throw new Error(`Database connection failed: ${error.message}`);
+    }
+  }
+
+  async updateUser(id: string, data: { displayName?: string; email?: string; passwordHash?: string }): Promise<User | undefined> {
+    try {
+      const result = await db
+        .update(users)
+        .set({
+          ...(data.displayName && { displayName: data.displayName }),
+          ...(data.email && { email: data.email }),
+          ...(data.passwordHash && { passwordHash: data.passwordHash }),
+        })
+        .where(eq(users.id, id))
+        .returning();
+      return result[0];
+    } catch (error: any) {
+      console.error("Database error in updateUser:", error);
       throw new Error(`Database connection failed: ${error.message}`);
     }
   }
