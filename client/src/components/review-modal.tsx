@@ -50,6 +50,7 @@ export function ReviewModal({ review, open, onOpenChange }: ReviewModalProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/reviews"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/reviews", review?.id] });
       toast({
         title: "Review updated",
         description: "Your review has been updated successfully.",
@@ -138,7 +139,7 @@ export function ReviewModal({ review, open, onOpenChange }: ReviewModalProps) {
                   Favorite Dishes
                 </label>
                 <Input
-                  value={editedReview.favoriteDishes.join(", ")}
+                  value={editedReview.favoriteDishes.join(",")}
                   onChange={(e) => setEditedReview(prev => ({
                     ...prev,
                     favoriteDishes: e.target.value.split(",").map(dish => dish.trim()).filter(Boolean)
@@ -152,7 +153,7 @@ export function ReviewModal({ review, open, onOpenChange }: ReviewModalProps) {
                   Tags
                 </label>
                 <Input
-                  value={editedReview.labels.join(", ")}
+                  value={editedReview.labels.join(",")}
                   onChange={(e) => setEditedReview(prev => ({
                     ...prev,
                     labels: e.target.value.split(",").map(label => label.trim()).filter(Boolean)
