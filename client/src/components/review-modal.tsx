@@ -54,8 +54,10 @@ export function ReviewModal({ review, open, onOpenChange }: ReviewModalProps) {
       queryClient.invalidateQueries({ queryKey: ["/api/reviews"] });
       
       // Update the local review object to reflect changes immediately
-      if (review) {
-        Object.assign(review, updatedReview);
+      if (review && updatedReview) {
+        review.note = updatedReview.note || "";
+        review.favoriteDishes = updatedReview.favoriteDishes || [];
+        review.labels = updatedReview.labels || [];
       }
       
       toast({
@@ -138,84 +140,6 @@ export function ReviewModal({ review, open, onOpenChange }: ReviewModalProps) {
                   onChange={(e) => setEditedReview(prev => ({ ...prev, note: e.target.value }))}
                   placeholder="Write your review..."
                   className="min-h-[100px]"
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-semibold text-gray-700 mb-2 block">
-                  Favorite Dishes
-                </label>
-                <Input
-                  value={editedReview.favoriteDishes.join(", ")}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    // Only split and process when the user isn't actively typing
-                    // Allow normal typing including commas and spaces
-                    if (value.endsWith(", ") || value.endsWith(",")) {
-                      // User just finished typing an item
-                      const items = value.split(",").map(item => item.trim()).filter(item => item.length > 0);
-                      setEditedReview(prev => ({
-                        ...prev,
-                        favoriteDishes: items
-                      }));
-                    } else {
-                      // User is still typing, keep the raw value
-                      const items = value === "" ? [] : [value];
-                      setEditedReview(prev => ({
-                        ...prev,
-                        favoriteDishes: items
-                      }));
-                    }
-                  }}
-                  onBlur={(e) => {
-                    // Process the final value when user finishes editing
-                    const value = e.target.value;
-                    const items = value.split(",").map(item => item.trim()).filter(item => item.length > 0);
-                    setEditedReview(prev => ({
-                      ...prev,
-                      favoriteDishes: items
-                    }));
-                  }}
-                  placeholder="Enter favorite dishes (comma-separated)"
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-semibold text-gray-700 mb-2 block">
-                  Tags
-                </label>
-                <Input
-                  value={editedReview.labels.join(", ")}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    // Only split and process when the user isn't actively typing
-                    // Allow normal typing including commas and spaces
-                    if (value.endsWith(", ") || value.endsWith(",")) {
-                      // User just finished typing an item
-                      const items = value.split(",").map(item => item.trim()).filter(item => item.length > 0);
-                      setEditedReview(prev => ({
-                        ...prev,
-                        labels: items
-                      }));
-                    } else {
-                      // User is still typing, keep the raw value
-                      const items = value === "" ? [] : [value];
-                      setEditedReview(prev => ({
-                        ...prev,
-                        labels: items
-                      }));
-                    }
-                  }}
-                  onBlur={(e) => {
-                    // Process the final value when user finishes editing
-                    const value = e.target.value;
-                    const items = value.split(",").map(item => item.trim()).filter(item => item.length > 0);
-                    setEditedReview(prev => ({
-                      ...prev,
-                      labels: items
-                    }));
-                  }}
-                  placeholder="Enter tags (comma-separated)"
                 />
               </div>
 
