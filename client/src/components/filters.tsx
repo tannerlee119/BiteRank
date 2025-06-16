@@ -100,7 +100,7 @@ export function Filters({
           </div>
         </div>
 
-        <div className="flex space-x-2">
+        <div className="flex flex-wrap gap-2">
           <Button
             variant={rating === "like" ? "default" : "outline"}
             onClick={() => onRatingChange(rating === "like" ? "" : "like")}
