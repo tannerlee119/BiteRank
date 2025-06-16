@@ -29,9 +29,6 @@ const registerSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string().min(6, "Password must be at least 6 characters"),
   displayName: z.string().min(2, "Display name must be at least 2 characters"),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
@@ -77,6 +74,16 @@ export default function LoginPage() {
   };
 
   const onRegister = async (data: RegisterForm) => {
+    // Check if passwords match
+    if (data.password !== data.confirmPassword) {
+      toast({
+        title: "Registration failed",
+        description: "Passwords don't match",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       await register(data);
       toast({
