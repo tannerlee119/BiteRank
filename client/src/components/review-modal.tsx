@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Star, Edit2, Check, X } from "lucide-react";
@@ -32,15 +32,16 @@ export function ReviewModal({ review, open, onOpenChange }: ReviewModalProps) {
   });
 
   // Initialize editedReview when review changes
-  useState(() => {
+  useEffect(() => {
     if (review) {
       setEditedReview({
         note: review.note || "",
         favoriteDishes: review.favoriteDishes || [],
         labels: review.labels || [],
       });
+      setIsEditing(false); // Reset editing state when review changes
     }
-  });
+  }, [review]);
 
   const updateMutation = useMutation({
     mutationFn: async () => {
@@ -84,7 +85,7 @@ export function ReviewModal({ review, open, onOpenChange }: ReviewModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
-        <DialogHeader>
+        <DialogHeader className="space-y-4">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-2xl font-bold text-neutral-900">
               {review.restaurant.name}
@@ -94,7 +95,7 @@ export function ReviewModal({ review, open, onOpenChange }: ReviewModalProps) {
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsEditing(true)}
-                className="text-gray-500 hover:text-primary"
+                className="text-gray-500 hover:text-primary -mr-2"
               >
                 <Edit2 className="w-4 h-4 mr-2" />
                 Edit Review
