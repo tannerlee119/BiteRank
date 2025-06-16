@@ -5,11 +5,13 @@ import { StatsCards } from "@/components/stats-cards";
 import { Filters } from "@/components/filters";
 import { RestaurantCard } from "@/components/restaurant-card";
 import { AddReviewModal } from "@/components/add-review-modal";
+import { ReviewModal } from "@/components/review-modal";
 import { Card } from "@/components/ui/card";
 import type { ReviewWithRestaurant } from "@shared/schema";
 
 export default function Dashboard() {
   const [isAddReviewOpen, setIsAddReviewOpen] = useState(false);
+  const [selectedReview, setSelectedReview] = useState<ReviewWithRestaurant | null>(null);
   const [search, setSearch] = useState("");
   const [location, setLocation] = useState("");
   const [rating, setRating] = useState("");
@@ -100,7 +102,11 @@ export default function Dashboard() {
         ) : reviews && reviews.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {reviews.map((review) => (
-              <RestaurantCard key={review.id} review={review} />
+              <RestaurantCard 
+                key={review.id} 
+                review={review} 
+                onClick={() => setSelectedReview(review)}
+              />
             ))}
           </div>
         ) : (
@@ -127,6 +133,13 @@ export default function Dashboard() {
       <AddReviewModal
         open={isAddReviewOpen}
         onOpenChange={setIsAddReviewOpen}
+      />
+
+      {/* Review Modal */}
+      <ReviewModal
+        review={selectedReview}
+        open={!!selectedReview}
+        onOpenChange={(open) => !open && setSelectedReview(null)}
       />
 
       {/* Mobile Navigation Padding */}

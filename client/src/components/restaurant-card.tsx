@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Edit, Trash2 } from "lucide-react";
+import { MapPin, Trash2 } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -10,9 +10,10 @@ import type { ReviewWithRestaurant } from "@shared/schema";
 
 interface RestaurantCardProps {
   review: ReviewWithRestaurant;
+  onClick: () => void;
 }
 
-export function RestaurantCard({ review }: RestaurantCardProps) {
+export function RestaurantCard({ review, onClick }: RestaurantCardProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -37,14 +38,18 @@ export function RestaurantCard({ review }: RestaurantCardProps) {
     },
   });
 
-  const handleDelete = () => {
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click when clicking delete
     if (window.confirm("Are you sure you want to delete this review?")) {
       deleteMutation.mutate(review.id);
     }
   };
 
   return (
-    <Card className="overflow-hidden hover:shadow-md transition-shadow">
+    <Card 
+      className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+      onClick={onClick}
+    >
       <CardContent className="p-6">
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1">
@@ -109,25 +114,15 @@ export function RestaurantCard({ review }: RestaurantCardProps) {
               year: "numeric",
             })}
           </span>
-          <div className="flex space-x-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-gray-500 hover:text-primary"
-              disabled={deleteMutation.isPending}
-            >
-              <Edit className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleDelete}
-              className="text-gray-500 hover:text-red-500"
-              disabled={deleteMutation.isPending}
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
-          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleDelete}
+            className="text-gray-500 hover:text-red-500"
+            disabled={deleteMutation.isPending}
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
         </div>
       </CardContent>
     </Card>
