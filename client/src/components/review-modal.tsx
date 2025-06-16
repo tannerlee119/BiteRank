@@ -46,11 +46,16 @@ export function ReviewModal({ review, open, onOpenChange }: ReviewModalProps) {
   const updateMutation = useMutation({
     mutationFn: async () => {
       if (!review) return;
-      await apiRequest("PUT", `/api/reviews/${review.id}`, editedReview);
+      const response = await apiRequest("PUT", `/api/reviews/${review.id}`, editedReview);
+      return response;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/reviews"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/reviews", review?.id] });
+    onSuccess: (updatedReview) => {
+      // Update the cache with the new data
+      queryClient.setQueryData(["/api/reviews"], (oldData: ReviewWithRestaurant[] | undefined) => {
+        if (!oldData) return oldData;
+        return oldData.map(r => r.id === review?.id ? { ...r, ...updatedReview } : r);
+      });
+      
       toast({
         title: "Review updated",
         description: "Your review has been updated successfully.",
@@ -140,10 +145,23 @@ export function ReviewModal({ review, open, onOpenChange }: ReviewModalProps) {
                 </label>
                 <Input
                   value={editedReview.favoriteDishes.join(",")}
-                  onChange={(e) => setEditedReview(prev => ({
-                    ...prev,
-                    favoriteDishes: e.target.value.split(",").map(dish => dish.trim()).filter(Boolean)
-                  }))}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    // If the last character is a comma, add a new empty item
+                    if (value.endsWith(",")) {
+                      setEditedReview(prev => ({
+                        ...prev,
+                        favoriteDishes: [...prev.favoriteDishes, ""]
+                      }));
+                    } else {
+                      // Otherwise, update the last item
+                      const items = value.split(",");
+                      setEditedReview(prev => ({
+                        ...prev,
+                        favoriteDishes: items.map(item => item.trim()).filter(Boolean)
+                      }));
+                    }
+                  }}
                   placeholder="Enter favorite dishes (comma-separated)"
                 />
               </div>
@@ -154,10 +172,23 @@ export function ReviewModal({ review, open, onOpenChange }: ReviewModalProps) {
                 </label>
                 <Input
                   value={editedReview.labels.join(",")}
-                  onChange={(e) => setEditedReview(prev => ({
-                    ...prev,
-                    labels: e.target.value.split(",").map(label => label.trim()).filter(Boolean)
-                  }))}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    // If the last character is a comma, add a new empty item
+                    if (value.endsWith(",")) {
+                      setEditedReview(prev => ({
+                        ...prev,
+                        labels: [...prev.labels, ""]
+                      }));
+                    } else {
+                      // Otherwise, update the last item
+                      const items = value.split(",");
+                      setEditedReview(prev => ({
+                        ...prev,
+                        labels: items.map(item => item.trim()).filter(Boolean)
+                      }));
+                    }
+                  }}
                   placeholder="Enter tags (comma-separated)"
                 />
               </div>
