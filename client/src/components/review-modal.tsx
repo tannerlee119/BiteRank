@@ -47,13 +47,22 @@ export function ReviewModal({ review, open, onOpenChange }: ReviewModalProps) {
     mutationFn: async () => {
       if (!review) return;
       const response = await apiRequest("PUT", `/api/reviews/${review.id}`, editedReview);
-      return response;
+      return response.json();
     },
     onSuccess: (updatedReview) => {
+      if (!updatedReview) return;
+      
       // Update the cache with the new data
       queryClient.setQueryData(["/api/reviews"], (oldData: ReviewWithRestaurant[] | undefined) => {
         if (!oldData) return oldData;
         return oldData.map(r => r.id === review?.id ? { ...r, ...updatedReview } : r);
+      });
+      
+      // Update the local state with the new review data
+      setEditedReview({
+        note: updatedReview.note || "",
+        favoriteDishes: updatedReview.favoriteDishes || [],
+        labels: updatedReview.labels || [],
       });
       
       toast({
