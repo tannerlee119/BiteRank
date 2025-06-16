@@ -8,12 +8,16 @@ import Dashboard from "@/pages/dashboard";
 import LoginPage from "@/pages/login";
 import NotFound from "@/pages/not-found";
 import { ProfilePage } from "@/pages/profile";
+import MyReviewsPage from "@/pages/my-reviews";
+import StatsPage from "@/pages/stats";
 
 function AuthenticatedApp() {
   return (
     <Switch>
       <Route path="/" component={Dashboard} />
       <Route path="/profile" component={ProfilePage} />
+      <Route path="/my-reviews" component={MyReviewsPage} />
+      <Route path="/stats" component={StatsPage} />
       <Route component={NotFound} />
     </Switch>
   );
