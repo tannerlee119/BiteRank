@@ -33,6 +33,11 @@ export interface IStorage {
     tags?: string;
   }): Promise<ReviewWithRestaurant[]>;
   createReview(userId: string, restaurantId: string, review: Omit<Review, 'id' | 'userId' | 'restaurantId' | 'createdAt'>): Promise<Review>;
+  updateReview(id: string, userId: string, data: {
+    note?: string;
+    favoriteDishes?: string[];
+    labels?: string[];
+  }): Promise<Review | undefined>;
   getUserReviewStats(userId: string): Promise<{
     likedCount: number;
     alrightCount: number;
@@ -229,6 +234,24 @@ export class DatabaseStorage implements IStorage {
       photoUrls: review.photoUrls || null,
       labels: review.labels || null,
     }).returning();
+    return result[0];
+  }
+
+  async updateReview(id: string, userId: string, data: {
+    note?: string;
+    favoriteDishes?: string[];
+    labels?: string[];
+  }): Promise<Review | undefined> {
+    const result = await db
+      .update(reviews)
+      .set({
+        ...(data.note !== undefined && { note: data.note }),
+        ...(data.favoriteDishes !== undefined && { favoriteDishes: data.favoriteDishes }),
+        ...(data.labels !== undefined && { labels: data.labels }),
+      })
+      .where(and(eq(reviews.id, id), eq(reviews.userId, userId)))
+      .returning();
+    
     return result[0];
   }
 

@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { insertUserSchema, insertReviewSchema } from "@shared/schema";
 import bcrypt from "bcrypt";
 import session from "express-session";
+import { z } from "zod";
 
 declare module 'express-session' {
   interface SessionData {
@@ -224,6 +225,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(stats);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.put("/api/reviews/:id", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.session.userId!;
+
+      // Validate the update data
+      const updateSchema = z.object({
+        note: z.string().optional(),
+        favoriteDishes: z.array(z.string()).optional(),
+        labels: z.array(z.string()).optional(),
+      });
+
+      const updateData = updateSchema.parse(req.body);
+
+      // Get the existing review to ensure it belongs to the user
+      const reviews = await storage.getUserReviews(userId);
+      const existingReview = reviews.find(r => r.id === id);
+      
+      if (!existingReview) {
+        return res.status(404).json({ message: "Review not found" });
+      }
+
+      // Update the review
+      const updatedReview = await storage.updateReview(id, userId, updateData);
+      
+      if (!updatedReview) {
+        return res.status(404).json({ message: "Review not found" });
+      }
+
+      res.json(updatedReview);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
     }
   });
 
