@@ -49,9 +49,10 @@ if (!connectionString) {
 
 const sqlConnection = postgres(connectionString, {
   ssl: 'require',
-  max: 1,
-  idle_timeout: 20,
-  connect_timeout: 10
+  max: 5,
+  idle_timeout: 300,
+  connect_timeout: 60,
+  max_lifetime: 1800
 });
 
 export const db = drizzle(sqlConnection);

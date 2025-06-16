@@ -2,9 +2,9 @@ import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
-import { useNavigate } from "wouter";
+import { useLocation } from "wouter";
 
 export function ProfilePage() {
   const { user, updateUser } = useAuth();
@@ -13,10 +13,10 @@ export function ProfilePage() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const navigate = useNavigate();
+  const [, setLocation] = useLocation();
 
   if (!user) {
-    navigate("/");
+    setLocation("/");
     return null;
   }
 
@@ -83,7 +83,7 @@ export function ProfilePage() {
           <Button
             type="button"
             variant="outline"
-            onClick={() => navigate("/")}
+            onClick={() => setLocation("/")}
             disabled={isLoading}
           >
             Cancel
