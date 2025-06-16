@@ -1,10 +1,13 @@
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { StatsCards } from "@/components/stats-cards";
+import { Button } from "@/components/ui/button";
 import { BarChart2, ThumbsUp, Meh, ThumbsDown } from "lucide-react";
+import { useLocation } from "wouter";
 
 export default function StatsPage() {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
 
   const { data: stats, isLoading } = useQuery({
     queryKey: ["/api/stats"],
@@ -24,9 +27,18 @@ export default function StatsPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      <div className="flex items-center space-x-2 mb-8">
-        <BarChart2 className="text-primary text-2xl" />
-        <h1 className="text-3xl font-bold">Statistics</h1>
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center space-x-2">
+          <BarChart2 className="text-primary text-2xl" />
+          <h1 className="text-3xl font-bold">Statistics</h1>
+        </div>
+        <Button
+          variant="outline"
+          onClick={() => setLocation("/")}
+          className="flex items-center gap-2"
+        >
+          ← Back to Home
+        </Button>
       </div>
 
       {isLoading ? (
@@ -98,11 +110,9 @@ export default function StatsPage() {
                 <p className="text-2xl font-bold">{totalReviews}</p>
               </div>
               <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500">Average Rating</p>
+                <p className="text-sm text-gray-500">Average Score</p>
                 <p className="text-2xl font-bold">
-                  {totalReviews
-                    ? ((stats?.likedCount * 1 + stats?.alrightCount * 0.5) / totalReviews).toFixed(1)
-                    : "0.0"}
+                  {stats?.averageScore ? stats.averageScore.toFixed(1) : "0.0"}
                 </p>
               </div>
               <div className="p-4 bg-gray-50 rounded-lg">
