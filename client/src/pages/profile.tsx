@@ -60,7 +60,16 @@ export function ProfilePage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Edit Profile</h1>
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-3xl font-bold">Edit Profile</h1>
+        <Button
+          variant="outline"
+          onClick={() => setLocation("/")}
+          className="flex items-center gap-2"
+        >
+          ← Back to Home
+        </Button>
+      </div>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
           <Label htmlFor="displayName">Display Name</Label>
