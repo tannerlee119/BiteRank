@@ -25,12 +25,10 @@ export function ReviewModal({ review, open, onOpenChange }: ReviewModalProps) {
     note: string;
     favoriteDishes: string[];
     labels: string[];
-    cuisine: string;
   }>({
     note: "",
     favoriteDishes: [],
     labels: [],
-    cuisine: "",
   });
 
   // Initialize editedReview when review changes
@@ -40,7 +38,6 @@ export function ReviewModal({ review, open, onOpenChange }: ReviewModalProps) {
         note: review.note || "",
         favoriteDishes: review.favoriteDishes || [],
         labels: review.labels || [],
-        cuisine: review.restaurant.cuisine || "",
       });
       setIsEditing(false); // Reset editing state when review changes
     }
@@ -78,7 +75,6 @@ export function ReviewModal({ review, open, onOpenChange }: ReviewModalProps) {
         note: review.note || "",
         favoriteDishes: review.favoriteDishes || [],
         labels: review.labels || [],
-        cuisine: review.restaurant.cuisine || "",
       });
     }
     setIsEditing(false);
@@ -125,17 +121,6 @@ export function ReviewModal({ review, open, onOpenChange }: ReviewModalProps) {
           {/* Review Content */}
           {isEditing ? (
             <div className="space-y-4">
-              <div>
-                <label className="text-sm font-semibold text-gray-700 mb-2 block">
-                  Cuisine
-                </label>
-                <Input
-                  value={editedReview.cuisine}
-                  onChange={(e) => setEditedReview(prev => ({ ...prev, cuisine: e.target.value }))}
-                  placeholder="Enter cuisine type"
-                />
-              </div>
-
               <div>
                 <label className="text-sm font-semibold text-gray-700 mb-2 block">
                   Review
