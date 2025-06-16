@@ -2,10 +2,13 @@ import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { RestaurantCard } from "@/components/restaurant-card";
 import { Filters } from "@/components/filters";
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { useLocation } from "wouter";
 
 export default function MyReviewsPage() {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
   const [filters, setFilters] = useState({
     rating: "",
     location: "",
@@ -34,6 +37,13 @@ export default function MyReviewsPage() {
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">My Reviews</h1>
+        <Button
+          variant="outline"
+          onClick={() => setLocation("/")}
+          className="flex items-center gap-2"
+        >
+          ← Back to Home
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">

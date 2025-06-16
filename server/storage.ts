@@ -37,6 +37,7 @@ export interface IStorage {
     likedCount: number;
     alrightCount: number;
     dislikedCount: number;
+    averageScore: number;
   }>;
   deleteReview(reviewId: string, userId: string): Promise<boolean>;
 }
@@ -203,7 +204,7 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(restaurants, eq(reviews.restaurantId, restaurants.id))
       .where(and(...conditions))
       .orderBy(desc(reviews.createdAt));
-    
+
     return result.map(row => ({
       id: row.id,
       userId: row.userId,
@@ -235,34 +236,36 @@ export class DatabaseStorage implements IStorage {
     likedCount: number;
     alrightCount: number;
     dislikedCount: number;
+    averageScore: number;
   }> {
     const stats = await db
       .select({
         rating: reviews.rating,
-        count: count()
+        count: sql<number>`count(*)`.as('count'),
       })
       .from(reviews)
       .where(eq(reviews.userId, userId))
       .groupBy(reviews.rating);
 
+    // Get average score
+    const avgResult = await db
+      .select({
+        averageScore: sql<number>`avg(${reviews.score})`.as('averageScore'),
+      })
+      .from(reviews)
+      .where(eq(reviews.userId, userId));
+
     const result = {
       likedCount: 0,
       alrightCount: 0,
       dislikedCount: 0,
+      averageScore: avgResult[0]?.averageScore || 0,
     };
 
-    stats.forEach(stat => {
-      switch (stat.rating) {
-        case 'like':
-          result.likedCount = stat.count;
-          break;
-        case 'alright':
-          result.alrightCount = stat.count;
-          break;
-        case 'dislike':
-          result.dislikedCount = stat.count;
-          break;
-      }
+    stats.forEach((stat) => {
+      if (stat.rating === 'like') result.likedCount = Number(stat.count);
+      if (stat.rating === 'alright') result.alrightCount = Number(stat.count);
+      if (stat.rating === 'dislike') result.dislikedCount = Number(stat.count);
     });
 
     return result;
@@ -273,7 +276,7 @@ export class DatabaseStorage implements IStorage {
       .delete(reviews)
       .where(and(eq(reviews.id, reviewId), eq(reviews.userId, userId)))
       .returning();
-    
+
     return result.length > 0;
   }
 }
