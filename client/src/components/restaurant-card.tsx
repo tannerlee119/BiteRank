@@ -79,6 +79,16 @@ export function RestaurantCard({ review, onClick }: RestaurantCardProps) {
           </div>
         </div>
 
+        {review.labels && review.labels.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-3">
+            {review.labels.map((label, index) => (
+              <Badge key={index} variant="outline" className="text-xs">
+                {label}
+              </Badge>
+            ))}
+          </div>
+        )}
+
         <div className="flex items-center justify-between text-sm text-gray-500 mt-4">
           <span>
             {new Date(review.createdAt).toLocaleDateString("en-US", {
