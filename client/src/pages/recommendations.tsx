@@ -1,9 +1,11 @@
-import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect, createContext, useContext } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Star, Search, MapPin, ExternalLink } from "lucide-react";
+import { Star, Search, MapPin, ExternalLink, Bookmark, BookmarkCheck } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import {
   Pagination,
   PaginationContent,
@@ -26,9 +28,21 @@ interface ExternalRestaurant {
   sourceUrl: string;
 }
 
+// Context for sharing restaurant data with AddReviewModal
+const RestaurantContext = createContext<{
+  selectedRestaurant: ExternalRestaurant | null;
+  setSelectedRestaurant: (restaurant: ExternalRestaurant | null) => void;
+}>({
+  selectedRestaurant: null,
+  setSelectedRestaurant: () => {},
+});
+
 export default function RecommendationsPage() {
   const [search, setSearch] = useState("");
   const [location, setLocation] = useState("");
+  const [selectedRestaurant, setSelectedRestaurant] = useState<ExternalRestaurant | null>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(1);
 
   const { data: recommendationsResponse, isLoading } = useQuery<{

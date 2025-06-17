@@ -29,6 +29,7 @@ function AuthenticatedApp() {
           <Route path="/my-reviews" component={MyReviewsPage} />
           <Route path="/stats" component={StatsPage} />
           <Route path="/recommendations" component={RecommendationsPage} />
+          <Route path="/bookmarked" component={BookmarkedPage} />
           <Route component={NotFound} />
         </Switch>
       </main>

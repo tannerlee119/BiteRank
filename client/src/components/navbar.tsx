@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { Utensils, Plus, LogOut, User, Search, BarChart2, Settings } from "lucide-react";
+import { Utensils, Plus, LogOut, User, BarChart2, Settings, Bookmark } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,7 +10,6 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Input } from "@/components/ui/input";
 import { Home, List, MapPin } from "lucide-react";
 
 interface NavbarProps {
@@ -33,6 +32,7 @@ export function Navbar({ onAddReview }: NavbarProps) {
     { path: "/my-reviews", label: "My Reviews", icon: List },
     { path: "/stats", label: "Stats", icon: BarChart2 },
     { path: "/recommendations", label: "Discover", icon: MapPin },
+    { path: "/bookmarked", label: "Bookmarked", icon: Bookmark },
   ];
 
   const handleLogout = async () => {
@@ -73,15 +73,6 @@ export function Navbar({ onAddReview }: NavbarProps) {
           </div>
 
           <div className="flex items-center space-x-4">
-            <div className="hidden md:flex relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <Input
-                type="search"
-                placeholder="Search restaurants..."
-                className="pl-10 w-64"
-              />
-            </div>
-            
             <Button onClick={onAddReview} className="bg-primary hover:bg-primary/90">
               <Plus className="w-4 h-4 mr-2" />
               Add Review
