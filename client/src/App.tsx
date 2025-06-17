@@ -1,55 +1,38 @@
-import { Switch, Route } from "wouter";
-import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { useAuth } from "@/hooks/use-auth";
-import Dashboard from "@/pages/dashboard";
-import LoginPage from "@/pages/login";
-import NotFound from "@/pages/not-found";
-import { ProfilePage } from "@/pages/profile";
-import MyReviewsPage from "@/pages/my-reviews";
-import StatsPage from "@/pages/stats";
+import { Navbar } from "@/components/navbar";
+import HomePage from "@/pages/home";
 import RecommendationsPage from "@/pages/recommendations";
+import { AuthProvider } from "@/contexts/auth-context";
+import { useState } from "react";
+import { AddReviewModal } from "@/components/add-review-modal";
 
-function AuthenticatedApp() {
-  return (
-    <Switch>
-      <Route path="/" component={Dashboard} />
-      <Route path="/profile" component={ProfilePage} />
-      <Route path="/my-reviews" component={MyReviewsPage} />
-      <Route path="/stats" component={StatsPage} />
-      <Route path="/recommendations" component={RecommendationsPage} />
-      <Route component={NotFound} />
-    </Switch>
-  );
-}
-
-function Router() {
-  const { user, isLoading } = useAuth();
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return <LoginPage />;
-  }
-
-  return <AuthenticatedApp />;
-}
+const queryClient = new QueryClient();
 
 function App() {
+  const [isAddReviewOpen, setIsAddReviewOpen] = useState(false);
+
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Router />
-      </TooltipProvider>
+      <AuthProvider>
+        <Router>
+          <div className="min-h-screen bg-gray-50">
+            <Navbar onAddReview={() => setIsAddReviewOpen(true)} />
+            <main>
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/recommendations" element={<RecommendationsPage />} />
+              </Routes>
+            </main>
+            <Toaster />
+            <AddReviewModal
+              open={isAddReviewOpen}
+              onOpenChange={setIsAddReviewOpen}
+            />
+          </div>
+        </Router>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
