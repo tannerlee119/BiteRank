@@ -43,6 +43,9 @@ export function Navbar({ onAddReview }: NavbarProps) {
             <Link href="/my-reviews" className="text-gray-700 hover:text-primary font-medium transition-colors">
               My Reviews
             </Link>
+            <Link href="/recommendations" className="text-gray-700 hover:text-primary font-medium transition-colors">
+              Recommendations
+            </Link>
             <Link href="/stats" className="text-gray-700 hover:text-primary font-medium transition-colors">
               Statistics
             </Link>

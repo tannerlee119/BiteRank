@@ -10,6 +10,7 @@ import NotFound from "@/pages/not-found";
 import { ProfilePage } from "@/pages/profile";
 import MyReviewsPage from "@/pages/my-reviews";
 import StatsPage from "@/pages/stats";
+import RecommendationsPage from "@/pages/recommendations";
 
 function AuthenticatedApp() {
   return (
@@ -18,6 +19,7 @@ function AuthenticatedApp() {
       <Route path="/profile" component={ProfilePage} />
       <Route path="/my-reviews" component={MyReviewsPage} />
       <Route path="/stats" component={StatsPage} />
+      <Route path="/recommendations" component={RecommendationsPage} />
       <Route component={NotFound} />
     </Switch>
   );

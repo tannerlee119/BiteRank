@@ -263,6 +263,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint to receive scraped restaurant data
+  app.post("/api/scraped-data", requireAuth, async (req, res) => {
+    try {
+      const { 
+        restaurantName,
+        restaurantLocation,
+        restaurantCuisine,
+        reviews,
+        menuItems,
+        hours,
+        images
+      } = req.body;
+
+      // Find or create restaurant
+      let restaurant = await storage.getRestaurantByNameAndLocation(
+        restaurantName,
+        restaurantLocation
+      );
+      
+      if (!restaurant) {
+        restaurant = await storage.createRestaurant({
+          name: restaurantName,
+          location: restaurantLocation,
+          cuisine: restaurantCuisine,
+        });
+      }
+
+      // Process and store the scraped data
+      // You can add more fields to your schema as needed
+      const processedData = {
+        restaurantId: restaurant.id,
+        reviews,
+        menuItems,
+        hours,
+        images
+      };
+
+      // Store the processed data
+      // You'll need to implement this in your storage layer
+      await storage.storeScrapedData(processedData);
+
+      res.json({ success: true, restaurant });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

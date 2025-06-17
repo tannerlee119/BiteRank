@@ -45,6 +45,15 @@ export interface IStorage {
     averageScore: number;
   }>;
   deleteReview(reviewId: string, userId: string): Promise<boolean>;
+
+  // Scraped Data
+  storeScrapedData(data: {
+    restaurantId: string;
+    reviews?: any[];
+    menuItems?: any[];
+    hours?: any;
+    images?: string[];
+  }): Promise<void>;
 }
 
 // Initialize database connection
@@ -301,6 +310,23 @@ export class DatabaseStorage implements IStorage {
       .returning();
 
     return result.length > 0;
+  }
+
+  async storeScrapedData(data: {
+    restaurantId: string;
+    reviews?: any[];
+    menuItems?: any[];
+    hours?: any;
+    images?: string[];
+  }): Promise<void> {
+    // Here you would implement the logic to store the scraped data
+    // This could involve:
+    // 1. Storing reviews in the reviews table
+    // 2. Creating a new table for menu items
+    // 3. Updating restaurant hours
+    // 4. Storing images
+    // For now, we'll just log the data
+    console.log('Storing scraped data:', data);
   }
 }
 
