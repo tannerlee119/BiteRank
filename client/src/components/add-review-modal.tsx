@@ -275,6 +275,25 @@ export function AddReviewModal({ open, onOpenChange }: AddReviewModalProps) {
               <div className="space-y-4">
                 <FormField
                   control={form.control}
+                  name="note"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Review</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="What did you think? Any memorable experiences?"
+                          rows={3}
+                          {...field}
+                          value={field.value || ""}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
                   name="favoriteDishes"
                   render={({ field }) => (
                     <FormItem>
@@ -308,25 +327,6 @@ export function AddReviewModal({ open, onOpenChange }: AddReviewModalProps) {
                       <p className="text-xs text-gray-500">
                         Separate multiple tags with commas
                       </p>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="note"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Review</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="What did you think? Any memorable experiences?"
-                          rows={3}
-                          {...field}
-                          value={field.value || ""}
-                        />
-                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
