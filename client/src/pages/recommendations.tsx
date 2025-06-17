@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -199,7 +199,7 @@ export default function RecommendationsPage() {
                     className={!pagination.hasPrev ? "pointer-events-none opacity-50" : "cursor-pointer"}
                   />
                 </PaginationItem>
-                
+
                 {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
                   <PaginationItem key={page}>
                     <PaginationLink
@@ -211,7 +211,7 @@ export default function RecommendationsPage() {
                     </PaginationLink>
                   </PaginationItem>
                 ))}
-                
+
                 <PaginationItem>
                   <PaginationNext 
                     onClick={() => setCurrentPage(prev => Math.min(pagination.totalPages, prev + 1))}

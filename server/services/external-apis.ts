@@ -16,26 +16,47 @@ interface Restaurant {
 
 export class ExternalAPIService {
   private googleApiKey: string;
+  private cache: Map<string, { data: Restaurant[]; timestamp: number }> = new Map();
+  private cacheTimeout = 10 * 60 * 1000; // 10 minutes
 
   constructor() {
     this.googleApiKey = process.env.GOOGLE_PLACES_API_KEY || '';
   }
 
   async getTopRatedRestaurants(location: string, search?: string): Promise<Restaurant[]> {
-    // If no API key is configured, return mock data for testing
-    if (!this.googleApiKey) {
-      return this.getMockRestaurants(location, search);
+    // Create cache key
+    const cacheKey = `${location}:${search || ''}`;
+    
+    // Check cache first
+    const cached = this.cache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
+      return cached.data;
     }
 
-    try {
-      const googleResults = await this.getGooglePlacesResults(location, search);
-      // Sort by rating
-      return googleResults.sort((a, b) => b.rating - a.rating);
-    } catch (error) {
-      console.error('Error fetching Google Places results:', error);
-      // Return mock data as fallback
-      return this.getMockRestaurants(location, search);
+    let results: Restaurant[];
+
+    // If no API key is configured, return mock data for testing
+    if (!this.googleApiKey) {
+      results = this.getMockRestaurants(location, search);
+    } else {
+      try {
+        const googleResults = await this.getGooglePlacesResults(location, search);
+        // Sort by rating
+        results = googleResults.sort((a, b) => b.rating - a.rating);
+      } catch (error) {
+        console.error('Error fetching Google Places results:', error);
+        // Return mock data as fallback
+        results = this.getMockRestaurants(location, search);
+      }
     }
+
+    // Cache the results
+    this.cache.set(cacheKey, { data: results, timestamp: Date.now() });
+    
+    // Clean up old cache entries
+    this.cleanupCache();
+    
+    return results;
   }
 
   private async getGooglePlacesResults(location: string, search?: string): Promise<Restaurant[]> {
@@ -43,7 +64,8 @@ export class ExternalAPIService {
       const restaurants: Restaurant[] = [];
       let nextPageToken: string | undefined;
       let pageCount = 0;
-      const maxPages = 5; // Limit to 5 pages to get up to 100 results
+      const maxPages = 3; // Reduced to 3 pages for faster response
+      const targetResults = 100;
 
       do {
         // Get place IDs for restaurants in the area
@@ -66,73 +88,98 @@ export class ExternalAPIService {
           break;
         }
 
-        // Process each place in the current page
-        for (const place of searchResponse.data.results) {
-        try {
-          // Get detailed information for each place
-          const detailsResponse = await axios.get(
-            `https://maps.googleapis.com/maps/api/place/details/json`,
-            {
-              params: {
-                place_id: place.place_id,
-                fields: 'name,formatted_address,rating,user_ratings_total,price_level,types,photos,url',
-                key: this.googleApiKey
+        // Process places concurrently in batches
+        const batchSize = 10;
+        const places = searchResponse.data.results;
+        
+        for (let i = 0; i < places.length; i += batchSize) {
+          const batch = places.slice(i, i + batchSize);
+          const batchPromises = batch.map(async (place) => {
+            try {
+              // Get detailed information for each place
+              const detailsResponse = await axios.get(
+                `https://maps.googleapis.com/maps/api/place/details/json`,
+                {
+                  params: {
+                    place_id: place.place_id,
+                    fields: 'name,formatted_address,rating,user_ratings_total,price_level,types,photos,url',
+                    key: this.googleApiKey
+                  }
+                }
+              );
+
+              const details = detailsResponse.data.result;
+              
+              if (details && details.rating) {
+                let photoUrl;
+                if (details.photos && details.photos.length > 0) {
+                  photoUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${details.photos[0].photo_reference}&key=${this.googleApiKey}`;
+                }
+
+                const priceLevel = details.price_level 
+                  ? '$'.repeat(details.price_level)
+                  : undefined;
+
+                const cuisine = details.types
+                  ? details.types.find((type: string) => 
+                      ['restaurant', 'food', 'meal_takeaway'].includes(type) === false
+                    )?.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())
+                  : undefined;
+
+                return {
+                  id: place.place_id,
+                  name: details.name,
+                  location: details.formatted_address,
+                  rating: details.rating,
+                  totalRatings: details.user_ratings_total || 0,
+                  priceLevel,
+                  cuisine,
+                  photoUrl,
+                  source: 'google',
+                  sourceUrl: details.url || `https://www.google.com/maps/place/?q=place_id:${place.place_id}`
+                };
               }
+              return null;
+            } catch (error) {
+              console.error(`Error fetching details for place ${place.place_id}:`, error);
+              return null;
             }
-          );
+          });
 
-          const details = detailsResponse.data.result;
-          
-          if (details && details.rating) {
-            let photoUrl;
-            if (details.photos && details.photos.length > 0) {
-              photoUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${details.photos[0].photo_reference}&key=${this.googleApiKey}`;
-            }
+          const batchResults = await Promise.all(batchPromises);
+          const validResults = batchResults.filter(result => result !== null) as Restaurant[];
+          restaurants.push(...validResults);
 
-            const priceLevel = details.price_level 
-              ? '$'.repeat(details.price_level)
-              : undefined;
-
-            const cuisine = details.types
-              ? details.types.find((type: string) => 
-                  ['restaurant', 'food', 'meal_takeaway'].includes(type) === false
-                )?.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())
-              : undefined;
-
-            restaurants.push({
-              id: place.place_id,
-              name: details.name,
-              location: details.formatted_address,
-              rating: details.rating,
-              totalRatings: details.user_ratings_total || 0,
-              priceLevel,
-              cuisine,
-              photoUrl,
-              source: 'google',
-              sourceUrl: details.url || `https://www.google.com/maps/place/?q=place_id:${place.place_id}`
-            });
+          // Early termination if we have enough results
+          if (restaurants.length >= targetResults) {
+            return restaurants.slice(0, targetResults);
           }
-        } catch (error) {
-          console.error(`Error fetching details for place ${place.place_id}:`, error);
-          continue;
         }
-      }
 
-      // Set up for next page
-      nextPageToken = searchResponse.data.next_page_token;
-      pageCount++;
+        // Set up for next page
+        nextPageToken = searchResponse.data.next_page_token;
+        pageCount++;
 
-      // Google requires a short delay before using the next_page_token
-      if (nextPageToken && pageCount < maxPages) {
-        await new Promise(resolve => setTimeout(resolve, 2000));
-      }
+        // Google requires a short delay before using the next_page_token
+        if (nextPageToken && pageCount < maxPages && restaurants.length < targetResults) {
+          await new Promise(resolve => setTimeout(resolve, 1500)); // Reduced delay
+        }
 
-    } while (nextPageToken && pageCount < maxPages);
+      } while (nextPageToken && pageCount < maxPages && restaurants.length < targetResults);
 
       return restaurants;
     } catch (error) {
       console.error('Error in getGooglePlacesResults:', error);
       throw error;
+    }
+  }
+
+  private cleanupCache() {
+    const now = Date.now();
+    for (const [key, value] of this.cache.entries()) {
+      if (now - value.timestamp > this.cacheTimeout) {
+        this.cache.delete(key);
+      }
     }
   }
 
