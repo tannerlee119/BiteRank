@@ -72,7 +72,7 @@ export default function RecommendationsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">
             <h1 className="text-4xl font-bold text-neutral-900 mb-4">Restaurant Recommendations</h1>
-            <p className="text-lg text-gray-600 mb-8">Discover top-rated restaurants from Google Places</p>
+            <p className="text-lg text-gray-600 mb-8">Discover top-rated restaurants</p>
 
             {/* Search and Filter */}
             <div className="flex flex-col md:flex-row gap-4 justify-center mb-8">

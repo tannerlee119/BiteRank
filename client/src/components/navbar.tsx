@@ -32,7 +32,7 @@ export function Navbar({ onAddReview }: NavbarProps) {
     { path: "/", label: "Home", icon: Home },
     { path: "/my-reviews", label: "My Reviews", icon: List },
     { path: "/stats", label: "Stats", icon: BarChart2 },
-    { path: "/recommendations", label: "Recommendations", icon: MapPin },
+    { path: "/recommendations", label: "Discover", icon: MapPin },
   ];
 
   const handleLogout = async () => {
