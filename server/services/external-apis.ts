@@ -9,31 +9,22 @@ interface Restaurant {
   priceLevel?: string;
   cuisine?: string;
   photoUrl?: string;
-  source: 'google' | 'yelp';
+  source: 'google';
   sourceUrl: string;
 }
 
 export class ExternalAPIService {
   private googleApiKey: string;
-  private yelpApiKey: string;
 
   constructor() {
     this.googleApiKey = process.env.GOOGLE_PLACES_API_KEY || '';
-    this.yelpApiKey = process.env.YELP_API_KEY || '';
   }
 
   async getTopRatedRestaurants(location: string, search?: string): Promise<Restaurant[]> {
-    const [googleResults, yelpResults] = await Promise.all([
-      this.getGooglePlacesResults(location, search),
-      this.getYelpResults(location, search)
-    ]);
-
-    // Combine and deduplicate results
-    const allResults = [...googleResults, ...yelpResults];
-    const uniqueResults = this.deduplicateResults(allResults);
+    const googleResults = await this.getGooglePlacesResults(location, search);
 
     // Sort by rating
-    return uniqueResults.sort((a, b) => b.rating - a.rating);
+    return googleResults.sort((a, b) => b.rating - a.rating);
   }
 
   private async getGooglePlacesResults(location: string, search?: string): Promise<Restaurant[]> {
@@ -92,48 +83,5 @@ export class ExternalAPIService {
     }
   }
 
-  private async getYelpResults(location: string, search?: string): Promise<Restaurant[]> {
-    try {
-      const response = await axios.get(
-        'https://api.yelp.com/v3/businesses/search',
-        {
-          headers: {
-            'Authorization': `Bearer ${this.yelpApiKey}`
-          },
-          params: {
-            term: search || 'restaurants',
-            location,
-            sort_by: 'rating',
-            limit: 20
-          }
-        }
-      );
 
-      return response.data.businesses.map((business: any) => ({
-        id: `yelp_${business.id}`,
-        name: business.name,
-        location: business.location.display_address.join(', '),
-        rating: business.rating,
-        totalRatings: business.review_count,
-        priceLevel: business.price,
-        cuisine: business.categories.map((cat: any) => cat.title).join(', '),
-        photoUrl: business.image_url,
-        source: 'yelp' as const,
-        sourceUrl: business.url
-      }));
-    } catch (error) {
-      console.error('Error fetching Yelp data:', error);
-      return [];
-    }
-  }
-
-  private deduplicateResults(results: Restaurant[]): Restaurant[] {
-    const seen = new Set<string>();
-    return results.filter(result => {
-      const key = `${result.name.toLowerCase()}_${result.location.toLowerCase()}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-  }
 } 
