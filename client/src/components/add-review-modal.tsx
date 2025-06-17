@@ -37,9 +37,14 @@ import { ThumbsUp, Minus, ThumbsDown } from "lucide-react";
 interface AddReviewModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  prefilledData?: {
+    restaurantName?: string;
+    restaurantLocation?: string;
+    restaurantCuisine?: string;
+  } | null;
 }
 
-export function AddReviewModal({ open, onOpenChange }: AddReviewModalProps) {
+export function AddReviewModal({ open, onOpenChange, prefilledData }: AddReviewModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [numericalScore, setNumericalScore] = useState([7.5]);
@@ -57,6 +62,15 @@ export function AddReviewModal({ open, onOpenChange }: AddReviewModalProps) {
       labels: "",
     },
   });
+
+  // Auto-populate form when prefilled data is provided
+  useEffect(() => {
+    if (prefilledData && open) {
+      form.setValue("restaurantName", prefilledData.restaurantName || "");
+      form.setValue("restaurantLocation", prefilledData.restaurantLocation || "");
+      form.setValue("restaurantCuisine", prefilledData.restaurantCuisine || "");
+    }
+  }, [prefilledData, open, form]);
 
   const createReviewMutation = useMutation({
     mutationFn: async (data: InsertReview) => {
