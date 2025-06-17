@@ -40,25 +40,34 @@ export class ExternalAPIService {
 
   private async getGooglePlacesResults(location: string, search?: string): Promise<Restaurant[]> {
     try {
-      // First, get place IDs for restaurants in the area
-      const searchResponse = await axios.get(
-        `https://maps.googleapis.com/maps/api/place/textsearch/json`,
-        {
-          params: {
-            query: search ? `${search} restaurant in ${location}` : `restaurants in ${location}`,
-            key: this.googleApiKey,
-            type: 'restaurant',
-          }
-        }
-      );
-
-      if (!searchResponse.data.results || searchResponse.data.results.length === 0) {
-        return [];
-      }
-
       const restaurants: Restaurant[] = [];
+      let nextPageToken: string | undefined;
+      let pageCount = 0;
+      const maxPages = 5; // Limit to 5 pages to get up to 100 results
 
-      for (const place of searchResponse.data.results.slice(0, 20)) {
+      do {
+        // Get place IDs for restaurants in the area
+        const searchParams: any = {
+          query: search ? `${search} restaurant in ${location}` : `restaurants in ${location}`,
+          key: this.googleApiKey,
+          type: 'restaurant',
+        };
+
+        if (nextPageToken) {
+          searchParams.pagetoken = nextPageToken;
+        }
+
+        const searchResponse = await axios.get(
+          `https://maps.googleapis.com/maps/api/place/textsearch/json`,
+          { params: searchParams }
+        );
+
+        if (!searchResponse.data.results || searchResponse.data.results.length === 0) {
+          break;
+        }
+
+        // Process each place in the current page
+        for (const place of searchResponse.data.results) {
         try {
           // Get detailed information for each place
           const detailsResponse = await axios.get(
@@ -109,6 +118,17 @@ export class ExternalAPIService {
         }
       }
 
+      // Set up for next page
+      nextPageToken = searchResponse.data.next_page_token;
+      pageCount++;
+
+      // Google requires a short delay before using the next_page_token
+      if (nextPageToken && pageCount < maxPages) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+
+    } while (nextPageToken && pageCount < maxPages);
+
       return restaurants;
     } catch (error) {
       console.error('Error in getGooglePlacesResults:', error);
@@ -153,16 +173,127 @@ export class ExternalAPIService {
         photoUrl: undefined,
         source: 'google' as const,
         sourceUrl: 'https://www.google.com/maps'
+      },
+      {
+        id: 'mock-4',
+        name: 'Burger Barn',
+        location: `321 Elm St, ${location}`,
+        rating: 4.2,
+        totalRatings: 189,
+        priceLevel: '$',
+        cuisine: 'American',
+        photoUrl: undefined,
+        source: 'google' as const,
+        sourceUrl: 'https://www.google.com/maps'
+      },
+      {
+        id: 'mock-5',
+        name: 'Taco Fiesta',
+        location: `654 Maple Dr, ${location}`,
+        rating: 4.4,
+        totalRatings: 267,
+        priceLevel: '$',
+        cuisine: 'Mexican',
+        photoUrl: undefined,
+        source: 'google' as const,
+        sourceUrl: 'https://www.google.com/maps'
+      },
+      {
+        id: 'mock-6',
+        name: 'China Garden',
+        location: `987 Cedar Ln, ${location}`,
+        rating: 4.1,
+        totalRatings: 134,
+        priceLevel: '$$',
+        cuisine: 'Chinese',
+        photoUrl: undefined,
+        source: 'google' as const,
+        sourceUrl: 'https://www.google.com/maps'
+      },
+      {
+        id: 'mock-7',
+        name: 'Pizza Palace',
+        location: `147 Birch Rd, ${location}`,
+        rating: 4.6,
+        totalRatings: 298,
+        priceLevel: '$$',
+        cuisine: 'Italian',
+        photoUrl: undefined,
+        source: 'google' as const,
+        sourceUrl: 'https://www.google.com/maps'
+      },
+      {
+        id: 'mock-8',
+        name: 'Thai Orchid',
+        location: `258 Spruce Ave, ${location}`,
+        rating: 4.3,
+        totalRatings: 176,
+        priceLevel: '$$',
+        cuisine: 'Thai',
+        photoUrl: undefined,
+        source: 'google' as const,
+        sourceUrl: 'https://www.google.com/maps'
+      },
+      {
+        id: 'mock-9',
+        name: 'Steakhouse Supreme',
+        location: `369 Willow St, ${location}`,
+        rating: 4.8,
+        totalRatings: 412,
+        priceLevel: '$$$$',
+        cuisine: 'Steakhouse',
+        photoUrl: undefined,
+        source: 'google' as const,
+        sourceUrl: 'https://www.google.com/maps'
+      },
+      {
+        id: 'mock-10',
+        name: 'Cafe Delight',
+        location: `741 Cherry Blvd, ${location}`,
+        rating: 4.0,
+        totalRatings: 89,
+        priceLevel: '$',
+        cuisine: 'Cafe',
+        photoUrl: undefined,
+        source: 'google' as const,
+        sourceUrl: 'https://www.google.com/maps'
       }
     ];
 
+    // Generate more mock restaurants to test pagination
+    const additionalMockRestaurants = [];
+    for (let i = 11; i <= 50; i++) {
+      const cuisines = ['Italian', 'Mexican', 'Chinese', 'Japanese', 'American', 'Thai', 'Indian', 'French', 'Greek', 'Mediterranean'];
+      const adjectives = ['Golden', 'Royal', 'Fresh', 'Modern', 'Classic', 'Authentic', 'Gourmet', 'Artisan', 'Urban', 'Cozy'];
+      const types = ['Bistro', 'Kitchen', 'Grill', 'House', 'Corner', 'Garden', 'Place', 'Spot', 'Table', 'Room'];
+      
+      const cuisine = cuisines[Math.floor(Math.random() * cuisines.length)];
+      const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
+      const type = types[Math.floor(Math.random() * types.length)];
+      
+      additionalMockRestaurants.push({
+        id: `mock-${i}`,
+        name: `${adjective} ${cuisine} ${type}`,
+        location: `${i * 10} Restaurant Row, ${location}`,
+        rating: Math.round((3.5 + Math.random() * 1.5) * 10) / 10,
+        totalRatings: Math.floor(Math.random() * 500) + 50,
+        priceLevel: ['$', '$$', '$$$', '$$$$'][Math.floor(Math.random() * 4)],
+        cuisine,
+        photoUrl: undefined,
+        source: 'google' as const,
+        sourceUrl: 'https://www.google.com/maps'
+      });
+    }
+
+    const allMockRestaurants = [...mockRestaurants, ...additionalMockRestaurants];
+
     if (search) {
-      return mockRestaurants.filter(restaurant => 
+      return allMockRestaurants.filter(restaurant => 
         restaurant.name.toLowerCase().includes(search.toLowerCase()) ||
         restaurant.cuisine?.toLowerCase().includes(search.toLowerCase())
       );
     }
 
-    return mockRestaurants;
+    return allMockRestaurants;
   }
 }
