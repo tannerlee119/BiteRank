@@ -1,14 +1,9 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Navbar } from "@/components/navbar";
 import { Card } from "@/components/ui/card";
-import { RestaurantCard } from "@/components/restaurant-card";
-import { AddReviewModal } from "@/components/add-review-modal";
-import { ReviewModal } from "@/components/review-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, MapPin, Star, ExternalLink } from "lucide-react";
-import type { ReviewWithRestaurant } from "@shared/schema";
 
 interface ExternalRestaurant {
   id: string;
@@ -24,8 +19,6 @@ interface ExternalRestaurant {
 }
 
 export default function RecommendationsPage() {
-  const [isAddReviewOpen, setIsAddReviewOpen] = useState(false);
-  const [selectedReview, setSelectedReview] = useState<ReviewWithRestaurant | null>(null);
   const [search, setSearch] = useState("");
   const [location, setLocation] = useState("");
 
@@ -50,8 +43,7 @@ export default function RecommendationsPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
-
+    <div>
       {/* Recommendations Header */}
       <div className="bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -145,7 +137,11 @@ export default function RecommendationsPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setIsAddReviewOpen(true)}
+                      onClick={() => {
+                        // The Add Review modal is handled by the main app component
+                        // We could trigger it through a global event or context if needed
+                        console.log('Add review for:', restaurant.name);
+                      }}
                     >
                       Add Review
                     </Button>
@@ -163,22 +159,6 @@ export default function RecommendationsPage() {
           </Card>
         )}
       </div>
-
-      {/* Add Review Modal */}
-      <AddReviewModal
-        open={isAddReviewOpen}
-        onOpenChange={setIsAddReviewOpen}
-      />
-
-      {/* Review Modal */}
-      <ReviewModal
-        review={selectedReview}
-        open={!!selectedReview}
-        onOpenChange={(open) => !open && setSelectedReview(null)}
-      />
-
-      {/* Mobile Navigation Padding */}
-      <div className="md:hidden h-16"></div>
     </div>
   );
 } 
