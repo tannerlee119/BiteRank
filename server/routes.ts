@@ -5,6 +5,7 @@ import { insertUserSchema, insertReviewSchema } from "@shared/schema";
 import bcrypt from "bcrypt";
 import session from "express-session";
 import { z } from "zod";
+import { ExternalAPIService } from "./services/external-apis";
 
 declare module 'express-session' {
   interface SessionData {
@@ -307,6 +308,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true, restaurant });
     } catch (error: any) {
       res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/recommendations", requireAuth, async (req, res) => {
+    try {
+      const { search, location } = req.query;
+      
+      if (!location) {
+        return res.status(400).json({ message: "Location is required" });
+      }
+
+      const externalAPIService = new ExternalAPIService();
+      const recommendations = await externalAPIService.getTopRatedRestaurants(
+        location as string,
+        search as string | undefined
+      );
+
+      res.json(recommendations);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
     }
   });
 
