@@ -1,4 +1,3 @@
-
 import axios from 'axios';
 
 interface Restaurant {
@@ -12,6 +11,11 @@ interface Restaurant {
   photoUrl?: string;
   source: 'google';
   sourceUrl: string;
+}
+
+interface GooglePlace {
+  place_id: string;
+  [key: string]: any;
 }
 
 export class ExternalAPIService {
@@ -94,7 +98,7 @@ export class ExternalAPIService {
         
         for (let i = 0; i < places.length; i += batchSize) {
           const batch = places.slice(i, i + batchSize);
-          const batchPromises = batch.map(async (place) => {
+          const batchPromises = batch.map(async (place: GooglePlace) => {
             try {
               // Get detailed information for each place
               const detailsResponse = await axios.get(
@@ -120,11 +124,8 @@ export class ExternalAPIService {
                   ? '$'.repeat(details.price_level)
                   : undefined;
 
-                const cuisine = details.types
-                  ? details.types.find((type: string) => 
-                      ['restaurant', 'food', 'meal_takeaway'].includes(type) === false
-                    )?.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())
-                  : undefined;
+                // Extract cuisine from types
+                const cuisine = this.extractCuisineFromTypes(details.types);
 
                 return {
                   id: place.place_id,
@@ -147,7 +148,7 @@ export class ExternalAPIService {
           });
 
           const batchResults = await Promise.all(batchPromises);
-          const validResults = batchResults.filter(result => result !== null) as Restaurant[];
+          const validResults = batchResults.filter((result): result is Restaurant => result !== null);
           restaurants.push(...validResults);
 
           // Early termination if we have enough results
@@ -174,13 +175,50 @@ export class ExternalAPIService {
     }
   }
 
+  private extractCuisineFromTypes(types: string[] | undefined): string | undefined {
+    if (!types) return undefined;
+
+    // Common cuisine types to look for
+    const cuisineTypes = [
+      'italian', 'chinese', 'japanese', 'mexican', 'indian', 'thai', 'vietnamese',
+      'korean', 'american', 'french', 'greek', 'mediterranean', 'spanish', 'german',
+      'brazilian', 'caribbean', 'middle_eastern', 'african', 'sushi', 'steakhouse',
+      'seafood', 'vegetarian', 'vegan', 'cafe', 'bakery', 'dessert', 'ice_cream',
+      'pizza', 'burger', 'sandwich', 'bbq', 'buffet'
+    ];
+
+    // First try to find a specific cuisine type
+    const specificCuisine = types.find(type => 
+      cuisineTypes.some(cuisine => type.toLowerCase().includes(cuisine))
+    );
+
+    if (specificCuisine) {
+      return specificCuisine
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, (l: string) => l.toUpperCase())
+        .replace(/Restaurant|Food|Meal|Takeaway|Delivery/g, '')
+        .trim();
+    }
+
+    // If no specific cuisine found, look for general restaurant types
+    const generalType = types.find(type => 
+      ['restaurant', 'food', 'meal_takeaway', 'meal_delivery'].includes(type)
+    );
+
+    if (generalType) {
+      return 'Restaurant';
+    }
+
+    return undefined;
+  }
+
   private cleanupCache() {
     const now = Date.now();
-    for (const [key, value] of this.cache.entries()) {
+    Array.from(this.cache.entries()).forEach(([key, value]) => {
       if (now - value.timestamp > this.cacheTimeout) {
         this.cache.delete(key);
       }
-    }
+    });
   }
 
   private getMockRestaurants(location: string, search?: string): Restaurant[] {
