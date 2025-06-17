@@ -59,13 +59,13 @@ export function Navbar({ onAddReview }: NavbarProps) {
                 <Link
                   key={item.path}
                   href={item.path}
-                  className={`text-gray-700 hover:text-primary font-medium transition-colors ${
+                  className={`flex items-center text-gray-700 hover:text-primary font-medium transition-colors ${
                     isActive(item.path)
                       ? "border-b-2 border-primary"
                       : ""
                   }`}
                 >
-                  <Icon className="w-4 h-4 mr-2" />
+                  <Icon className="w-4 h-4 mr-2 hidden lg:block" />
                   {item.label}
                 </Link>
               );
