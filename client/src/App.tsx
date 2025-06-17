@@ -14,10 +14,27 @@ import MyReviewsPage from "@/pages/my-reviews";
 import StatsPage from "@/pages/stats";
 import RecommendationsPage from "@/pages/recommendations";
 import BookmarkedPage from "@/pages/bookmarked";
-import { useState } from "react";
+import React, { useState } from "react";
 
 function AuthenticatedApp() {
   const [isAddReviewOpen, setIsAddReviewOpen] = useState(false);
+  const [prefilledData, setPrefilledData] = useState<{
+    restaurantName?: string;
+    restaurantLocation?: string;
+    restaurantCuisine?: string;
+  } | null>(null);
+
+  React.useEffect(() => {
+    const handleOpenAddReviewModal = (event: CustomEvent) => {
+      setPrefilledData(event.detail);
+      setIsAddReviewOpen(true);
+    };
+
+    window.addEventListener('openAddReviewModal', handleOpenAddReviewModal as EventListener);
+    return () => {
+      window.removeEventListener('openAddReviewModal', handleOpenAddReviewModal as EventListener);
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -35,7 +52,11 @@ function AuthenticatedApp() {
       </main>
       <AddReviewModal
         open={isAddReviewOpen}
-        onOpenChange={setIsAddReviewOpen}
+        onOpenChange={(open) => {
+          setIsAddReviewOpen(open);
+          if (!open) setPrefilledData(null);
+        }}
+        prefilledData={prefilledData}
       />
     </div>
   );

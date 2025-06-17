@@ -79,6 +79,77 @@ export default function RecommendationsPage() {
   const recommendations = recommendationsResponse?.data;
   const pagination = recommendationsResponse?.pagination;
 
+  // Bookmark functionality
+  const createBookmarkMutation = useMutation({
+    mutationFn: async (restaurant: ExternalRestaurant) => {
+      return apiRequest("POST", "/api/bookmarks", {
+        externalId: restaurant.id,
+        name: restaurant.name,
+        location: restaurant.location,
+        rating: restaurant.rating,
+        totalRatings: restaurant.totalRatings,
+        priceLevel: restaurant.priceLevel,
+        cuisine: restaurant.cuisine,
+        photoUrl: restaurant.photoUrl,
+        sourceUrl: restaurant.sourceUrl,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] });
+      toast({
+        title: "Bookmarked!",
+        description: "Restaurant added to your bookmarks.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to bookmark restaurant.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteBookmarkMutation = useMutation({
+    mutationFn: async (externalId: string) => {
+      return apiRequest("DELETE", `/api/bookmarks/${externalId}`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] });
+      toast({
+        title: "Bookmark removed",
+        description: "Restaurant removed from bookmarks.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to remove bookmark.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Check if restaurants are bookmarked
+  const { data: bookmarkStatuses } = useQuery({
+    queryKey: ["/api/bookmarks/status", recommendations?.map(r => r.id)],
+    queryFn: async () => {
+      if (!recommendations?.length) return {};
+      
+      const statusPromises = recommendations.map(async (restaurant) => {
+        const response = await fetch(`/api/bookmarks/${restaurant.id}/check`, {
+          credentials: "include",
+        });
+        const data = await response.json();
+        return { [restaurant.id]: data.isBookmarked };
+      });
+      
+      const statuses = await Promise.all(statusPromises);
+      return statuses.reduce((acc, status) => ({ ...acc, ...status }), {});
+    },
+    enabled: !!recommendations?.length,
+  });
+
   return (
     <div>
       {/* Recommendations Header */}
@@ -173,21 +244,48 @@ export default function RecommendationsPage() {
                   {restaurant.priceLevel && (
                     <p className="text-sm text-gray-500">{restaurant.priceLevel}</p>
                   )}
-                  <div className="mt-4 flex justify-between items-center">
+                  <div className="mt-4 flex justify-between items-center gap-2">
                     <span className="text-xs text-gray-400">
                       Source: {restaurant.source.charAt(0).toUpperCase() + restaurant.source.slice(1)}
                     </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        // The Add Review modal is handled by the main app component
-                        // We could trigger it through a global event or context if needed
-                        console.log('Add review for:', restaurant.name);
-                      }}
-                    >
-                      Add Review
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const isBookmarked = bookmarkStatuses?.[restaurant.id];
+                          if (isBookmarked) {
+                            deleteBookmarkMutation.mutate(restaurant.id);
+                          } else {
+                            createBookmarkMutation.mutate(restaurant);
+                          }
+                        }}
+                        disabled={createBookmarkMutation.isPending || deleteBookmarkMutation.isPending}
+                      >
+                        {bookmarkStatuses?.[restaurant.id] ? (
+                          <BookmarkCheck className="w-4 h-4" />
+                        ) : (
+                          <Bookmark className="w-4 h-4" />
+                        )}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedRestaurant(restaurant);
+                          // Trigger the global add review modal
+                          window.dispatchEvent(new CustomEvent('openAddReviewModal', {
+                            detail: {
+                              restaurantName: restaurant.name,
+                              restaurantLocation: restaurant.location,
+                              restaurantCuisine: restaurant.cuisine || '',
+                            }
+                          }));
+                        }}
+                      >
+                        Add Review
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </Card>
