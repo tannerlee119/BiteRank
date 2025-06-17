@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertReviewSchema } from "@shared/schema";
+import { insertUserSchema, insertReviewSchema, insertBookmarkSchema } from "@shared/schema";
 import bcrypt from "bcrypt";
 import session from "express-session";
 import { z } from "zod";

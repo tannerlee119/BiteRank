@@ -33,6 +33,21 @@ export const reviews = pgTable("reviews", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const bookmarks = pgTable("bookmarks", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  externalId: text("external_id").notNull(), // Google Places ID
+  name: text("name").notNull(),
+  location: text("location").notNull(),
+  rating: real("rating"),
+  totalRatings: real("total_ratings"),
+  priceLevel: text("price_level"),
+  cuisine: text("cuisine"),
+  photoUrl: text("photo_url"),
+  sourceUrl: text("source_url").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
@@ -62,12 +77,20 @@ export const insertReviewSchema = createInsertSchema(reviews).omit({
   score: z.number().min(0).max(10),
 });
 
+export const insertBookmarkSchema = createInsertSchema(bookmarks).omit({
+  id: true,
+  userId: true,
+  createdAt: true,
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Restaurant = typeof restaurants.$inferSelect;
 export type InsertRestaurant = z.infer<typeof insertRestaurantSchema>;
 export type Review = typeof reviews.$inferSelect;
 export type InsertReview = z.infer<typeof insertReviewSchema>;
+export type Bookmark = typeof bookmarks.$inferSelect;
+export type InsertBookmark = z.infer<typeof insertBookmarkSchema>;
 
 export type ReviewWithRestaurant = Review & {
   restaurant: Restaurant;

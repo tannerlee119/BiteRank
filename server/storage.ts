@@ -2,12 +2,15 @@ import {
   users, 
   restaurants, 
   reviews,
+  bookmarks,
   type User, 
   type InsertUser,
   type Restaurant,
   type InsertRestaurant,
   type Review,
-  type ReviewWithRestaurant
+  type ReviewWithRestaurant,
+  type Bookmark,
+  type InsertBookmark
 } from "@shared/schema";
 import { eq, desc, and, ilike, or, count, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
@@ -45,6 +48,12 @@ export interface IStorage {
     averageScore: number;
   }>;
   deleteReview(reviewId: string, userId: string): Promise<boolean>;
+
+  // Bookmarks
+  getUserBookmarks(userId: string): Promise<Bookmark[]>;
+  createBookmark(userId: string, bookmark: InsertBookmark): Promise<Bookmark>;
+  deleteBookmark(userId: string, externalId: string): Promise<boolean>;
+  isBookmarked(userId: string, externalId: string): Promise<boolean>;
 
   // Scraped Data
   storeScrapedData(data: {
@@ -308,6 +317,44 @@ export class DatabaseStorage implements IStorage {
       .delete(reviews)
       .where(and(eq(reviews.id, reviewId), eq(reviews.userId, userId)))
       .returning();
+
+    return result.length > 0;
+  }
+
+  async getUserBookmarks(userId: string): Promise<Bookmark[]> {
+    const result = await db
+      .select()
+      .from(bookmarks)
+      .where(eq(bookmarks.userId, userId))
+      .orderBy(desc(bookmarks.createdAt));
+
+    return result;
+  }
+
+  async createBookmark(userId: string, bookmark: InsertBookmark): Promise<Bookmark> {
+    const result = await db.insert(bookmarks).values({
+      ...bookmark,
+      userId,
+    }).returning();
+
+    return result[0];
+  }
+
+  async deleteBookmark(userId: string, externalId: string): Promise<boolean> {
+    const result = await db
+      .delete(bookmarks)
+      .where(and(eq(bookmarks.userId, userId), eq(bookmarks.externalId, externalId)))
+      .returning();
+
+    return result.length > 0;
+  }
+
+  async isBookmarked(userId: string, externalId: string): Promise<boolean> {
+    const result = await db
+      .select({ id: bookmarks.id })
+      .from(bookmarks)
+      .where(and(eq(bookmarks.userId, userId), eq(bookmarks.externalId, externalId)))
+      .limit(1);
 
     return result.length > 0;
   }
