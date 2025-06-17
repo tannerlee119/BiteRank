@@ -1,4 +1,4 @@
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Utensils, Plus, LogOut, User, Search, BarChart2, Settings } from "lucide-react";
@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
+import { Home, List, MapPin } from "lucide-react";
 
 interface NavbarProps {
   onAddReview: () => void;
@@ -18,6 +19,21 @@ interface NavbarProps {
 
 export function Navbar({ onAddReview }: NavbarProps) {
   const { user, logout } = useAuth();
+  const [location] = useLocation();
+
+  const isActive = (path: string) => {
+    if (path === "/") {
+      return location === "/";
+    }
+    return location.startsWith(path);
+  };
+
+  const navItems = [
+    { path: "/", label: "Home", icon: Home },
+    { path: "/my-reviews", label: "My Reviews", icon: List },
+    { path: "/stats", label: "Stats", icon: BarChart2 },
+    { path: "/recommendations", label: "Recommendations", icon: MapPin },
+  ];
 
   const handleLogout = async () => {
     try {
@@ -37,18 +53,23 @@ export function Navbar({ onAddReview }: NavbarProps) {
           </Link>
 
           <div className="hidden md:flex items-center space-x-6">
-            <Link href="/" className="text-gray-700 hover:text-primary font-medium transition-colors">
-              Dashboard
-            </Link>
-            <Link href="/my-reviews" className="text-gray-700 hover:text-primary font-medium transition-colors">
-              My Reviews
-            </Link>
-            <Link href="/recommendations" className="text-gray-700 hover:text-primary font-medium transition-colors">
-              Recommendations
-            </Link>
-            <Link href="/stats" className="text-gray-700 hover:text-primary font-medium transition-colors">
-              Statistics
-            </Link>
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.path}
+                  href={item.path}
+                  className={`text-gray-700 hover:text-primary font-medium transition-colors ${
+                    isActive(item.path)
+                      ? "border-b-2 border-primary"
+                      : ""
+                  }`}
+                >
+                  <Icon className="w-4 h-4 mr-2" />
+                  {item.label}
+                </Link>
+              );
+            })}
           </div>
 
           <div className="flex items-center space-x-4">
@@ -102,6 +123,29 @@ export function Navbar({ onAddReview }: NavbarProps) {
               </DropdownMenu>
             )}
           </div>
+        </div>
+      </div>
+
+      {/* Mobile menu */}
+      <div className="sm:hidden">
+        <div className="pt-2 pb-3 space-y-1">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.path}
+                href={item.path}
+                className={`flex items-center px-3 py-2 text-base font-medium ${
+                  isActive(item.path)
+                    ? "bg-primary/10 text-primary border-l-4 border-primary"
+                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                }`}
+              >
+                <Icon className="w-5 h-5 mr-3" />
+                {item.label}
+              </Link>
+            );
+          })}
         </div>
       </div>
     </nav>
