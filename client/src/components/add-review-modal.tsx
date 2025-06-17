@@ -108,7 +108,7 @@ export function AddReviewModal({ open, onOpenChange }: AddReviewModalProps) {
                 name="restaurantName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Restaurant Name *</FormLabel>
+                    <FormLabel>Restaurant Name <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
                       <Input placeholder="Enter restaurant name" {...field} />
                     </FormControl>
@@ -122,7 +122,7 @@ export function AddReviewModal({ open, onOpenChange }: AddReviewModalProps) {
                 name="restaurantLocation"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Location *</FormLabel>
+                    <FormLabel>Location <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
                       <Input placeholder="Address, city, or coordinates" {...field} />
                     </FormControl>
@@ -150,7 +150,7 @@ export function AddReviewModal({ open, onOpenChange }: AddReviewModalProps) {
                 name="rating"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Rating *</FormLabel>
+                    <FormLabel>Rating <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
                       <RadioGroup
                         onValueChange={(value) => {
