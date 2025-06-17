@@ -51,7 +51,6 @@ export default function RecommendationsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar onAddReview={() => setIsAddReviewOpen(true)} />
 
       {/* Recommendations Header */}
       <div className="bg-white">
