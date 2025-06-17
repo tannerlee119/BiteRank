@@ -1,16 +1,13 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Navbar } from "@/components/navbar";
 import { StatsCards } from "@/components/stats-cards";
 import { Filters } from "@/components/filters";
 import { RestaurantCard } from "@/components/restaurant-card";
-import { AddReviewModal } from "@/components/add-review-modal";
 import { ReviewModal } from "@/components/review-modal";
 import { Card } from "@/components/ui/card";
 import type { ReviewWithRestaurant } from "@shared/schema";
 
 export default function Dashboard() {
-  const [isAddReviewOpen, setIsAddReviewOpen] = useState(false);
   const [selectedReview, setSelectedReview] = useState<ReviewWithRestaurant | null>(null);
   const [search, setSearch] = useState("");
   const [location, setLocation] = useState("");
@@ -59,9 +56,7 @@ export default function Dashboard() {
   }) : reviewsData;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar onAddReview={() => setIsAddReviewOpen(true)} />
-
+    <div>
       {/* Dashboard Header */}
       <div className="bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -118,22 +113,13 @@ export default function Dashboard() {
                   ? "Try adjusting your filters or search terms."
                   : "Start your food journey by adding your first restaurant review!"}
               </p>
-              <button
-                onClick={() => setIsAddReviewOpen(true)}
-                className="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-lg font-medium transition-colors"
-              >
-                Add Your First Review
-              </button>
+              <p className="text-sm text-gray-500">
+                Click the "Add Review" button in the navbar to get started.
+              </p>
             </div>
           </Card>
         )}
       </div>
-
-      {/* Add Review Modal */}
-      <AddReviewModal
-        open={isAddReviewOpen}
-        onOpenChange={setIsAddReviewOpen}
-      />
 
       {/* Review Modal */}
       <ReviewModal
@@ -141,9 +127,6 @@ export default function Dashboard() {
         open={!!selectedReview}
         onOpenChange={(open) => !open && setSelectedReview(null)}
       />
-
-      {/* Mobile Navigation Padding */}
-      <div className="md:hidden h-16"></div>
     </div>
   );
 }
