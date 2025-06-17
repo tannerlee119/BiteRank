@@ -162,7 +162,7 @@ export class ExternalAPIService {
 
         // Google requires a short delay before using the next_page_token
         if (nextPageToken && pageCount < maxPages && restaurants.length < targetResults) {
-          await new Promise(resolve => setTimeout(resolve, 1500)); // Reduced delay
+          await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second delay
         }
 
       } while (nextPageToken && pageCount < maxPages && restaurants.length < targetResults);
