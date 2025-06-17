@@ -367,7 +367,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/bookmarks", requireAuth, async (req, res) => {
     try {
       const bookmarkData = insertBookmarkSchema.parse(req.body);
-      const bookmark = await storage.createBookmark(req.session.userId!, bookmarkData);
+      const userId = req.session.userId!;
+      
+      // Check if bookmark already exists
+      const existingBookmark = await storage.isBookmarked(userId, bookmarkData.externalId);
+      if (existingBookmark) {
+        return res.status(400).json({ message: "Restaurant is already bookmarked" });
+      }
+      
+      const bookmark = await storage.createBookmark(userId, bookmarkData);
       res.json(bookmark);
     } catch (error: any) {
       res.status(400).json({ message: error.message });

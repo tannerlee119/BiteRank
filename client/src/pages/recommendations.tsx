@@ -96,17 +96,23 @@ export default function RecommendationsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/bookmarks/status", recommendations?.map(r => r.id)] });
       toast({
         title: "Bookmarked!",
         description: "Restaurant added to your bookmarks.",
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      const message = error.message === "Restaurant is already bookmarked" 
+        ? "This restaurant is already in your bookmarks."
+        : "Failed to bookmark restaurant.";
       toast({
         title: "Error",
-        description: "Failed to bookmark restaurant.",
+        description: message,
         variant: "destructive",
       });
+      // Refresh bookmark status in case it was out of sync
+      queryClient.invalidateQueries({ queryKey: ["/api/bookmarks/status", recommendations?.map(r => r.id)] });
     },
   });
 
@@ -116,6 +122,7 @@ export default function RecommendationsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/bookmarks/status", recommendations?.map(r => r.id)] });
       toast({
         title: "Bookmark removed",
         description: "Restaurant removed from bookmarks.",
@@ -250,7 +257,7 @@ export default function RecommendationsPage() {
                     </span>
                     <div className="flex gap-2">
                       <Button
-                        variant="outline"
+                        variant={bookmarkStatuses?.[restaurant.id] ? "default" : "outline"}
                         size="sm"
                         onClick={() => {
                           const isBookmarked = bookmarkStatuses?.[restaurant.id];
@@ -261,11 +268,18 @@ export default function RecommendationsPage() {
                           }
                         }}
                         disabled={createBookmarkMutation.isPending || deleteBookmarkMutation.isPending}
+                        className={bookmarkStatuses?.[restaurant.id] ? "bg-primary text-white hover:bg-primary/90" : ""}
                       >
                         {bookmarkStatuses?.[restaurant.id] ? (
-                          <BookmarkCheck className="w-4 h-4" />
+                          <>
+                            <BookmarkCheck className="w-4 h-4 mr-1" />
+                            Saved
+                          </>
                         ) : (
-                          <Bookmark className="w-4 h-4" />
+                          <>
+                            <Bookmark className="w-4 h-4 mr-1" />
+                            Save
+                          </>
                         )}
                       </Button>
                       <Button
