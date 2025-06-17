@@ -13,6 +13,7 @@ import { ProfilePage } from "@/pages/profile";
 import MyReviewsPage from "@/pages/my-reviews";
 import StatsPage from "@/pages/stats";
 import RecommendationsPage from "@/pages/recommendations";
+import BookmarkedPage from "@/pages/bookmarked";
 import { useState } from "react";
 
 function AuthenticatedApp() {

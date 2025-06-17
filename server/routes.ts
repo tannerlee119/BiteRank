@@ -354,6 +354,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Bookmark routes
+  app.get("/api/bookmarks", requireAuth, async (req, res) => {
+    try {
+      const bookmarks = await storage.getUserBookmarks(req.session.userId!);
+      res.json(bookmarks);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/bookmarks", requireAuth, async (req, res) => {
+    try {
+      const bookmarkData = insertBookmarkSchema.parse(req.body);
+      const bookmark = await storage.createBookmark(req.session.userId!, bookmarkData);
+      res.json(bookmark);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/bookmarks/:externalId", requireAuth, async (req, res) => {
+    try {
+      const { externalId } = req.params;
+      const success = await storage.deleteBookmark(req.session.userId!, externalId);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Bookmark not found" });
+      }
+      
+      res.json({ message: "Bookmark deleted successfully" });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/bookmarks/:externalId/check", requireAuth, async (req, res) => {
+    try {
+      const { externalId } = req.params;
+      const isBookmarked = await storage.isBookmarked(req.session.userId!, externalId);
+      res.json({ isBookmarked });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
