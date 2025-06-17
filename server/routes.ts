@@ -313,19 +313,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/recommendations", requireAuth, async (req, res) => {
     try {
-      const { search, location } = req.query;
+      const { search, location, page = "1", limit = "21" } = req.query;
       
       if (!location) {
         return res.status(400).json({ message: "Location is required" });
       }
 
+      const pageNum = parseInt(page as string, 10);
+      const limitNum = parseInt(limit as string, 10);
+      const offset = (pageNum - 1) * limitNum;
+
       const externalAPIService = new ExternalAPIService();
-      const recommendations = await externalAPIService.getTopRatedRestaurants(
+      const allRecommendations = await externalAPIService.getTopRatedRestaurants(
         location as string,
         search as string | undefined
       );
 
-      res.json(recommendations);
+      // Limit to first 100 results max
+      const limitedResults = allRecommendations.slice(0, 100);
+      
+      // Apply pagination
+      const paginatedResults = limitedResults.slice(offset, offset + limitNum);
+      
+      const totalResults = limitedResults.length;
+      const totalPages = Math.ceil(totalResults / limitNum);
+
+      res.json({
+        data: paginatedResults,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total: totalResults,
+          totalPages,
+          hasNext: pageNum < totalPages,
+          hasPrev: pageNum > 1
+        }
+      });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }

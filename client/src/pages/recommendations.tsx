@@ -3,7 +3,15 @@ import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, MapPin, Star, ExternalLink } from "lucide-react";
+import { Star, Search, MapPin, ExternalLink } from "lucide-react";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 interface ExternalRestaurant {
   id: string;
@@ -28,15 +36,15 @@ export default function RecommendationsPage() {
       const params = new URLSearchParams();
       if (search) params.append("search", search);
       if (location) params.append("location", location);
-      
+
       const response = await fetch(`/api/recommendations?${params.toString()}`, {
         credentials: "include",
       });
-      
+
       if (!response.ok) {
         throw new Error("Failed to fetch recommendations");
       }
-      
+
       return response.json();
     },
     enabled: !!location, // Only fetch when location is provided
@@ -50,7 +58,7 @@ export default function RecommendationsPage() {
           <div className="text-center">
             <h1 className="text-4xl font-bold text-neutral-900 mb-4">Restaurant Recommendations</h1>
             <p className="text-lg text-gray-600 mb-8">Discover top-rated restaurants from Google Places</p>
-            
+
             {/* Search and Filter */}
             <div className="flex flex-col md:flex-row gap-4 justify-center mb-8">
               <div className="relative flex-1 max-w-md">
@@ -161,4 +169,4 @@ export default function RecommendationsPage() {
       </div>
     </div>
   );
-} 
+}
