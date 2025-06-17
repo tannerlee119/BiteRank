@@ -38,12 +38,27 @@ const RestaurantContext = createContext<{
 });
 
 export default function RecommendationsPage() {
-  const [search, setSearch] = useState("");
-  const [location, setLocation] = useState("");
+  const [search, setSearch] = useState(() => {
+    const savedSearch = localStorage.getItem('recommendationsSearch');
+    return savedSearch || "";
+  });
+  const [location, setLocation] = useState(() => {
+    const savedLocation = localStorage.getItem('recommendationsLocation');
+    return savedLocation || "";
+  });
   const [selectedRestaurant, setSelectedRestaurant] = useState<ExternalRestaurant | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Save search and location to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('recommendationsSearch', search);
+  }, [search]);
+
+  useEffect(() => {
+    localStorage.setItem('recommendationsLocation', location);
+  }, [location]);
 
   const { data: recommendationsResponse, isLoading } = useQuery<{
     data: ExternalRestaurant[];
