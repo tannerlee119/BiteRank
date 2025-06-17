@@ -29,13 +29,25 @@ interface ExternalRestaurant {
 export default function RecommendationsPage() {
   const [search, setSearch] = useState("");
   const [location, setLocation] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const { data: recommendations, isLoading } = useQuery<ExternalRestaurant[]>({
-    queryKey: ["/api/recommendations", { search, location }],
+  const { data: recommendationsResponse, isLoading } = useQuery<{
+    data: ExternalRestaurant[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+  }>({
+    queryKey: ["/api/recommendations", { search, location, page: currentPage }],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (search) params.append("search", search);
       if (location) params.append("location", location);
+      params.append("page", currentPage.toString());
 
       const response = await fetch(`/api/recommendations?${params.toString()}`, {
         credentials: "include",
@@ -49,6 +61,9 @@ export default function RecommendationsPage() {
     },
     enabled: !!location, // Only fetch when location is provided
   });
+
+  const recommendations = recommendationsResponse?.data;
+  const pagination = recommendationsResponse?.pagination;
 
   return (
     <div>
@@ -67,7 +82,10 @@ export default function RecommendationsPage() {
                   type="search"
                   placeholder="Search restaurants..."
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setCurrentPage(1);
+                  }}
                   className="pl-10"
                 />
               </div>
@@ -77,7 +95,10 @@ export default function RecommendationsPage() {
                   type="text"
                   placeholder="Enter location..."
                   value={location}
-                  onChange={(e) => setLocation(e.target.value)}
+                  onChange={(e) => {
+                    setLocation(e.target.value);
+                    setCurrentPage(1);
+                  }}
                   className="pl-10"
                 />
               </div>
@@ -165,6 +186,41 @@ export default function RecommendationsPage() {
               Try adjusting your search criteria or try a different location.
             </p>
           </Card>
+        )}
+
+        {/* Pagination */}
+        {pagination && pagination.totalPages > 1 && (
+          <div className="mt-8 flex justify-center">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious 
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    className={!pagination.hasPrev ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+                
+                {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
+                  <PaginationItem key={page}>
+                    <PaginationLink
+                      onClick={() => setCurrentPage(page)}
+                      isActive={page === pagination.page}
+                      className="cursor-pointer"
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                
+                <PaginationItem>
+                  <PaginationNext 
+                    onClick={() => setCurrentPage(prev => Math.min(pagination.totalPages, prev + 1))}
+                    className={!pagination.hasNext ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
         )}
       </div>
     </div>
