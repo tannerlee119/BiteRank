@@ -260,9 +260,6 @@ export default function RecommendationsPage() {
                       ({restaurant.totalRatings.toLocaleString()} reviews)
                     </span>
                   </div>
-                  {restaurant.cuisine && (
-                    <p className="text-sm text-gray-500 mb-2">{restaurant.cuisine}</p>
-                  )}
                   {restaurant.priceLevel && (
                     <p className="text-sm text-gray-500">{restaurant.priceLevel}</p>
                   )}
@@ -306,8 +303,7 @@ export default function RecommendationsPage() {
                           window.dispatchEvent(new CustomEvent('openAddReviewModal', {
                             detail: {
                               restaurantName: restaurant.name,
-                              restaurantLocation: restaurant.location,
-                              restaurantCuisine: restaurant.cuisine || '',
+                              restaurantLocation: restaurant.location
                             }
                           }));
                         }}
