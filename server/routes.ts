@@ -199,6 +199,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         labels,
       });
 
+      // Trigger webhook for n8n
+      try {
+        await fetch(`${req.protocol}://${req.get('host')}/api/webhooks/review-created`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Cookie': req.headers.cookie || ''
+          },
+          body: JSON.stringify({ reviewId: review.id })
+        });
+      } catch (webhookError) {
+        console.error('Failed to trigger review webhook:', webhookError);
+      }
+
       res.json(review);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -469,6 +483,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const bookmark = await storage.createBookmark(userId, bookmarkData);
+      
+      // Trigger webhook for n8n
+      try {
+        await fetch(`${req.protocol}://${req.get('host')}/api/webhooks/bookmark-created`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Cookie': req.headers.cookie || ''
+          },
+          body: JSON.stringify({ externalId: bookmarkData.externalId })
+        });
+      } catch (webhookError) {
+        console.error('Failed to trigger bookmark webhook:', webhookError);
+      }
+      
       res.json(bookmark);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -495,6 +524,166 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { externalId } = req.params;
       const isBookmarked = await storage.isBookmarked(req.session.userId!, externalId);
       res.json({ isBookmarked });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Webhook endpoints for n8n integration
+  app.post("/api/webhooks/review-created", requireAuth, async (req, res) => {
+    try {
+      const { reviewId } = req.body;
+      const userId = req.session.userId!;
+      
+      // Get the review details
+      const reviews = await storage.getUserReviews(userId);
+      const review = reviews.find(r => r.id === reviewId);
+      
+      if (!review) {
+        return res.status(404).json({ message: "Review not found" });
+      }
+
+      // Get user details
+      const user = await storage.getUser(userId);
+      
+      // Prepare webhook payload for n8n
+      const webhookPayload = {
+        event: "review_created",
+        timestamp: new Date().toISOString(),
+        user: {
+          id: user?.id,
+          email: user?.email,
+          displayName: user?.displayName
+        },
+        review: {
+          id: review.id,
+          rating: review.rating,
+          score: review.score,
+          note: review.note,
+          favoriteDishes: review.favoriteDishes,
+          labels: review.labels,
+          createdAt: review.createdAt
+        },
+        restaurant: {
+          name: review.restaurant.name,
+          location: review.restaurant.location,
+          cuisine: review.restaurant.cuisine
+        }
+      };
+
+      // Send to n8n webhook (if configured)
+      const n8nWebhookUrl = process.env.N8N_REVIEW_WEBHOOK_URL;
+      if (n8nWebhookUrl) {
+        try {
+          await fetch(n8nWebhookUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(webhookPayload)
+          });
+        } catch (webhookError) {
+          console.error('Failed to send webhook to n8n:', webhookError);
+        }
+      }
+
+      res.json({ success: true, payload: webhookPayload });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/webhooks/bookmark-created", requireAuth, async (req, res) => {
+    try {
+      const { externalId } = req.body;
+      const userId = req.session.userId!;
+      
+      // Get the bookmark details
+      const bookmarks = await storage.getUserBookmarks(userId);
+      const bookmark = bookmarks.find(b => b.externalId === externalId);
+      
+      if (!bookmark) {
+        return res.status(404).json({ message: "Bookmark not found" });
+      }
+
+      // Get user details
+      const user = await storage.getUser(userId);
+      
+      // Prepare webhook payload for n8n
+      const webhookPayload = {
+        event: "bookmark_created",
+        timestamp: new Date().toISOString(),
+        user: {
+          id: user?.id,
+          email: user?.email,
+          displayName: user?.displayName
+        },
+        bookmark: {
+          id: bookmark.id,
+          name: bookmark.name,
+          location: bookmark.location,
+          rating: bookmark.rating,
+          cuisine: bookmark.cuisine,
+          priceLevel: bookmark.priceLevel,
+          createdAt: bookmark.createdAt
+        }
+      };
+
+      // Send to n8n webhook (if configured)
+      const n8nWebhookUrl = process.env.N8N_BOOKMARK_WEBHOOK_URL;
+      if (n8nWebhookUrl) {
+        try {
+          await fetch(n8nWebhookUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(webhookPayload)
+          });
+        } catch (webhookError) {
+          console.error('Failed to send webhook to n8n:', webhookError);
+        }
+      }
+
+      res.json({ success: true, payload: webhookPayload });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/webhooks/user-stats", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId!;
+      
+      // Get user details and stats
+      const user = await storage.getUser(userId);
+      const stats = await storage.getUserReviewStats(userId);
+      const recentReviews = await storage.getUserReviews(userId);
+      const bookmarks = await storage.getUserBookmarks(userId);
+
+      // Prepare data for n8n workflow triggers
+      const webhookPayload = {
+        event: "user_stats_requested",
+        timestamp: new Date().toISOString(),
+        user: {
+          id: user?.id,
+          email: user?.email,
+          displayName: user?.displayName
+        },
+        stats,
+        recentReviews: recentReviews.slice(0, 5), // Last 5 reviews
+        bookmarks: bookmarks.slice(0, 10), // Last 10 bookmarks
+        triggers: {
+          needsReviewReminder: stats.averageDaysBetween > 0 && 
+            recentReviews.length > 0 && 
+            (Date.now() - new Date(recentReviews[0].createdAt).getTime()) > (stats.averageDaysBetween * 24 * 60 * 60 * 1000),
+          hasUnreviewedBookmarks: bookmarks.length > 0,
+          lowActivityUser: stats.totalReviews < 5,
+          highActivityUser: stats.totalReviews > 50
+        }
+      };
+
+      res.json(webhookPayload);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
