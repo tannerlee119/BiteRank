@@ -28,6 +28,8 @@ interface ExternalRestaurant {
   photoUrl?: string;
   source: 'google';
   sourceUrl: string;
+  lat: number;
+  lng: number;
 }
 
 // Context for sharing restaurant data with AddReviewModal
@@ -288,7 +290,7 @@ export default function RecommendationsPage() {
             <div className="w-full">
               <RestaurantMap
                 onRestaurantSelect={setSelectedRestaurant}
-                initialLocation={location}
+                initialLocation={searchParams.location}
                 bookmarkStatuses={bookmarkStatuses}
                 restaurants={currentRecommendations}
               />
