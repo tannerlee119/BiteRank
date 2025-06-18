@@ -106,6 +106,8 @@ export default function RecommendationsPage() {
   const recommendationsResponse = recommendations;
   const recommendationsData = recommendationsResponse?.data;
   const pagination = recommendationsResponse?.pagination;
+    const currentRecommendations = recommendationsData || [];
+
 
   // Bookmark functionality
   const createBookmarkMutation = useMutation({
@@ -284,17 +286,10 @@ export default function RecommendationsPage() {
           viewMode === 'map' ? (
             <div className="h-[600px] w-full">
               <RestaurantMap
-                initialLocation={searchParams.location}
-                onRestaurantSelect={(restaurant) => {
-                  setSelectedRestaurant(restaurant);
-                  window.dispatchEvent(new CustomEvent('openAddReviewModal', {
-                    detail: {
-                      restaurantName: restaurant.name,
-                      restaurantLocation: restaurant.location
-                    }
-                  }));
-                }}
+                onRestaurantSelect={setSelectedRestaurant}
+                initialLocation={location}
                 bookmarkStatuses={bookmarkStatuses}
+                restaurants={currentRecommendations}
               />
             </div>
           ) : (

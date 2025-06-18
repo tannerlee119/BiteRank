@@ -25,6 +25,7 @@ interface RestaurantMapProps {
   onRestaurantSelect: (restaurant: Restaurant) => void;
   initialLocation?: string;
   bookmarkStatuses?: Record<string, boolean>;
+  restaurants?: Restaurant[];
 }
 
 declare global {
@@ -34,7 +35,7 @@ declare global {
   }
 }
 
-export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkStatuses }: RestaurantMapProps) {
+export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkStatuses, restaurants }: RestaurantMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<any>(null);
   const [markers, setMarkers] = useState<any[]>([]);
@@ -152,8 +153,12 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
         setSelectedRestaurant(null);
       });
 
-      // Search for restaurants at the determined center
-      searchNearby(mapCenter.lat, mapCenter.lng);
+      // Add markers for provided restaurants or search nearby
+      if (restaurants && restaurants.length > 0) {
+        addRestaurantMarkers(initialMap, restaurants);
+      } else {
+        searchNearby(mapCenter.lat, mapCenter.lng);
+      }
     }
   };
 
@@ -307,6 +312,60 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
     }
   }, [map, initialLocation]);
 
+  // Update markers when restaurants prop changes
+  useEffect(() => {
+    if (map && restaurants && restaurants.length > 0) {
+      addRestaurantMarkers(map, restaurants);
+    }
+  }, [map, restaurants]);
+
+  const addRestaurantMarkers = (mapInstance: any, restaurantList: Restaurant[]) => {
+    // Clear existing markers
+    markers.forEach(marker => marker.setMap(null));
+    
+    const newMarkers = restaurantList.map((restaurant: Restaurant) => {
+      const marker = new window.google.maps.Marker({
+        position: { lat: restaurant.lat, lng: restaurant.lng },
+        map: mapInstance,
+        title: restaurant.name,
+        icon: {
+          url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#ff6b6b"/>
+              <circle cx="12" cy="9" r="2.5" fill="white"/>
+            </svg>
+          `),
+          scaledSize: new window.google.maps.Size(30, 30),
+          anchor: new window.google.maps.Point(15, 30),
+        },
+      });
+
+      marker.addListener("click", () => {
+        setSelectedRestaurant(restaurant);
+        onRestaurantSelect(restaurant);
+      });
+
+      return marker;
+    });
+
+    setMarkers(newMarkers);
+    
+    // Adjust map bounds to show all markers
+    if (newMarkers.length > 0) {
+      const bounds = new window.google.maps.LatLngBounds();
+      restaurantList.forEach(restaurant => {
+        bounds.extend({ lat: restaurant.lat, lng: restaurant.lng });
+      });
+      mapInstance.fitBounds(bounds);
+      
+      // Ensure minimum zoom level
+      const listener = window.google.maps.event.addListener(mapInstance, "idle", () => {
+        if (mapInstance.getZoom() > 15) mapInstance.setZoom(15);
+        window.google.maps.event.removeListener(listener);
+      });
+    }
+  };
+
   const searchNearby = async (lat: number, lng: number) => {
     if (!map || !window.google) return;
 
@@ -384,20 +443,45 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
       <div ref={mapRef} className="w-full h-full" />
 
       {selectedRestaurant && (
-        <Card className="absolute bottom-4 left-4 right-4 p-4 bg-white shadow-lg">
-          <div className="flex items-start justify-between">
-            <div>
-              <h3 className="text-lg font-semibold">{selectedRestaurant.name}</h3>
-              <p className="text-sm text-gray-600">{selectedRestaurant.location}</p>
-              {selectedRestaurant.rating && (
-                <div className="flex items-center mt-1">
+        <Card className="absolute bottom-4 left-4 right-4 p-4 bg-white shadow-lg max-w-md">
+          {selectedRestaurant.photoUrl && (
+            <div className="mb-3">
+              <img
+                src={selectedRestaurant.photoUrl}
+                alt={selectedRestaurant.name}
+                className="w-full h-32 object-cover rounded-md"
+              />
+            </div>
+          )}
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-gray-900">{selectedRestaurant.name}</h3>
+              <p className="text-sm text-gray-500 mb-2">{selectedRestaurant.location}</p>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center">
                   <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                  <span className="ml-1 text-sm">
-                    {selectedRestaurant.rating.toFixed(1)} ({selectedRestaurant.totalRatings} reviews)
-                  </span>
+                  <span className="ml-1 text-sm font-medium">{selectedRestaurant.rating.toFixed(1)}</span>
                 </div>
+                <span className="text-sm text-gray-500">
+                  ({selectedRestaurant.totalRatings.toLocaleString()} reviews)
+                </span>
+              </div>
+              {selectedRestaurant.priceLevel && (
+                <p className="text-sm text-gray-500">{selectedRestaurant.priceLevel}</p>
               )}
             </div>
+            <a
+              href={selectedRestaurant.sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:text-primary/80 ml-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </a>
+          </div>
+          <div className="flex gap-2">
             <Button
               variant={bookmarkStatuses?.[selectedRestaurant.id] ? "default" : "outline"}
               size="sm"
@@ -424,6 +508,26 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
                 </>
               )}
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                // Trigger the global add review modal
+                window.dispatchEvent(new CustomEvent('openAddReviewModal', {
+                  detail: {
+                    restaurantName: selectedRestaurant.name,
+                    restaurantLocation: selectedRestaurant.location
+                  }
+                }));
+              }}
+            >
+              Add Review
+            </Button>
+          </div>
+          <div className="mt-2">
+            <span className="text-xs text-gray-400">
+              Source: {selectedRestaurant.source.charAt(0).toUpperCase() + selectedRestaurant.source.slice(1)}
+            </span>
           </div>
         </Card>
       )}
