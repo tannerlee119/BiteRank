@@ -335,7 +335,16 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
     // Clear existing markers
     markers.forEach(marker => marker.setMap(null));
 
-    const newMarkers = restaurantList.map((restaurant: Restaurant) => {
+    // Filter out restaurants without valid coordinates
+    const validRestaurants = restaurantList.filter(restaurant => 
+      restaurant.lat && restaurant.lng && 
+      !isNaN(restaurant.lat) && !isNaN(restaurant.lng) &&
+      restaurant.lat !== 0 && restaurant.lng !== 0
+    );
+
+    console.log(`Adding ${validRestaurants.length} out of ${restaurantList.length} restaurants to map`);
+
+    const newMarkers = validRestaurants.map((restaurant: Restaurant) => {
       const marker = new window.google.maps.Marker({
         position: { lat: restaurant.lat, lng: restaurant.lng },
         map: mapInstance,
@@ -365,16 +374,18 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
     // Adjust map bounds to show all markers
     if (newMarkers.length > 0) {
       const bounds = new window.google.maps.LatLngBounds();
-      restaurantList.forEach(restaurant => {
+      validRestaurants.forEach(restaurant => {
         bounds.extend({ lat: restaurant.lat, lng: restaurant.lng });
       });
       mapInstance.fitBounds(bounds);
 
-      // Ensure minimum zoom level
+      // Ensure minimum zoom level and add some padding
       const listener = window.google.maps.event.addListener(mapInstance, "idle", () => {
         if (mapInstance.getZoom() > 15) mapInstance.setZoom(15);
         window.google.maps.event.removeListener(listener);
       });
+    } else {
+      console.warn('No valid restaurants with coordinates found');
     }
   };
 
@@ -451,7 +462,7 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
   // Remove duplicate useEffect
 
   return (
-    <div className="relative w-full h-[600px]">
+    <div className="relative w-full h-[600px] my-16">
       <div ref={mapRef} className="w-full h-full" />
 
       {selectedRestaurant && (

@@ -284,7 +284,7 @@ export default function RecommendationsPage() {
           <div className="text-center text-gray-500">Loading recommendations...</div>
         ) : recommendationsData && recommendationsData.length > 0 ? (
           viewMode === 'map' ? (
-            <div className="h-[600px] w-full">
+            <div className="w-full">
               <RestaurantMap
                 onRestaurantSelect={setSelectedRestaurant}
                 initialLocation={location}
