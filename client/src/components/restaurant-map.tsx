@@ -118,7 +118,7 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
   });
 
   const initializeMap = () => {
-    if (mapRef.current && !map && window.google && window.google.maps) {
+    if (mapRef.current && !map && window.google && window.google.maps && window.google.maps.Map) {
       // Default center - will be updated based on initialLocation
       let defaultCenter = { lat: 40.7128, lng: -74.0060 }; // New York City
       
@@ -185,8 +185,8 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
   useEffect(() => {
     const loadGoogleMaps = async () => {
       try {
-        // Check if Google Maps is already loaded
-        if (window.google && window.google.maps) {
+        // Check if Google Maps is already fully loaded
+        if (window.google && window.google.maps && window.google.maps.Map) {
           if (mapRef.current && !map) {
             initializeMap();
           }
@@ -196,12 +196,15 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
         // Check if script already exists
         const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
         if (existingScript) {
-          // Wait for the script to load
-          existingScript.addEventListener('load', () => {
-            if (window.google && window.google.maps && mapRef.current && !map) {
+          // Create a polling mechanism to wait for full load
+          const checkMapsLoaded = () => {
+            if (window.google && window.google.maps && window.google.maps.Map && mapRef.current && !map) {
               initializeMap();
+            } else {
+              setTimeout(checkMapsLoaded, 100);
             }
-          });
+          };
+          checkMapsLoaded();
           return;
         }
 
@@ -217,17 +220,23 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
           return;
         }
 
-        // Load Google Maps script with proper async loading
-        const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&loading=async`;
-        script.async = true;
-        script.defer = true;
+        // Create a unique callback name
+        const callbackName = `initMapCallback_${Date.now()}`;
         
-        script.onload = () => {
-          if (window.google && window.google.maps && mapRef.current && !map) {
+        // Set up the callback
+        (window as any)[callbackName] = () => {
+          if (window.google && window.google.maps && window.google.maps.Map && mapRef.current && !map) {
             initializeMap();
           }
+          // Clean up the callback
+          delete (window as any)[callbackName];
         };
+
+        // Load Google Maps script with callback
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=${callbackName}`;
+        script.async = true;
+        script.defer = true;
 
         script.onerror = () => {
           console.error('Failed to load Google Maps API');
@@ -236,6 +245,8 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
             description: "Failed to load Google Maps. Please refresh the page.",
             variant: "destructive",
           });
+          // Clean up the callback on error
+          delete (window as any)[callbackName];
         };
 
         document.head.appendChild(script);
