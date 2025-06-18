@@ -93,11 +93,11 @@ export default function RecommendationsPage() {
           credentials: "include",
         }
       );
-      
+
       if (!response.ok) {
         throw new Error("Failed to fetch recommendations");
       }
-      
+
       return response.json();
     },
     enabled: !!searchParams.location,
@@ -193,7 +193,7 @@ export default function RecommendationsPage() {
     queryKey: ["/api/bookmarks/status", recommendationsData?.map((r: ExternalRestaurant) => r.id)],
     queryFn: async () => {
       if (!recommendationsData?.length) return {};
-      
+
       const statusPromises = recommendationsData.map(async (restaurant: ExternalRestaurant) => {
         const response = await fetch(`/api/bookmarks/${restaurant.id}/check`, {
           credentials: "include",
@@ -201,7 +201,7 @@ export default function RecommendationsPage() {
         const data = await response.json();
         return { [restaurant.id]: data.isBookmarked };
       });
-      
+
       const statuses = await Promise.all(statusPromises);
       return statuses.reduce((acc, status) => ({ ...acc, ...status }), {});
     },
