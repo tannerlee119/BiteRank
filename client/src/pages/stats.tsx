@@ -161,23 +161,68 @@ export default function StatsPage() {
               <Calendar className="w-5 h-5" />
               Review Activity (Last 12 Months)
             </h2>
-            <div className="h-64 flex items-end justify-between gap-2">
-              {stats?.monthlyReviews?.map((month: any, index: number) => {
-                const maxReviews = Math.max(...(stats.monthlyReviews?.map((m: any) => m.count) || [1]));
-                const height = maxReviews > 0 ? (month.count / maxReviews) * 200 : 0;
+            {stats?.monthlyReviews && stats.monthlyReviews.length > 0 ? (
+              <div className="space-y-4">
+                <div className="h-48 flex items-end justify-center gap-1 md:gap-2 lg:gap-3 px-2">
+                  {stats.monthlyReviews.map((month: any, index: number) => {
+                    const maxReviews = Math.max(...(stats.monthlyReviews?.map((m: any) => m.count) || [1]));
+                    const minHeight = 8; // Minimum height for visibility
+                    const maxHeight = 160; // Maximum height for the chart
+                    const height = maxReviews > 0 ? Math.max(minHeight, (month.count / maxReviews) * maxHeight) : minHeight;
+                    const hasReviews = month.count > 0;
+                    
+                    return (
+                      <div key={index} className="flex flex-col items-center group relative">
+                        <div
+                          className={`rounded-t-lg transition-all duration-500 hover:opacity-80 ${
+                            hasReviews 
+                              ? 'bg-gradient-to-t from-blue-600 to-blue-400 shadow-sm' 
+                              : 'bg-gray-200'
+                          } ${
+                            stats.monthlyReviews.length <= 6 ? 'w-12' : 'w-8'
+                          }`}
+                          style={{ height: `${height}px` }}
+                        />
+                        
+                        {/* Tooltip */}
+                        <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
+                          {month.month}: {month.count} review{month.count !== 1 ? 's' : ''}
+                        </div>
+                        
+                        <span className={`text-xs text-gray-500 mt-2 text-center leading-tight ${
+                          stats.monthlyReviews.length <= 6 ? 'max-w-[3rem]' : 'max-w-[2rem]'
+                        }`}>
+                          {stats.monthlyReviews.length <= 6 
+                            ? month.month 
+                            : month.month.split(' ')[0] // Show only month abbreviation for smaller spaces
+                          }
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
                 
-                return (
-                  <div key={index} className="flex flex-col items-center flex-1">
-                    <div
-                      className="bg-blue-500 rounded-t-md w-full min-h-[4px] transition-all duration-700 hover:bg-blue-600"
-                      style={{ height: `${height}px` }}
-                      title={`${month.month}: ${month.count} reviews`}
-                    />
-                    <span className="text-xs text-gray-500 mt-2 rotate-45 origin-center">{month.month}</span>
+                {/* Summary for small datasets */}
+                {stats.monthlyReviews.length > 0 && (
+                  <div className="flex items-center justify-between text-sm text-gray-600 pt-2 border-t">
+                    <span>
+                      Total: {stats.monthlyReviews.reduce((sum: number, m: any) => sum + m.count, 0)} reviews
+                    </span>
+                    <span>
+                      Peak: {Math.max(...(stats.monthlyReviews?.map((m: any) => m.count) || [0]))} in a month
+                    </span>
                   </div>
-                );
-              })}
-            </div>
+                )}
+              </div>
+            ) : (
+              <div className="h-48 flex items-center justify-center">
+                <div className="text-center text-gray-500">
+                  <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                  <p className="text-lg font-medium">No review activity yet</p>
+                  <p className="text-sm">Start reviewing restaurants to see your activity chart!</p>
+                </div>
+              </div>
+            )}
           </Card>
 
           {/* Top Cuisines */}
