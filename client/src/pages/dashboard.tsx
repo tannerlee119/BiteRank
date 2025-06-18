@@ -144,7 +144,7 @@ export default function Dashboard() {
   const highlyRatedReviews = allReviews?.filter(review => review.score === 3).slice(0, 3) || [];
 
   return (
-    <div>
+    <>
       {/* Dashboard Header */}
       <div className="bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -177,8 +177,7 @@ export default function Dashboard() {
               >
                 View All Recommendations
               </Button>
-            </div></div>
-        )}
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {topRecommendations.map((restaurant) => (
                 <Card key={restaurant.id} className="overflow-hidden">
@@ -356,6 +355,6 @@ export default function Dashboard() {
         open={!!selectedReview}
         onOpenChange={(open) => !open && setSelectedReview(null)}
       />
-    </div>
+    </>
   );
 }
