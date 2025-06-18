@@ -63,6 +63,8 @@ export interface IStorage {
     hours?: any;
     images?: string[];
   }): Promise<void>;
+
+  getMostReviewedLocations(limit?: number): Promise<Array<{ location: string; reviewCount: number }>>;
 }
 
 // Initialize database connection
@@ -269,7 +271,7 @@ export class DatabaseStorage implements IStorage {
       })
       .where(and(eq(reviews.id, id), eq(reviews.userId, userId)))
       .returning();
-    
+
     return result[0];
   }
 
@@ -374,6 +376,21 @@ export class DatabaseStorage implements IStorage {
     // 4. Storing images
     // For now, we'll just log the data
     console.log('Storing scraped data:', data);
+  }
+
+  async getMostReviewedLocations(limit: number = 5): Promise<Array<{ location: string; reviewCount: number }>> {
+    const result = await db
+      .select({
+        location: restaurants.location,
+        reviewCount: sql<number>`count(${reviews.id})`,
+      })
+      .from(restaurants)
+      .innerJoin(reviews, eq(restaurants.id, reviews.restaurantId))
+      .groupBy(restaurants.location)
+      .orderBy(sql`count(${reviews.id}) desc`)
+      .limit(limit);
+
+    return result;
   }
 }
 

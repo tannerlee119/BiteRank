@@ -367,6 +367,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/recommendations/popular-locations", requireAuth, async (req, res) => {
+    try {
+      const { page = "1", limit = "21" } = req.query;
+
+      // Get most reviewed locations from user data
+      const mostReviewedLocations = await storage.getMostReviewedLocations(5);
+      
+      if (mostReviewedLocations.length === 0) {
+        // Fallback to default locations if no user data
+        const defaultLocations = ["New York", "Los Angeles", "Chicago", "San Francisco", "Miami"];
+        const allRecommendations = [];
+        
+        for (const location of defaultLocations) {
+          const externalAPIService = new ExternalAPIService();
+          const locationRecommendations = await externalAPIService.getTopRatedRestaurants(location);
+          allRecommendations.push(...locationRecommendations.slice(0, 4)); // 4 per location
+        }
+
+        const pageNum = parseInt(page as string, 10);
+        const limitNum = parseInt(limit as string, 10);
+        const offset = (pageNum - 1) * limitNum;
+        const paginatedResults = allRecommendations.slice(offset, offset + limitNum);
+
+        return res.json({
+          data: paginatedResults,
+          locations: defaultLocations.map(loc => ({ location: loc, reviewCount: 0 })),
+          pagination: {
+            page: pageNum,
+            limit: limitNum,
+            total: allRecommendations.length,
+            totalPages: Math.ceil(allRecommendations.length / limitNum),
+            hasNext: pageNum < Math.ceil(allRecommendations.length / limitNum),
+            hasPrev: pageNum > 1
+          }
+        });
+      }
+
+      // Get recommendations from most reviewed locations
+      const allRecommendations = [];
+      const externalAPIService = new ExternalAPIService();
+      
+      for (const locationData of mostReviewedLocations) {
+        try {
+          const locationRecommendations = await externalAPIService.getTopRatedRestaurants(locationData.location);
+          // Add more restaurants from popular locations
+          const restaurantsPerLocation = Math.max(3, Math.floor(20 / mostReviewedLocations.length));
+          allRecommendations.push(...locationRecommendations.slice(0, restaurantsPerLocation));
+        } catch (error) {
+          console.error(`Error fetching recommendations for ${locationData.location}:`, error);
+        }
+      }
+
+      // Sort by rating and shuffle within rating groups for variety
+      allRecommendations.sort((a, b) => b.rating - a.rating);
+
+      const pageNum = parseInt(page as string, 10);
+      const limitNum = parseInt(limit as string, 10);
+      const offset = (pageNum - 1) * limitNum;
+      const paginatedResults = allRecommendations.slice(offset, offset + limitNum);
+
+      const totalResults = allRecommendations.length;
+      const totalPages = Math.ceil(totalResults / limitNum);
+
+      res.json({
+        data: paginatedResults,
+        locations: mostReviewedLocations,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total: totalResults,
+          totalPages,
+          hasNext: pageNum < totalPages,
+          hasPrev: pageNum > 1
+        }
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   // Bookmark routes
   app.get("/api/bookmarks", requireAuth, async (req, res) => {
     try {

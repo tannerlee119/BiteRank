@@ -63,14 +63,15 @@ export default function Dashboard() {
     },
   });
 
-  // Get recommended restaurants
+  // Get recommended restaurants based on most reviewed locations
   const { data: recommendations, isLoading: isLoadingRecommendations } = useQuery<{
     data: ExternalRestaurant[];
+    locations: Array<{ location: string; reviewCount: number }>;
   }>({
-    queryKey: ["/api/recommendations", "New York", "restaurants"],
+    queryKey: ["/api/recommendations/popular-locations"],
     queryFn: async () => {
       const response = await fetch(
-        `/api/recommendations?search=restaurants&location=New York&page=1`,
+        `/api/recommendations/popular-locations?page=1&limit=12`,
         {
           credentials: "include",
         }
@@ -161,7 +162,14 @@ export default function Dashboard() {
         {topRecommendations.length > 0 && (
           <div className="mb-12">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Recommended Restaurants</h2>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">Recommended Restaurants</h2>
+                {recommendations?.locations && recommendations.locations.length > 0 && (
+                  <p className="text-sm text-gray-600 mt-1">
+                    Based on popular locations: {recommendations.locations.map(loc => loc.location).join(", ")}
+                  </p>
+                )}
+              </div>
               <Button
                 variant="outline"
                 onClick={() => setLocation("/recommendations")}
@@ -169,7 +177,8 @@ export default function Dashboard() {
               >
                 View All Recommendations
               </Button>
-            </div>
+            </div></div>
+        )}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {topRecommendations.map((restaurant) => (
                 <Card key={restaurant.id} className="overflow-hidden">
@@ -208,9 +217,14 @@ export default function Dashboard() {
                       <p className="text-sm text-gray-500">{restaurant.priceLevel}</p>
                     )}
                     <div className="mt-4 flex justify-between items-center gap-2">
-                      <span className="text-xs text-gray-400">
-                        Source: {restaurant.source.charAt(0).toUpperCase() + restaurant.source.slice(1)}
-                      </span>
+                      <div className="flex flex-col">
+                        <span className="text-xs text-gray-400">
+                          Source: {restaurant.source.charAt(0).toUpperCase() + restaurant.source.slice(1)}
+                        </span>
+                        <span className="text-xs text-blue-600">
+                          From popular locations
+                        </span>
+                      </div>
                       <div className="flex gap-2">
                         <Button
                           variant="outline"
