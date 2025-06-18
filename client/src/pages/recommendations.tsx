@@ -109,15 +109,32 @@ export default function RecommendationsPage() {
         sourceUrl: restaurant.sourceUrl,
       });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/bookmarks/status", recommendations?.map(r => r.id)] });
-      toast({
-        title: "Bookmarked!",
-        description: "Restaurant added to your bookmarks.",
-      });
+    onMutate: async (restaurant) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["/api/bookmarks/status", recommendations?.map(r => r.id)] });
+      
+      // Snapshot the previous value
+      const previousStatuses = queryClient.getQueryData(["/api/bookmarks/status", recommendations?.map(r => r.id)]);
+      
+      // Optimistically update the bookmark status
+      queryClient.setQueryData(
+        ["/api/bookmarks/status", recommendations?.map(r => r.id)],
+        (old: any) => ({
+          ...old,
+          [restaurant.id]: true,
+        })
+      );
+      
+      return { previousStatuses };
     },
-    onError: (error: any) => {
+    onError: (error: any, restaurant, context) => {
+      // Rollback on error
+      if (context?.previousStatuses) {
+        queryClient.setQueryData(
+          ["/api/bookmarks/status", recommendations?.map(r => r.id)],
+          context.previousStatuses
+        );
+      }
       const message = error.message === "Restaurant is already bookmarked" 
         ? "This restaurant is already in your bookmarks."
         : "Failed to bookmark restaurant.";
@@ -126,7 +143,10 @@ export default function RecommendationsPage() {
         description: message,
         variant: "destructive",
       });
-      // Refresh bookmark status in case it was out of sync
+    },
+    onSettled: () => {
+      // Always refetch after error or success
+      queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] });
       queryClient.invalidateQueries({ queryKey: ["/api/bookmarks/status", recommendations?.map(r => r.id)] });
     },
   });
@@ -135,20 +155,42 @@ export default function RecommendationsPage() {
     mutationFn: async (externalId: string) => {
       return apiRequest("DELETE", `/api/bookmarks/${externalId}`, {});
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/bookmarks/status", recommendations?.map(r => r.id)] });
-      toast({
-        title: "Bookmark removed",
-        description: "Restaurant removed from bookmarks.",
-      });
+    onMutate: async (externalId) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["/api/bookmarks/status", recommendations?.map(r => r.id)] });
+      
+      // Snapshot the previous value
+      const previousStatuses = queryClient.getQueryData(["/api/bookmarks/status", recommendations?.map(r => r.id)]);
+      
+      // Optimistically update the bookmark status
+      queryClient.setQueryData(
+        ["/api/bookmarks/status", recommendations?.map(r => r.id)],
+        (old: any) => ({
+          ...old,
+          [externalId]: false,
+        })
+      );
+      
+      return { previousStatuses };
     },
-    onError: () => {
+    onError: (error, externalId, context) => {
+      // Rollback on error
+      if (context?.previousStatuses) {
+        queryClient.setQueryData(
+          ["/api/bookmarks/status", recommendations?.map(r => r.id)],
+          context.previousStatuses
+        );
+      }
       toast({
         title: "Error",
         description: "Failed to remove bookmark.",
         variant: "destructive",
       });
+    },
+    onSettled: () => {
+      // Always refetch after error or success
+      queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/bookmarks/status", recommendations?.map(r => r.id)] });
     },
   });
 

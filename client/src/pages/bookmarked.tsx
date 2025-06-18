@@ -37,20 +37,36 @@ export default function BookmarkedPage() {
       
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/bookmarks/status"] });
-      toast({
-        title: "Bookmark removed",
-        description: "Restaurant has been removed from your bookmarks.",
-      });
+    onMutate: async (externalId) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["/api/bookmarks"] });
+      
+      // Snapshot the previous value
+      const previousBookmarks = queryClient.getQueryData(["/api/bookmarks"]);
+      
+      // Optimistically update the bookmarks list
+      queryClient.setQueryData(
+        ["/api/bookmarks"],
+        (old: any[]) => old.filter(bookmark => bookmark.externalId !== externalId)
+      );
+      
+      return { previousBookmarks };
     },
-    onError: () => {
+    onError: (error, externalId, context) => {
+      // Rollback on error
+      if (context?.previousBookmarks) {
+        queryClient.setQueryData(["/api/bookmarks"], context.previousBookmarks);
+      }
       toast({
         title: "Error",
         description: "Failed to remove bookmark. Please try again.",
         variant: "destructive",
       });
+    },
+    onSettled: () => {
+      // Always refetch after error or success
+      queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/bookmarks/status"] });
     },
   });
 
