@@ -118,59 +118,70 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
   });
 
   useEffect(() => {
-    // For now, we'll use the existing GOOGLE_PLACES_API_KEY from backend
-    // You can add VITE_GOOGLE_MAPS_API_KEY if you want direct frontend access
-    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || 'your-temp-key-here';
+    // Get API key from backend endpoint to use the existing GOOGLE_PLACES_API_KEY
+    const loadGoogleMaps = async () => {
+      try {
+        // Check if script already exists
+        const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
+        if (existingScript) {
+          if (window.google && window.google.maps && mapRef.current && !map) {
+            initializeMap();
+          }
+          return;
+        }
 
-    // Check if script already exists
-    const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
-    if (existingScript) {
-      if (window.google && window.google.maps && mapRef.current && !map) {
-        initializeMap();
-      }
-      return;
-    }
+        // Get API key from backend
+        const response = await apiRequest("GET", "/api/maps/key");
+        const apiKey = response.apiKey;
 
-    // Load Google Maps script (only need basic maps, not places)
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}`;
-    script.async = true;
-    script.defer = true;
-    document.head.appendChild(script);
+        if (!apiKey) {
+          console.error('Google Maps API key not available');
+          return;
+        }
 
-    const initializeMap = () => {
-      if (mapRef.current && !map && window.google && window.google.maps) {
-        const initialMap = new window.google.maps.Map(mapRef.current, {
-          center: { lat: 37.7749, lng: -122.4194 }, // Default to San Francisco
-          zoom: 13,
-          styles: [
-            {
-              featureType: "poi",
-              elementType: "labels",
-              stylers: [{ visibility: "off" }],
-            },
-          ],
-        });
+        // Load Google Maps script
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&loading=async`;
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
 
-        setMap(initialMap);
+        const initializeMap = () => {
+          if (mapRef.current && !map && window.google && window.google.maps) {
+            const initialMap = new window.google.maps.Map(mapRef.current, {
+              center: { lat: 37.7749, lng: -122.4194 }, // Default to San Francisco
+              zoom: 13,
+              styles: [
+                {
+                  featureType: "poi",
+                  elementType: "labels",
+                  stylers: [{ visibility: "off" }],
+                },
+              ],
+            });
 
-        // Add click listener to map
-        initialMap.addListener("click", () => {
-          setSelectedRestaurant(null);
-        });
+            setMap(initialMap);
+
+            // Add click listener to map
+            initialMap.addListener("click", () => {
+              setSelectedRestaurant(null);
+            });
+          }
+        };
+
+        script.onload = () => {
+          initializeMap();
+        };
+
+        script.onerror = () => {
+          console.error('Failed to load Google Maps API');
+        };
+      } catch (error) {
+        console.error('Failed to get Google Maps API key:', error);
       }
     };
 
-    script.onload = () => {
-      initializeMap();
-    };
-
-    return () => {
-      // Only remove if script still exists
-      if (document.head.contains(script)) {
-        document.head.removeChild(script);
-      }
-    };
+    loadGoogleMaps();
   }, []);
 
   useEffect(() => {
