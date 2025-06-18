@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo, memo } from 'react';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Star, Bookmark, BookmarkCheck } from "lucide-react";
@@ -35,13 +35,24 @@ declare global {
   }
 }
 
-export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkStatuses, restaurants }: RestaurantMapProps) {
+const RestaurantMapComponent = memo(function RestaurantMap({ 
+  onRestaurantSelect, 
+  initialLocation, 
+  bookmarkStatuses = {}, 
+  restaurants = [] 
+}: RestaurantMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<any>(null);
   const [markers, setMarkers] = useState<any[]>([]);
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Memoize restaurants to prevent unnecessary re-renders
+  const memoizedRestaurants = useMemo(() => restaurants, [restaurants.length, restaurants.map(r => r.id).join(',')]);
+
+  // Memoize location for geocoding
+  const memoizedLocation = useMemo(() => initialLocation, [initialLocation]);
 
   // Bookmark mutations
   const createBookmarkMutation = useMutation({
@@ -318,18 +329,19 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
     loadGoogleMaps();
   }, []);
 
+  // Handle location changes for map centering
   useEffect(() => {
-    if (map && initialLocation && initialLocation.trim()) {
-      geocodeAndCenter(map, initialLocation);
+    if (map && memoizedLocation) {
+      geocodeAndCenter(map, memoizedLocation);
     }
-  }, [map, initialLocation]);
+  }, [map, memoizedLocation]);
 
-  // Update markers when restaurants prop changes
+  // Update map when restaurants change (only when search is executed)
   useEffect(() => {
-    if (map && restaurants && restaurants.length > 0) {
-      addRestaurantMarkers(map, restaurants);
+    if (map && memoizedRestaurants.length > 0) {
+      addRestaurantMarkers(map, memoizedRestaurants);
     }
-  }, [map, restaurants]);
+  }, [map, memoizedRestaurants]);
 
   const addRestaurantMarkers = (mapInstance: any, restaurantList: Restaurant[]) => {
     // Clear existing markers
@@ -556,4 +568,6 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
       )}
     </div>
   );
-}
+});
+
+export default RestaurantMapComponent;
