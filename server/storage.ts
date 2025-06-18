@@ -280,6 +280,14 @@ export class DatabaseStorage implements IStorage {
     alrightCount: number;
     dislikedCount: number;
     averageScore: number;
+    topCuisines: Array<{ cuisine: string; count: number }>;
+    mostCommonCuisine: string;
+    cuisineCount: number;
+    monthlyReviews: Array<{ month: string; count: number }>;
+    currentStreak: number;
+    longestStreak: number;
+    uniqueFavoriteDishes: number;
+    averageDaysBetween: number;
   }> {
     const stats = await db
       .select({
@@ -298,11 +306,123 @@ export class DatabaseStorage implements IStorage {
       .from(reviews)
       .where(eq(reviews.userId, userId));
 
+    // Get cuisine stats
+    const cuisineStats = await db
+      .select({
+        cuisine: restaurants.cuisine,
+        count: sql<number>`count(*)`.as('count'),
+      })
+      .from(reviews)
+      .innerJoin(restaurants, eq(reviews.restaurantId, restaurants.id))
+      .where(and(eq(reviews.userId, userId), sql`${restaurants.cuisine} IS NOT NULL AND ${restaurants.cuisine} != ''`))
+      .groupBy(restaurants.cuisine)
+      .orderBy(sql`count(*) desc`);
+
+    // Get monthly review activity for last 12 months
+    const monthlyStats = await db
+      .select({
+        month: sql<string>`TO_CHAR(${reviews.createdAt}, 'Mon YYYY')`.as('month'),
+        count: sql<number>`count(*)`.as('count'),
+      })
+      .from(reviews)
+      .where(and(
+        eq(reviews.userId, userId),
+        sql`${reviews.createdAt} >= NOW() - INTERVAL '12 months'`
+      ))
+      .groupBy(sql`TO_CHAR(${reviews.createdAt}, 'Mon YYYY'), EXTRACT(YEAR FROM ${reviews.createdAt}), EXTRACT(MONTH FROM ${reviews.createdAt})`)
+      .orderBy(sql`EXTRACT(YEAR FROM ${reviews.createdAt}), EXTRACT(MONTH FROM ${reviews.createdAt})`);
+
+    // Get unique favorite dishes count
+    const favoriteDishesResult = await db
+      .select({
+        uniqueCount: sql<number>`count(DISTINCT unnest(${reviews.favoriteDishes}))`.as('uniqueCount'),
+      })
+      .from(reviews)
+      .where(and(
+        eq(reviews.userId, userId),
+        sql`${reviews.favoriteDishes} IS NOT NULL AND array_length(${reviews.favoriteDishes}, 1) > 0`
+      ));
+
+    // Get review dates for streak calculation and average days between
+    const reviewDates = await db
+      .select({
+        createdAt: reviews.createdAt,
+      })
+      .from(reviews)
+      .where(eq(reviews.userId, userId))
+      .orderBy(desc(reviews.createdAt));
+
+    // Calculate streaks and average days between reviews
+    let currentStreak = 0;
+    let longestStreak = 0;
+    let tempStreak = 0;
+    let totalDaysBetween = 0;
+    
+    if (reviewDates.length > 1) {
+      const dates = reviewDates.map(r => new Date(r.createdAt));
+      
+      // Calculate average days between reviews
+      for (let i = 0; i < dates.length - 1; i++) {
+        const daysDiff = Math.abs((dates[i].getTime() - dates[i + 1].getTime()) / (1000 * 60 * 60 * 24));
+        totalDaysBetween += daysDiff;
+      }
+      
+      // Calculate streaks (weeks with reviews)
+      const weekGroups = new Map<string, boolean>();
+      dates.forEach(date => {
+        const weekKey = `${date.getFullYear()}-${Math.floor(date.getTime() / (7 * 24 * 60 * 60 * 1000))}`;
+        weekGroups.set(weekKey, true);
+      });
+      
+      const sortedWeeks = Array.from(weekGroups.keys()).sort().reverse();
+      
+      // Current streak
+      if (sortedWeeks.length > 0) {
+        const currentWeek = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
+        const latestReviewWeek = parseInt(sortedWeeks[0].split('-')[1]);
+        
+        if (currentWeek - latestReviewWeek <= 1) {
+          currentStreak = 1;
+          for (let i = 1; i < sortedWeeks.length; i++) {
+            const prevWeek = parseInt(sortedWeeks[i-1].split('-')[1]);
+            const currWeek = parseInt(sortedWeeks[i].split('-')[1]);
+            if (prevWeek - currWeek === 1) {
+              currentStreak++;
+            } else {
+              break;
+            }
+          }
+        }
+      }
+      
+      // Longest streak
+      tempStreak = 1;
+      for (let i = 1; i < sortedWeeks.length; i++) {
+        const prevWeek = parseInt(sortedWeeks[i-1].split('-')[1]);
+        const currWeek = parseInt(sortedWeeks[i].split('-')[1]);
+        if (prevWeek - currWeek === 1) {
+          tempStreak++;
+          longestStreak = Math.max(longestStreak, tempStreak);
+        } else {
+          tempStreak = 1;
+        }
+      }
+      longestStreak = Math.max(longestStreak, tempStreak);
+    }
+
     const result = {
       likedCount: 0,
       alrightCount: 0,
       dislikedCount: 0,
       averageScore: avgResult[0]?.averageScore || 0,
+      topCuisines: cuisineStats.map(c => ({ cuisine: c.cuisine || 'Unknown', count: Number(c.count) })),
+      mostCommonCuisine: cuisineStats.length > 0 ? cuisineStats[0].cuisine || 'None' : 'None',
+      cuisineCount: cuisineStats.length,
+      monthlyReviews: monthlyStats.map(m => ({ month: m.month, count: Number(m.count) })),
+      currentStreak,
+      longestStreak,
+      uniqueFavoriteDishes: Number(favoriteDishesResult[0]?.uniqueCount || 0),
+      averageDaysBetween: reviewDates.length > 1 ? Math.round(totalDaysBetween / (reviewDates.length - 1)) : 0,
     };
 
     stats.forEach((stat) => {
