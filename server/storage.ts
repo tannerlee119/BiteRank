@@ -323,6 +323,8 @@ export class DatabaseStorage implements IStorage {
       .select({
         month: sql<string>`TO_CHAR(${reviews.createdAt}, 'Mon YYYY')`.as('month'),
         count: sql<number>`count(*)`.as('count'),
+        year: sql<number>`EXTRACT(YEAR FROM ${reviews.createdAt})`.as('year'),
+        monthNum: sql<number>`EXTRACT(MONTH FROM ${reviews.createdAt})`.as('monthNum'),
       })
       .from(reviews)
       .where(and(
@@ -332,16 +334,23 @@ export class DatabaseStorage implements IStorage {
       .groupBy(sql`TO_CHAR(${reviews.createdAt}, 'Mon YYYY'), EXTRACT(YEAR FROM ${reviews.createdAt}), EXTRACT(MONTH FROM ${reviews.createdAt})`)
       .orderBy(sql`EXTRACT(YEAR FROM ${reviews.createdAt}), EXTRACT(MONTH FROM ${reviews.createdAt})`);
 
-    // Get unique favorite dishes count
-    const favoriteDishesResult = await db
+    // Get unique favorite dishes count - use a subquery to avoid nested aggregates
+    const dishesSubquery = db
       .select({
-        uniqueCount: sql<number>`count(DISTINCT unnest(${reviews.favoriteDishes}))`.as('uniqueCount'),
+        dish: sql<string>`unnest(${reviews.favoriteDishes})`.as('dish'),
       })
       .from(reviews)
       .where(and(
         eq(reviews.userId, userId),
         sql`${reviews.favoriteDishes} IS NOT NULL AND array_length(${reviews.favoriteDishes}, 1) > 0`
-      ));
+      ))
+      .as('dishes_subquery');
+
+    const favoriteDishesResult = await db
+      .select({
+        uniqueCount: sql<number>`count(DISTINCT ${dishesSubquery.dish})`.as('uniqueCount'),
+      })
+      .from(dishesSubquery);
 
     // Get review dates for streak calculation and average days between
     const reviewDates = await db
@@ -502,7 +511,7 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .select({
         location: restaurants.location,
-        reviewCount: sql<number>`count(${reviews.id})`,
+        reviewCount: sql<number>`count(${reviews.id})`.as('reviewCount'),
       })
       .from(restaurants)
       .innerJoin(reviews, eq(restaurants.id, reviews.restaurantId))
@@ -510,7 +519,10 @@ export class DatabaseStorage implements IStorage {
       .orderBy(sql`count(${reviews.id}) desc`)
       .limit(limit);
 
-    return result;
+    return result.map(r => ({
+      location: r.location,
+      reviewCount: Number(r.reviewCount)
+    }));
   }
 }
 
