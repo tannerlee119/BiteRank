@@ -394,8 +394,8 @@ export default function RecommendationsPage() {
         )}
       </div>
 
-      {/* Pagination */}
-      {pagination && pagination.totalPages > 1 && (
+      {/* Pagination - only show in list view */}
+      {viewMode === 'list' && pagination && pagination.totalPages > 1 && (
         <div className="mt-8 flex justify-center">
           <Pagination>
             <PaginationContent>

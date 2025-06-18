@@ -80,6 +80,12 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
         variant: "destructive",
       });
     },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Restaurant bookmarked successfully!",
+      });
+    },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] });
       queryClient.invalidateQueries({ queryKey: ["/api/bookmarks/status"] });
@@ -112,6 +118,12 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
         variant: "destructive",
       });
     },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Restaurant bookmarked successfully!",
+      });
+    },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] });
       queryClient.invalidateQueries({ queryKey: ["/api/bookmarks/status"] });
@@ -121,7 +133,7 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
   const initializeMap = async () => {
     if (mapRef.current && !map && window.google && window.google.maps && window.google.maps.Map) {
       let mapCenter = { lat: 40.7128, lng: -74.0060 }; // Default to NYC
-      
+
       // If we have an initial location, get its coordinates first
       if (initialLocation && initialLocation.trim()) {
         try {
@@ -133,7 +145,7 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
           console.error('Failed to get initial location coordinates:', error);
         }
       }
-      
+
       const initialMap = new window.google.maps.Map(mapRef.current, {
         center: mapCenter,
         zoom: 13,
@@ -172,7 +184,7 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
       // Create a temporary map for the places service
       const tempMap = new window.google.maps.Map(document.createElement('div'));
       const service = new window.google.maps.places.PlacesService(tempMap);
-      
+
       const request = {
         query: location,
         fields: ['geometry']
@@ -202,7 +214,7 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
 
     // Use Places Text Search instead of Geocoding API
     const service = new window.google.maps.places.PlacesService(mapInstance);
-    
+
     const request = {
       query: location,
       fields: ['geometry', 'name', 'formatted_address']
@@ -270,7 +282,7 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
 
         // Create a unique callback name
         const callbackName = `initMapCallback_${Date.now()}`;
-        
+
         // Set up the callback
         (window as any)[callbackName] = async () => {
           if (window.google && window.google.maps && window.google.maps.Map && mapRef.current && !map) {
@@ -322,7 +334,7 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
   const addRestaurantMarkers = (mapInstance: any, restaurantList: Restaurant[]) => {
     // Clear existing markers
     markers.forEach(marker => marker.setMap(null));
-    
+
     const newMarkers = restaurantList.map((restaurant: Restaurant) => {
       const marker = new window.google.maps.Marker({
         position: { lat: restaurant.lat, lng: restaurant.lng },
@@ -349,7 +361,7 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
     });
 
     setMarkers(newMarkers);
-    
+
     // Adjust map bounds to show all markers
     if (newMarkers.length > 0) {
       const bounds = new window.google.maps.LatLngBounds();
@@ -357,7 +369,7 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
         bounds.extend({ lat: restaurant.lat, lng: restaurant.lng });
       });
       mapInstance.fitBounds(bounds);
-      
+
       // Ensure minimum zoom level
       const listener = window.google.maps.event.addListener(mapInstance, "idle", () => {
         if (mapInstance.getZoom() > 15) mapInstance.setZoom(15);
@@ -376,7 +388,7 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
     try {
       // Use Places Service to search for restaurants
       const service = new window.google.maps.places.PlacesService(map);
-      
+
       const request = {
         location: new window.google.maps.LatLng(lat, lng),
         radius: 5000, // 5km radius
