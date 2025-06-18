@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { RestaurantCard } from "@/components/restaurant-card";
 import { Filters } from "@/components/filters";
 import { ReviewModal } from "@/components/review-modal";
+import { StatsCards } from "@/components/stats-cards";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useState } from "react";
@@ -74,6 +75,9 @@ export default function MyReviewsPage() {
           ← Back to Home
         </Button>
       </div>
+
+      {/* Stats Cards */}
+      <StatsCards />
 
       <Filters
         search={search}
