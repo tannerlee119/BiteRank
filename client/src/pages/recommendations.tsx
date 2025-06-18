@@ -253,12 +253,13 @@ export default function RecommendationsPage() {
       </div>
 
       {/* View Toggle Button */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
         <div className="flex justify-end">
           <Button
             variant="outline"
             onClick={() => setViewMode(viewMode === 'list' ? 'map' : 'list')}
             className="flex items-center gap-2"
+            disabled={isLoading || !recommendationsData?.length}
           >
             {viewMode === 'list' ? (
               <>
@@ -281,19 +282,21 @@ export default function RecommendationsPage() {
           <div className="text-center text-gray-500">Loading recommendations...</div>
         ) : recommendationsData && recommendationsData.length > 0 ? (
           viewMode === 'map' ? (
-            <RestaurantMap
-              initialLocation={location}
-              onRestaurantSelect={(restaurant) => {
-                setSelectedRestaurant(restaurant);
-                window.dispatchEvent(new CustomEvent('openAddReviewModal', {
-                  detail: {
-                    restaurantName: restaurant.name,
-                    restaurantLocation: restaurant.location
-                  }
-                }));
-              }}
-              bookmarkStatuses={bookmarkStatuses}
-            />
+            <div className="h-[600px] w-full">
+              <RestaurantMap
+                initialLocation={searchParams.location}
+                onRestaurantSelect={(restaurant) => {
+                  setSelectedRestaurant(restaurant);
+                  window.dispatchEvent(new CustomEvent('openAddReviewModal', {
+                    detail: {
+                      restaurantName: restaurant.name,
+                      restaurantLocation: restaurant.location
+                    }
+                  }));
+                }}
+                bookmarkStatuses={bookmarkStatuses}
+              />
+            </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {recommendationsData.map((restaurant) => (
