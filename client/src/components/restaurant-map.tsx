@@ -118,15 +118,28 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
   });
 
   useEffect(() => {
-    // Load Google Maps script
+    // For now, we'll use the existing GOOGLE_PLACES_API_KEY from backend
+    // You can add VITE_GOOGLE_MAPS_API_KEY if you want direct frontend access
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || 'your-temp-key-here';
+
+    // Check if script already exists
+    const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
+    if (existingScript) {
+      if (window.google && window.google.maps && mapRef.current && !map) {
+        initializeMap();
+      }
+      return;
+    }
+
+    // Load Google Maps script (only need basic maps, not places)
     const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&libraries=places`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}`;
     script.async = true;
     script.defer = true;
     document.head.appendChild(script);
 
-    script.onload = () => {
-      if (mapRef.current && !map) {
+    const initializeMap = () => {
+      if (mapRef.current && !map && window.google && window.google.maps) {
         const initialMap = new window.google.maps.Map(mapRef.current, {
           center: { lat: 37.7749, lng: -122.4194 }, // Default to San Francisco
           zoom: 13,
@@ -146,6 +159,10 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
           setSelectedRestaurant(null);
         });
       }
+    };
+
+    script.onload = () => {
+      initializeMap();
     };
 
     return () => {
@@ -175,48 +192,65 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
     markers.forEach(marker => marker.setMap(null));
     setMarkers([]);
 
-    const service = new window.google.maps.places.PlacesService(map);
-    const request = {
-      location: { lat, lng },
-      radius: 1500,
-      type: ['restaurant'],
-    };
+    try {
+      // Use your existing backend API to get restaurant data
+      const response = await apiRequest("GET", `/api/recommendations?location=${lat},${lng}`);
+      const restaurants = response.data || [];
 
-    service.nearbySearch(request, (results: any[], status: string) => {
-      if (status === window.google.maps.places.PlacesServiceStatus.OK) {
-        const newMarkers = results.map(place => {
-          const marker = new window.google.maps.Marker({
-            position: place.geometry.location,
-            map,
-            title: place.name,
-          });
+      const newMarkers = restaurants.slice(0, 20).map((restaurant: any) => {
+        // Try to use lat/lng from the restaurant data, or geocode the address
+        let position;
+        if (restaurant.lat && restaurant.lng) {
+          position = { lat: restaurant.lat, lng: restaurant.lng };
+        } else {
+          // If no coordinates, skip this restaurant for now
+          // You could add geocoding here if needed
+          return null;
+        }
 
-          const restaurant: Restaurant = {
-            id: place.place_id,
-            name: place.name,
-            location: place.vicinity,
-            rating: place.rating,
-            totalRatings: place.user_ratings_total,
-            priceLevel: place.price_level,
-            cuisine: place.types?.find((type: string) => type !== 'restaurant' && type !== 'establishment'),
-            photoUrl: place.photos?.[0]?.getUrl(),
-            source: 'google',
-            sourceUrl: place.url,
-            lat: place.geometry.location.lat(),
-            lng: place.geometry.location.lng(),
-          };
-
-          marker.addListener("click", () => {
-            setSelectedRestaurant(restaurant);
-            onRestaurantSelect(restaurant);
-          });
-
-          return marker;
+        const marker = new window.google.maps.Marker({
+          position,
+          map,
+          title: restaurant.name,
+          icon: {
+            url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#ff6b6b"/>
+                <circle cx="12" cy="9" r="2.5" fill="white"/>
+              </svg>
+            `),
+            scaledSize: new window.google.maps.Size(30, 30),
+            anchor: new window.google.maps.Point(15, 30),
+          },
         });
 
-        setMarkers(newMarkers);
-      }
-    });
+        const restaurantData: Restaurant = {
+          id: restaurant.id,
+          name: restaurant.name,
+          location: restaurant.location,
+          rating: restaurant.rating,
+          totalRatings: restaurant.totalRatings,
+          priceLevel: restaurant.priceLevel,
+          cuisine: restaurant.cuisine,
+          photoUrl: restaurant.photoUrl,
+          source: restaurant.source,
+          sourceUrl: restaurant.sourceUrl,
+          lat: position.lat,
+          lng: position.lng,
+        };
+
+        marker.addListener("click", () => {
+          setSelectedRestaurant(restaurantData);
+          onRestaurantSelect(restaurantData);
+        });
+
+        return marker;
+      }).filter(Boolean);
+
+      setMarkers(newMarkers);
+    } catch (error) {
+      console.error('Error fetching restaurants:', error);
+    }
   };
 
   useEffect(() => {
@@ -231,7 +265,7 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
   return (
     <div className="relative w-full h-[600px]">
       <div ref={mapRef} className="w-full h-full" />
-      
+
       {selectedRestaurant && (
         <Card className="absolute bottom-4 left-4 right-4 p-4 bg-white shadow-lg">
           <div className="flex items-start justify-between">
@@ -278,4 +312,4 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
       )}
     </div>
   );
-} 
+}
