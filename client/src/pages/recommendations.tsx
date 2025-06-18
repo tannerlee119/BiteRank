@@ -52,8 +52,16 @@ export default function RecommendationsPage() {
   const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(1);
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+  const [searchParams, setSearchParams] = useState({
+    search: search,
+    location: location
+  });
 
   const handleSearch = () => {
+    setSearchParams({
+      search: search,
+      location: location
+    });
     setCurrentPage(1);
   };
 
@@ -66,7 +74,7 @@ export default function RecommendationsPage() {
     localStorage.setItem('recommendationsLocation', location);
   }, [location]);
 
-  const { data: recommendationsResponse, isLoading } = useQuery<{
+  const { data: recommendations, isLoading } = useQuery<{
     data: ExternalRestaurant[];
     pagination: {
       page: number;
@@ -77,27 +85,26 @@ export default function RecommendationsPage() {
       hasPrev: boolean;
     };
   }>({
-    queryKey: ["/api/recommendations", { search, location, page: currentPage }],
+    queryKey: ["/api/recommendations", searchParams.search, searchParams.location, currentPage],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (search) params.append("search", search);
-      if (location) params.append("location", location);
-      params.append("page", currentPage.toString());
-
-      const response = await fetch(`/api/recommendations?${params.toString()}`, {
-        credentials: "include",
-      });
-
+      const response = await fetch(
+        `/api/recommendations?search=${encodeURIComponent(searchParams.search)}&location=${encodeURIComponent(searchParams.location)}&page=${currentPage}`,
+        {
+          credentials: "include",
+        }
+      );
+      
       if (!response.ok) {
         throw new Error("Failed to fetch recommendations");
       }
-
+      
       return response.json();
     },
-    enabled: !!location, // Only fetch when location is provided
+    enabled: !!searchParams.location,
   });
 
-  const recommendations = recommendationsResponse?.data;
+  const recommendationsResponse = recommendations;
+  const recommendationsData = recommendationsResponse?.data;
   const pagination = recommendationsResponse?.pagination;
 
   // Bookmark functionality
@@ -116,44 +123,33 @@ export default function RecommendationsPage() {
       });
     },
     onMutate: async (restaurant) => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ["/api/bookmarks/status", recommendations?.map(r => r.id)] });
-      
-      // Snapshot the previous value
-      const previousStatuses = queryClient.getQueryData(["/api/bookmarks/status", recommendations?.map(r => r.id)]);
-      
-      // Optimistically update the bookmark status
+      await queryClient.cancelQueries({ queryKey: ["/api/bookmarks/status", recommendationsData?.map((r: ExternalRestaurant) => r.id)] });
+      const previousStatuses = queryClient.getQueryData(["/api/bookmarks/status", recommendationsData?.map((r: ExternalRestaurant) => r.id)]);
       queryClient.setQueryData(
-        ["/api/bookmarks/status", recommendations?.map(r => r.id)],
+        ["/api/bookmarks/status", recommendationsData?.map((r: ExternalRestaurant) => r.id)],
         (old: any) => ({
           ...old,
           [restaurant.id]: true,
         })
       );
-      
       return { previousStatuses };
     },
     onError: (error: any, restaurant, context) => {
-      // Rollback on error
       if (context?.previousStatuses) {
         queryClient.setQueryData(
-          ["/api/bookmarks/status", recommendations?.map(r => r.id)],
+          ["/api/bookmarks/status", recommendationsData?.map((r: ExternalRestaurant) => r.id)],
           context.previousStatuses
         );
       }
-      const message = error.message === "Restaurant is already bookmarked" 
-        ? "This restaurant is already in your bookmarks."
-        : "Failed to bookmark restaurant.";
       toast({
         title: "Error",
-        description: message,
+        description: "Failed to bookmark restaurant.",
         variant: "destructive",
       });
     },
     onSettled: () => {
-      // Always refetch after error or success
       queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/bookmarks/status", recommendations?.map(r => r.id)] });
+      queryClient.invalidateQueries({ queryKey: ["/api/bookmarks/status", recommendationsData?.map((r: ExternalRestaurant) => r.id)] });
     },
   });
 
@@ -162,28 +158,21 @@ export default function RecommendationsPage() {
       return apiRequest("DELETE", `/api/bookmarks/${externalId}`, {});
     },
     onMutate: async (externalId) => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ["/api/bookmarks/status", recommendations?.map(r => r.id)] });
-      
-      // Snapshot the previous value
-      const previousStatuses = queryClient.getQueryData(["/api/bookmarks/status", recommendations?.map(r => r.id)]);
-      
-      // Optimistically update the bookmark status
+      await queryClient.cancelQueries({ queryKey: ["/api/bookmarks/status", recommendationsData?.map((r: ExternalRestaurant) => r.id)] });
+      const previousStatuses = queryClient.getQueryData(["/api/bookmarks/status", recommendationsData?.map((r: ExternalRestaurant) => r.id)]);
       queryClient.setQueryData(
-        ["/api/bookmarks/status", recommendations?.map(r => r.id)],
+        ["/api/bookmarks/status", recommendationsData?.map((r: ExternalRestaurant) => r.id)],
         (old: any) => ({
           ...old,
           [externalId]: false,
         })
       );
-      
       return { previousStatuses };
     },
     onError: (error, externalId, context) => {
-      // Rollback on error
       if (context?.previousStatuses) {
         queryClient.setQueryData(
-          ["/api/bookmarks/status", recommendations?.map(r => r.id)],
+          ["/api/bookmarks/status", recommendationsData?.map((r: ExternalRestaurant) => r.id)],
           context.previousStatuses
         );
       }
@@ -194,19 +183,18 @@ export default function RecommendationsPage() {
       });
     },
     onSettled: () => {
-      // Always refetch after error or success
       queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/bookmarks/status", recommendations?.map(r => r.id)] });
+      queryClient.invalidateQueries({ queryKey: ["/api/bookmarks/status", recommendationsData?.map((r: ExternalRestaurant) => r.id)] });
     },
   });
 
   // Check if restaurants are bookmarked
   const { data: bookmarkStatuses } = useQuery({
-    queryKey: ["/api/bookmarks/status", recommendations?.map(r => r.id)],
+    queryKey: ["/api/bookmarks/status", recommendationsData?.map((r: ExternalRestaurant) => r.id)],
     queryFn: async () => {
-      if (!recommendations?.length) return {};
+      if (!recommendationsData?.length) return {};
       
-      const statusPromises = recommendations.map(async (restaurant) => {
+      const statusPromises = recommendationsData.map(async (restaurant: ExternalRestaurant) => {
         const response = await fetch(`/api/bookmarks/${restaurant.id}/check`, {
           credentials: "include",
         });
@@ -217,7 +205,7 @@ export default function RecommendationsPage() {
       const statuses = await Promise.all(statusPromises);
       return statuses.reduce((acc, status) => ({ ...acc, ...status }), {});
     },
-    enabled: !!recommendations?.length,
+    enabled: !!recommendationsData?.length,
   });
 
   return (
@@ -291,7 +279,7 @@ export default function RecommendationsPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {isLoading ? (
           <div className="text-center text-gray-500">Loading recommendations...</div>
-        ) : recommendations && recommendations.length > 0 ? (
+        ) : recommendationsData && recommendationsData.length > 0 ? (
           viewMode === 'map' ? (
             <RestaurantMap
               initialLocation={location}
@@ -308,7 +296,7 @@ export default function RecommendationsPage() {
             />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {recommendations.map((restaurant) => (
+              {recommendationsData.map((restaurant) => (
                 <Card key={restaurant.id} className="overflow-hidden">
                   {restaurant.photoUrl && (
                     <div className="aspect-video relative">
