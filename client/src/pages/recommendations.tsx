@@ -294,107 +294,109 @@ export default function RecommendationsPage() {
         {isLoading ? (
           <div className="text-center text-gray-500">Loading recommendations...</div>
         ) : recommendationsData && recommendationsData.length > 0 ? (
-          viewMode === 'map' ? (
-            <div className="w-full">
-              <RestaurantMap
-                onRestaurantSelect={setSelectedRestaurant}
-                initialLocation={searchParams.location}
-                bookmarkStatuses={bookmarkStatuses}
-                restaurants={currentRecommendations}
-              />
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {recommendationsData.map((restaurant) => (
-                <Card key={restaurant.id} className="overflow-hidden">
-                  {restaurant.photoUrl && (
-                    <div className="aspect-video relative">
-                      <img
-                        src={restaurant.photoUrl}
-                        alt={restaurant.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  )}
-                  <div className="p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">{restaurant.name}</h3>
-                      <a
-                        href={restaurant.sourceUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary hover:text-primary/80"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                      </a>
-                    </div>
-                    <p className="text-sm text-gray-500 mb-2">{restaurant.location}</p>
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="flex items-center">
-                        <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                        <span className="ml-1 text-sm font-medium">{restaurant.rating.toFixed(1)}</span>
+          <RestaurantContext.Provider value={{ selectedRestaurant, setSelectedRestaurant }}>
+            {viewMode === 'map' ? (
+              <div className="w-full">
+                <RestaurantMap
+                  onRestaurantSelect={setSelectedRestaurant}
+                  initialLocation={searchParams.location}
+                  bookmarkStatuses={bookmarkStatuses}
+                  restaurants={currentRecommendations}
+                />
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {recommendationsData.map((restaurant) => (
+                  <Card key={restaurant.id} className="overflow-hidden">
+                    {restaurant.photoUrl && (
+                      <div className="aspect-video relative">
+                        <img
+                          src={restaurant.photoUrl}
+                          alt={restaurant.name}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
-                      <span className="text-sm text-gray-500">
-                        ({restaurant.totalRatings.toLocaleString()} reviews)
-                      </span>
-                    </div>
-                    {restaurant.priceLevel && (
-                      <p className="text-sm text-gray-500">{restaurant.priceLevel}</p>
                     )}
-                    <div className="mt-4 flex justify-between items-center gap-2">
-                      <span className="text-xs text-gray-400">
-                        Source: {restaurant.source.charAt(0).toUpperCase() + restaurant.source.slice(1)}
-                      </span>
-                      <div className="flex gap-2">
-                        <Button
-                          variant={bookmarkStatuses?.[restaurant.id] ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => {
-                            const isBookmarked = bookmarkStatuses?.[restaurant.id];
-                            if (isBookmarked) {
-                              deleteBookmarkMutation.mutate(restaurant.id);
-                            } else {
-                              createBookmarkMutation.mutate(restaurant);
-                            }
-                          }}
-                          disabled={createBookmarkMutation.isPending || deleteBookmarkMutation.isPending}
-                          className={bookmarkStatuses?.[restaurant.id] ? "bg-primary text-white hover:bg-primary/90" : ""}
+                    <div className="p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="text-lg font-semibold text-gray-900">{restaurant.name}</h3>
+                        <a
+                          href={restaurant.sourceUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:text-primary/80"
                         >
-                          {bookmarkStatuses?.[restaurant.id] ? (
-                            <>
-                              <BookmarkCheck className="w-4 h-4 mr-1" />
-                              Saved
-                            </>
-                          ) : (
-                            <>
-                              <Bookmark className="w-4 h-4 mr-1" />
-                              Save
-                            </>
-                          )}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedRestaurant(restaurant);
-                            // Trigger the global add review modal
-                            window.dispatchEvent(new CustomEvent('openAddReviewModal', {
-                              detail: {
-                                restaurantName: restaurant.name,
-                                restaurantLocation: restaurant.location
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
+                      </div>
+                      <p className="text-sm text-gray-500 mb-2">{restaurant.location}</p>
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="flex items-center">
+                          <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                          <span className="ml-1 text-sm font-medium">{restaurant.rating.toFixed(1)}</span>
+                        </div>
+                        <span className="text-sm text-gray-500">
+                          ({restaurant.totalRatings.toLocaleString()} reviews)
+                        </span>
+                      </div>
+                      {restaurant.priceLevel && (
+                        <p className="text-sm text-gray-500">{restaurant.priceLevel}</p>
+                      )}
+                      <div className="mt-4 flex justify-between items-center gap-2">
+                        <span className="text-xs text-gray-400">
+                          Source: {restaurant.source.charAt(0).toUpperCase() + restaurant.source.slice(1)}
+                        </span>
+                        <div className="flex gap-2">
+                          <Button
+                            variant={bookmarkStatuses?.[restaurant.id] ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => {
+                              const isBookmarked = bookmarkStatuses?.[restaurant.id];
+                              if (isBookmarked) {
+                                deleteBookmarkMutation.mutate(restaurant.id);
+                              } else {
+                                createBookmarkMutation.mutate(restaurant);
                               }
-                            }));
-                          }}
-                        >
-                          Add Review
-                        </Button>
+                            }}
+                            disabled={createBookmarkMutation.isPending || deleteBookmarkMutation.isPending}
+                            className={bookmarkStatuses?.[restaurant.id] ? "bg-primary text-white hover:bg-primary/90" : ""}
+                          >
+                            {bookmarkStatuses?.[restaurant.id] ? (
+                              <>
+                                <BookmarkCheck className="w-4 h-4 mr-1" />
+                                Saved
+                              </>
+                            ) : (
+                              <>
+                                <Bookmark className="w-4 h-4 mr-1" />
+                                Save
+                              </>
+                            )}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedRestaurant(restaurant);
+                              // Trigger the global add review modal
+                              window.dispatchEvent(new CustomEvent('openAddReviewModal', {
+                                detail: {
+                                  restaurantName: restaurant.name,
+                                  restaurantLocation: restaurant.location
+                                }
+                              }));
+                            }}
+                          >
+                            Add Review
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          )
+                  </Card>
+                ))}
+              </div>
+            )}
+          </RestaurantContext.Provider>
         ) : (
           <Card className="p-8 text-center">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">No recommendations found</h3>
