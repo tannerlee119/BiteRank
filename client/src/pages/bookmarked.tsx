@@ -39,6 +39,7 @@ export default function BookmarkedPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/bookmarks/status"] });
       toast({
         title: "Bookmark removed",
         description: "Restaurant has been removed from your bookmarks.",
