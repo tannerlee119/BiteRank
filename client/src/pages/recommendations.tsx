@@ -61,6 +61,14 @@ export default function RecommendationsPage() {
   });
 
   const handleSearch = () => {
+    if (!search && !location) {
+      toast({
+        title: "Error",
+        description: "Please enter either a search term or a location.",
+        variant: "destructive",
+      });
+      return;
+    }
     setSearchParams({
       search: search,
       location: location
@@ -103,7 +111,7 @@ export default function RecommendationsPage() {
 
       return response.json();
     },
-    enabled: !!searchParams.location,
+    enabled: !!searchParams.search || !!searchParams.location,
   });
 
   const recommendationsResponse = recommendations;
