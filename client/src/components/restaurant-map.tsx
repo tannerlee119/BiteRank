@@ -119,8 +119,11 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
 
   const initializeMap = () => {
     if (mapRef.current && !map && window.google && window.google.maps) {
+      // Default center - will be updated based on initialLocation
+      let defaultCenter = { lat: 40.7128, lng: -74.0060 }; // New York City
+      
       const initialMap = new window.google.maps.Map(mapRef.current, {
-        center: { lat: 37.7749, lng: -122.4194 }, // Default to San Francisco
+        center: defaultCenter,
         zoom: 13,
         styles: [
           {
@@ -138,19 +141,45 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
         setSelectedRestaurant(null);
       });
 
-      // If we have an initial location, geocode it and center the map
-      if (initialLocation) {
-        const geocoder = new window.google.maps.Geocoder();
-        geocoder.geocode({ address: initialLocation }, (results: any, status: string) => {
-          if (status === "OK" && results[0]) {
-            initialMap.setCenter(results[0].geometry.location);
-            initialMap.setZoom(13);
-            // Search for restaurants in this area
-            searchNearby(results[0].geometry.location.lat(), results[0].geometry.location.lng());
-          }
-        });
+      // If we have an initial location, try to geocode it
+      if (initialLocation && initialLocation.trim()) {
+        geocodeAndCenter(initialMap, initialLocation);
+      } else {
+        // If no location provided, search around default center
+        searchNearby(defaultCenter.lat, defaultCenter.lng);
       }
     }
+  };
+
+  const geocodeAndCenter = (mapInstance: any, location: string) => {
+    if (!window.google?.maps?.Geocoder) {
+      console.error('Geocoding service not available');
+      // Fallback to default location search
+      searchNearby(40.7128, -74.0060); // NYC
+      return;
+    }
+
+    const geocoder = new window.google.maps.Geocoder();
+    geocoder.geocode({ address: location }, (results: any, status: string) => {
+      if (status === "OK" && results?.[0]?.geometry?.location) {
+        const location = results[0].geometry.location;
+        mapInstance.setCenter(location);
+        mapInstance.setZoom(13);
+        searchNearby(location.lat(), location.lng());
+      } else {
+        console.error('Geocoding failed:', status);
+        toast({
+          title: "Location Error",
+          description: `Could not find location: ${location}. Showing restaurants in New York instead.`,
+          variant: "destructive",
+        });
+        // Fallback to NYC
+        const nycLocation = { lat: 40.7128, lng: -74.0060 };
+        mapInstance.setCenter(nycLocation);
+        mapInstance.setZoom(13);
+        searchNearby(nycLocation.lat, nycLocation.lng);
+      }
+    });
   };
 
   useEffect(() => {
@@ -188,9 +217,9 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
           return;
         }
 
-        // Load Google Maps script
+        // Load Google Maps script with proper async loading
         const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&loading=async`;
         script.async = true;
         script.defer = true;
         
@@ -202,6 +231,11 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
 
         script.onerror = () => {
           console.error('Failed to load Google Maps API');
+          toast({
+            title: "Maps Error",
+            description: "Failed to load Google Maps. Please refresh the page.",
+            variant: "destructive",
+          });
         };
 
         document.head.appendChild(script);
@@ -214,14 +248,8 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
   }, []);
 
   useEffect(() => {
-    if (map && initialLocation) {
-      const geocoder = new window.google.maps.Geocoder();
-      geocoder.geocode({ address: initialLocation }, (results: any, status: string) => {
-        if (status === "OK" && results[0]) {
-          map.setCenter(results[0].geometry.location);
-          map.setZoom(13);
-        }
-      });
+    if (map && initialLocation && initialLocation.trim()) {
+      geocodeAndCenter(map, initialLocation);
     }
   }, [map, initialLocation]);
 
@@ -294,19 +322,8 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
     }
   };
 
-  // Initialize search when map is ready and location is available
-  useEffect(() => {
-    if (map && initialLocation) {
-      const geocoder = new window.google.maps.Geocoder();
-      geocoder.geocode({ address: initialLocation }, (results: any, status: string) => {
-        if (status === "OK" && results[0]) {
-          map.setCenter(results[0].geometry.location);
-          map.setZoom(13);
-          searchNearby(results[0].geometry.location.lat(), results[0].geometry.location.lng());
-        }
-      });
-    }
-  }, [map, initialLocation]);
+  // This effect is now handled in the geocodeAndCenter function
+  // Remove duplicate useEffect
 
   return (
     <div className="relative w-full h-[600px]">
