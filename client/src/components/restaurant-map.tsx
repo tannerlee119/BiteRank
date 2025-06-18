@@ -152,22 +152,29 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
   };
 
   const geocodeAndCenter = (mapInstance: any, location: string) => {
-    if (!window.google?.maps?.Geocoder) {
-      console.error('Geocoding service not available');
+    if (!window.google?.maps?.places?.PlacesService) {
+      console.error('Places service not available');
       // Fallback to default location search
       searchNearby(40.7128, -74.0060); // NYC
       return;
     }
 
-    const geocoder = new window.google.maps.Geocoder();
-    geocoder.geocode({ address: location }, (results: any, status: string) => {
-      if (status === "OK" && results?.[0]?.geometry?.location) {
-        const location = results[0].geometry.location;
-        mapInstance.setCenter(location);
+    // Use Places Text Search instead of Geocoding API
+    const service = new window.google.maps.places.PlacesService(mapInstance);
+    
+    const request = {
+      query: location,
+      fields: ['geometry', 'name', 'formatted_address']
+    };
+
+    service.textSearch(request, (results: any[], status: any) => {
+      if (status === window.google.maps.places.PlacesServiceStatus.OK && results?.[0]?.geometry?.location) {
+        const foundLocation = results[0].geometry.location;
+        mapInstance.setCenter(foundLocation);
         mapInstance.setZoom(13);
-        searchNearby(location.lat(), location.lng());
+        searchNearby(foundLocation.lat(), foundLocation.lng());
       } else {
-        console.error('Geocoding failed:', status);
+        console.error('Location search failed:', status);
         toast({
           title: "Location Error",
           description: `Could not find location: ${location}. Showing restaurants in New York instead.`,
