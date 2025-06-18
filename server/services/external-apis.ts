@@ -137,7 +137,9 @@ export class ExternalAPIService {
                   cuisine,
                   photoUrl,
                   source: 'google',
-                  sourceUrl: details.url || `https://www.google.com/maps/place/?q=place_id:${place.place_id}`
+                  sourceUrl: details.url || `https://www.google.com/maps/place/?q=place_id:${place.place_id}`,
+                  lat: place.geometry?.location?.lat,
+                  lng: place.geometry?.location?.lng
                 };
               }
               return null;

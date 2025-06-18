@@ -94,11 +94,11 @@ export default function RecommendationsPage() {
           credentials: "include",
         }
       );
-      
+
       if (!response.ok) {
         throw new Error("Failed to fetch recommendations");
       }
-      
+
       return response.json();
     },
     enabled: !!searchParams.location,
@@ -107,6 +107,8 @@ export default function RecommendationsPage() {
   const recommendationsResponse = recommendations;
   const recommendationsData = recommendationsResponse?.data;
   const pagination = recommendationsResponse?.pagination;
+    const currentRecommendations = recommendationsData || [];
+
 
   // Bookmark functionality
   const createBookmarkMutation = useMutation({
@@ -194,7 +196,7 @@ export default function RecommendationsPage() {
     queryKey: ["/api/bookmarks/status", recommendationsData?.map((r: ExternalRestaurant) => r.id)],
     queryFn: async () => {
       if (!recommendationsData?.length) return {};
-      
+
       const statusPromises = recommendationsData.map(async (restaurant: ExternalRestaurant) => {
         const response = await fetch(`/api/bookmarks/${restaurant.id}/check`, {
           credentials: "include",
@@ -202,7 +204,7 @@ export default function RecommendationsPage() {
         const data = await response.json();
         return { [restaurant.id]: data.isBookmarked };
       });
-      
+
       const statuses = await Promise.all(statusPromises);
       return statuses.reduce((acc, status) => ({ ...acc, ...status }), {});
     },
@@ -254,12 +256,13 @@ export default function RecommendationsPage() {
       </div>
 
       {/* View Toggle Button */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
         <div className="flex justify-end">
           <Button
             variant="outline"
             onClick={() => setViewMode(viewMode === 'list' ? 'map' : 'list')}
             className="flex items-center gap-2"
+            disabled={isLoading || !recommendationsData?.length}
           >
             {viewMode === 'list' ? (
               <>
@@ -282,19 +285,14 @@ export default function RecommendationsPage() {
           <div className="text-center text-gray-500">Loading recommendations...</div>
         ) : recommendationsData && recommendationsData.length > 0 ? (
           viewMode === 'map' ? (
-            <RestaurantMap
-              initialLocation={location}
-              onRestaurantSelect={(restaurant) => {
-                setSelectedRestaurant(restaurant);
-                window.dispatchEvent(new CustomEvent('openAddReviewModal', {
-                  detail: {
-                    restaurantName: restaurant.name,
-                    restaurantLocation: restaurant.location
-                  }
-                }));
-              }}
-              bookmarkStatuses={bookmarkStatuses}
-            />
+            <div className="w-full">
+              <RestaurantMap
+                onRestaurantSelect={setSelectedRestaurant}
+                initialLocation={location}
+                bookmarkStatuses={bookmarkStatuses}
+                restaurants={currentRecommendations}
+              />
+            </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {recommendationsData.map((restaurant) => (
@@ -397,8 +395,8 @@ export default function RecommendationsPage() {
         )}
       </div>
 
-      {/* Pagination */}
-      {pagination && pagination.totalPages > 1 && (
+      {/* Pagination - only show in list view */}
+      {viewMode === 'list' && pagination && pagination.totalPages > 1 && (
         <div className="mt-8 flex justify-center">
           <Pagination>
             <PaginationContent>

@@ -37,7 +37,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/register", async (req, res) => {
     try {
       const userData = insertUserSchema.parse(req.body);
-      
+
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(userData.email);
       if (existingUser) {
@@ -46,7 +46,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Hash password
       const passwordHash = await bcrypt.hash(userData.password, 10);
-      
+
       const user = await storage.createUser({
         email: userData.email,
         displayName: userData.displayName,
@@ -63,7 +63,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/login", async (req, res) => {
     try {
       const { email, password } = req.body;
-      
+
       const user = await storage.getUserByEmail(email);
       if (!user) {
         return res.status(401).json({ message: "Invalid credentials" });
@@ -163,13 +163,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/reviews", requireAuth, async (req, res) => {
     try {
       const reviewData = insertReviewSchema.parse(req.body);
-      
+
       // Find or create restaurant
       let restaurant = await storage.getRestaurantByNameAndLocation(
         reviewData.restaurantName,
         reviewData.restaurantLocation
       );
-      
+
       if (!restaurant) {
         restaurant = await storage.createRestaurant({
           name: reviewData.restaurantName,
@@ -185,7 +185,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const favoriteDishes = reviewData.favoriteDishes 
         ? reviewData.favoriteDishes.split(',').map(dish => dish.trim()).filter(dish => dish.length > 0)
         : null;
-      
+
       const labels = reviewData.labels
         ? reviewData.labels.split(',').map(label => label.trim()).filter(label => label.length > 0)
         : null;
@@ -209,11 +209,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const success = await storage.deleteReview(id, req.session.userId!);
-      
+
       if (!success) {
         return res.status(404).json({ message: "Review not found" });
       }
-      
+
       res.json({ message: "Review deleted successfully" });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -246,14 +246,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get the existing review to ensure it belongs to the user
       const reviews = await storage.getUserReviews(userId);
       const existingReview = reviews.find(r => r.id === id);
-      
+
       if (!existingReview) {
         return res.status(404).json({ message: "Review not found" });
       }
 
       // Update the review
       const updatedReview = await storage.updateReview(id, userId, updateData);
-      
+
       if (!updatedReview) {
         return res.status(404).json({ message: "Review not found" });
       }
@@ -282,7 +282,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         restaurantName,
         restaurantLocation
       );
-      
+
       if (!restaurant) {
         restaurant = await storage.createRestaurant({
           name: restaurantName,
@@ -311,10 +311,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/maps/key", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+
+    const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({ message: "Google Maps API key not configured" });
+    }
+
+    res.json({ apiKey });
+  });
+
   app.get("/api/recommendations", requireAuth, async (req, res) => {
     try {
       const { search, location, page = "1", limit = "21" } = req.query;
-      
+
       if (!location) {
         return res.status(400).json({ message: "Location is required" });
       }
@@ -331,10 +344,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Limit to first 100 results max
       const limitedResults = allRecommendations.slice(0, 100);
-      
+
       // Apply pagination
       const paginatedResults = limitedResults.slice(offset, offset + limitNum);
-      
+
       const totalResults = limitedResults.length;
       const totalPages = Math.ceil(totalResults / limitNum);
 
@@ -368,13 +381,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const bookmarkData = insertBookmarkSchema.parse(req.body);
       const userId = req.session.userId!;
-      
+
       // Check if bookmark already exists
       const existingBookmark = await storage.isBookmarked(userId, bookmarkData.externalId);
       if (existingBookmark) {
         return res.status(400).json({ message: "Restaurant is already bookmarked" });
       }
-      
+
       const bookmark = await storage.createBookmark(userId, bookmarkData);
       res.json(bookmark);
     } catch (error: any) {
@@ -386,11 +399,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { externalId } = req.params;
       const success = await storage.deleteBookmark(req.session.userId!, externalId);
-      
+
       if (!success) {
         return res.status(404).json({ message: "Bookmark not found" });
       }
-      
+
       res.json({ message: "Bookmark deleted successfully" });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
