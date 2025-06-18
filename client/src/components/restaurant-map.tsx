@@ -117,13 +117,24 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
     },
   });
 
-  const initializeMap = () => {
+  const initializeMap = async () => {
     if (mapRef.current && !map && window.google && window.google.maps && window.google.maps.Map) {
-      // Default center - will be updated based on initialLocation
-      let defaultCenter = { lat: 40.7128, lng: -74.0060 }; // New York City
+      let mapCenter = { lat: 40.7128, lng: -74.0060 }; // Default to NYC
+      
+      // If we have an initial location, get its coordinates first
+      if (initialLocation && initialLocation.trim()) {
+        try {
+          const coords = await getLocationCoordinates(initialLocation);
+          if (coords) {
+            mapCenter = coords;
+          }
+        } catch (error) {
+          console.error('Failed to get initial location coordinates:', error);
+        }
+      }
       
       const initialMap = new window.google.maps.Map(mapRef.current, {
-        center: defaultCenter,
+        center: mapCenter,
         zoom: 13,
         styles: [
           {
@@ -141,14 +152,39 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
         setSelectedRestaurant(null);
       });
 
-      // If we have an initial location, try to geocode it
-      if (initialLocation && initialLocation.trim()) {
-        geocodeAndCenter(initialMap, initialLocation);
-      } else {
-        // If no location provided, search around default center
-        searchNearby(defaultCenter.lat, defaultCenter.lng);
-      }
+      // Search for restaurants at the determined center
+      searchNearby(mapCenter.lat, mapCenter.lng);
     }
+  };
+
+  const getLocationCoordinates = (location: string): Promise<{ lat: number; lng: number } | null> => {
+    return new Promise((resolve) => {
+      if (!window.google?.maps?.places?.PlacesService) {
+        resolve(null);
+        return;
+      }
+
+      // Create a temporary map for the places service
+      const tempMap = new window.google.maps.Map(document.createElement('div'));
+      const service = new window.google.maps.places.PlacesService(tempMap);
+      
+      const request = {
+        query: location,
+        fields: ['geometry']
+      };
+
+      service.textSearch(request, (results: any[], status: any) => {
+        if (status === window.google.maps.places.PlacesServiceStatus.OK && results?.[0]?.geometry?.location) {
+          const foundLocation = results[0].geometry.location;
+          resolve({
+            lat: foundLocation.lat(),
+            lng: foundLocation.lng()
+          });
+        } else {
+          resolve(null);
+        }
+      });
+    });
   };
 
   const geocodeAndCenter = (mapInstance: any, location: string) => {
@@ -195,7 +231,7 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
         // Check if Google Maps is already fully loaded
         if (window.google && window.google.maps && window.google.maps.Map) {
           if (mapRef.current && !map) {
-            initializeMap();
+            await initializeMap();
           }
           return;
         }
@@ -204,9 +240,9 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
         const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
         if (existingScript) {
           // Create a polling mechanism to wait for full load
-          const checkMapsLoaded = () => {
+          const checkMapsLoaded = async () => {
             if (window.google && window.google.maps && window.google.maps.Map && mapRef.current && !map) {
-              initializeMap();
+              await initializeMap();
             } else {
               setTimeout(checkMapsLoaded, 100);
             }
@@ -231,9 +267,9 @@ export function RestaurantMap({ onRestaurantSelect, initialLocation, bookmarkSta
         const callbackName = `initMapCallback_${Date.now()}`;
         
         // Set up the callback
-        (window as any)[callbackName] = () => {
+        (window as any)[callbackName] = async () => {
           if (window.google && window.google.maps && window.google.maps.Map && mapRef.current && !map) {
-            initializeMap();
+            await initializeMap();
           }
           // Clean up the callback
           delete (window as any)[callbackName];
