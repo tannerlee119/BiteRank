@@ -35,7 +35,7 @@ declare global {
   }
 }
 
-const RestaurantMapComponent = memo(function RestaurantMap({ 
+const RestaurantMap = memo(function RestaurantMap({ 
   onRestaurantSelect, 
   initialLocation, 
   bookmarkStatuses = {}, 
@@ -570,4 +570,5 @@ const RestaurantMapComponent = memo(function RestaurantMap({
   );
 });
 
-export default RestaurantMapComponent;
+export { RestaurantMap };
+export default RestaurantMap;
