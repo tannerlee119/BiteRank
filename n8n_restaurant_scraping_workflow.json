@@ -1,0 +1,329 @@
+{
+  "name": "Restaurant Data Scraper",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://example-restaurant-site.com/restaurants",
+        "options": {
+          "timeout": 10000,
+          "allowUnauthorizedCerts": false,
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "start-node",
+      "name": "Fetch Restaurant List",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [240, 300],
+      "webhookId": ""
+    },
+    {
+      "parameters": {
+        "extractionValues": [
+          {
+            "key": "restaurant_links",
+            "cssSelector": "a.restaurant-link",
+            "attribute": "href",
+            "returnArray": true
+          },
+          {
+            "key": "restaurant_names",
+            "cssSelector": "h2.restaurant-name",
+            "returnArray": true
+          },
+          {
+            "key": "ratings",
+            "cssSelector": "span.rating",
+            "returnArray": true
+          },
+          {
+            "key": "cuisine_types",
+            "cssSelector": "span.cuisine-type",
+            "returnArray": true
+          }
+        ],
+        "options": {
+          "trimValues": true,
+          "includeEmptyValues": false
+        }
+      },
+      "id": "extract-list-data",
+      "name": "Extract List Data",
+      "type": "n8n-nodes-base.htmlExtract",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Combine extracted data into restaurant objects\nconst restaurants = [];\nconst names = $input.first().json.restaurant_names || [];\nconst links = $input.first().json.restaurant_links || [];\nconst ratings = $input.first().json.ratings || [];\nconst cuisines = $input.first().json.cuisine_types || [];\n\nfor (let i = 0; i < names.length; i++) {\n  restaurants.push({\n    name: names[i],\n    url: links[i],\n    rating: ratings[i],\n    cuisine_type: cuisines[i],\n    scraped_at: new Date().toISOString()\n  });\n}\n\nreturn restaurants.map(restaurant => ({ json: restaurant }));"
+      },
+      "id": "process-list-data",
+      "name": "Process List Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "options": {
+          "timeout": 10000,
+          "allowUnauthorizedCerts": false
+        }
+      },
+      "id": "fetch-detail-page",
+      "name": "Fetch Detail Page",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "extractionValues": [
+          {
+            "key": "description",
+            "cssSelector": "p.restaurant-description"
+          },
+          {
+            "key": "address",
+            "cssSelector": "span.address"
+          },
+          {
+            "key": "phone",
+            "cssSelector": "span.phone"
+          },
+          {
+            "key": "hours",
+            "cssSelector": "div.hours"
+          },
+          {
+            "key": "price_range",
+            "cssSelector": "span.price-range"
+          },
+          {
+            "key": "image_urls",
+            "cssSelector": "img.restaurant-image",
+            "attribute": "src",
+            "returnArray": true
+          },
+          {
+            "key": "reviews_count",
+            "cssSelector": "span.reviews-count"
+          }
+        ],
+        "options": {
+          "trimValues": true,
+          "includeEmptyValues": false
+        }
+      },
+      "id": "extract-detail-data",
+      "name": "Extract Detail Data",
+      "type": "n8n-nodes-base.htmlExtract",
+      "typeVersion": 2,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Merge list data with detail data\nconst listData = $('Process List Data').item.json;\nconst detailData = $input.first().json;\n\nreturn [{\n  json: {\n    ...listData,\n    ...detailData,\n    scraped_at: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "merge-data",
+      "name": "Merge Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1340, 300]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": "restaurant_data",
+        "dataToSend": "json",
+        "jsonData": "={{ $json }}",
+        "options": {
+          "useQuery": true,
+          "query": "INSERT INTO restaurants (name, rating, cuisine_type, description, address, phone, hours, price_range, image_urls, reviews_count, scraped_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        }
+      },
+      "id": "save-to-database",
+      "name": "Save to Database",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.1,
+      "position": [1560, 300]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "fileName": "restaurants_{{ $now.format('YYYY-MM-DD_HH-mm') }}.json",
+        "dataPropertyName": "json"
+      },
+      "id": "save-to-file",
+      "name": "Save to File",
+      "type": "n8n-nodes-base.writeBinaryFile",
+      "typeVersion": 1,
+      "position": [1560, 500]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "error-check",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "error-handler",
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1780, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Log error and continue\nconsole.log('Error processing restaurant:', $json);\nreturn $input.all();"
+      },
+      "id": "log-error",
+      "name": "Log Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2000, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Add delay to be respectful to the server\nawait new Promise(resolve => setTimeout(resolve, 2000));\nreturn $input.all();"
+      },
+      "id": "add-delay",
+      "name": "Add Delay",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2000, 400]
+    }
+  ],
+  "connections": {
+    "Fetch Restaurant List": {
+      "main": [
+        [
+          {
+            "node": "Extract List Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract List Data": {
+      "main": [
+        [
+          {
+            "node": "Process List Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process List Data": {
+      "main": [
+        [
+          {
+            "node": "Fetch Detail Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Detail Page": {
+      "main": [
+        [
+          {
+            "node": "Extract Detail Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Detail Data": {
+      "main": [
+        [
+          {
+            "node": "Merge Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Data": {
+      "main": [
+        [
+          {
+            "node": "Save to Database",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Save to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to Database": {
+      "main": [
+        [
+          {
+            "node": "Error Handler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Handler": {
+      "main": [
+        [
+          {
+            "node": "Log Error",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add Delay",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "versionId": "1"
+} 

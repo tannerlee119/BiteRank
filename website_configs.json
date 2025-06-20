@@ -1,0 +1,171 @@
+{
+  "website_configs": {
+    "yelp": {
+      "base_url": "https://www.yelp.com/search",
+      "list_page_selectors": {
+        "restaurant_names": "h3 a[data-testid='business-link']",
+        "restaurant_links": "h3 a[data-testid='business-link']",
+        "ratings": "span[aria-label*='star']",
+        "cuisine_types": ".category-str-list a",
+        "price_range": ".price-range"
+      },
+      "detail_page_selectors": {
+        "description": "p[data-testid='business-description']",
+        "address": "address",
+        "phone": "p[data-testid='phone']",
+        "hours": ".hours-table",
+        "image_urls": ".photo-box img",
+        "reviews_count": "span[data-testid='review-count']"
+      },
+      "pagination": {
+        "next_button": "a[aria-label='Next']",
+        "max_pages": 10
+      }
+    },
+    "google_maps": {
+      "base_url": "https://www.google.com/maps/search",
+      "list_page_selectors": {
+        "restaurant_names": "h1",
+        "restaurant_links": "a[data-result-index]",
+        "ratings": ".rating",
+        "cuisine_types": ".cuisine",
+        "price_range": ".price-range"
+      },
+      "detail_page_selectors": {
+        "description": ".description",
+        "address": ".address",
+        "phone": ".phone",
+        "hours": ".hours",
+        "image_urls": ".gallery img",
+        "reviews_count": ".reviews-count"
+      },
+      "pagination": {
+        "next_button": "button[aria-label='Next page']",
+        "max_pages": 5
+      }
+    },
+    "tripadvisor": {
+      "base_url": "https://www.tripadvisor.com/Restaurants",
+      "list_page_selectors": {
+        "restaurant_names": "a[data-testid='title']",
+        "restaurant_links": "a[data-testid='title']",
+        "ratings": ".ui_bubble_rating",
+        "cuisine_types": ".cuisine",
+        "price_range": ".price"
+      },
+      "detail_page_selectors": {
+        "description": ".description",
+        "address": ".address",
+        "phone": ".phone",
+        "hours": ".hours",
+        "image_urls": ".photo img",
+        "reviews_count": ".reviews-count"
+      },
+      "pagination": {
+        "next_button": "a.nav.next",
+        "max_pages": 10
+      }
+    },
+    "zomato": {
+      "base_url": "https://www.zomato.com",
+      "list_page_selectors": {
+        "restaurant_names": "h3 a",
+        "restaurant_links": "h3 a",
+        "ratings": ".rating",
+        "cuisine_types": ".cuisine",
+        "price_range": ".price"
+      },
+      "detail_page_selectors": {
+        "description": ".description",
+        "address": ".address",
+        "phone": ".phone",
+        "hours": ".hours",
+        "image_urls": ".gallery img",
+        "reviews_count": ".reviews-count"
+      },
+      "pagination": {
+        "next_button": "a.next",
+        "max_pages": 10
+      }
+    },
+    "opentable": {
+      "base_url": "https://www.opentable.com",
+      "list_page_selectors": {
+        "restaurant_names": "h3 a",
+        "restaurant_links": "h3 a",
+        "ratings": ".rating",
+        "cuisine_types": ".cuisine",
+        "price_range": ".price-range"
+      },
+      "detail_page_selectors": {
+        "description": ".description",
+        "address": ".address",
+        "phone": ".phone",
+        "hours": ".hours",
+        "image_urls": ".photos img",
+        "reviews_count": ".reviews-count"
+      },
+      "pagination": {
+        "next_button": "a.next-page",
+        "max_pages": 10
+      }
+    }
+  },
+  "common_settings": {
+    "request_delay": 2000,
+    "timeout": 10000,
+    "max_retries": 3,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+    "headers": {
+      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+      "Accept-Language": "en-US,en;q=0.5",
+      "Accept-Encoding": "gzip, deflate",
+      "Connection": "keep-alive",
+      "Upgrade-Insecure-Requests": "1"
+    }
+  },
+  "data_cleaning_rules": {
+    "rating": {
+      "extract_numbers": true,
+      "normalize_to_scale": 5,
+      "remove_text": ["stars", "star", "rating"]
+    },
+    "price_range": {
+      "normalize_symbols": {
+        "$": 1,
+        "$$": 2,
+        "$$$": 3,
+        "$$$$": 4
+      }
+    },
+    "phone": {
+      "remove_chars": ["(", ")", "-", " ", "+"],
+      "add_country_code": "+1"
+    },
+    "hours": {
+      "standardize_format": "HH:MM AM/PM - HH:MM AM/PM",
+      "convert_to_24hr": false
+    }
+  },
+  "validation_rules": {
+    "name": {
+      "min_length": 2,
+      "max_length": 255,
+      "required": true
+    },
+    "rating": {
+      "min_value": 0,
+      "max_value": 5,
+      "required": false
+    },
+    "phone": {
+      "pattern": "^\\+?[1-9]\\d{1,14}$",
+      "required": false
+    },
+    "image_urls": {
+      "validate_urls": true,
+      "max_count": 10,
+      "required": false
+    }
+  }
+} 
