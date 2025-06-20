@@ -1,0 +1,100 @@
+# Product Requirements Document (PRD): Restaurant Data Aggregation & AI Enrichment Platform
+
+**Author:** Taskmaster AI
+**Version:** 1.0
+**Date:** 2024-07-31
+
+---
+
+## 1. Introduction & Overview
+
+### 1.1. Product Goal
+To develop a robust, automated system that scrapes restaurant data from various web sources, enriches it with AI-driven insights using Taskmaster AI, and stores it in a structured PostgreSQL database. This platform will serve as a powerful backend for future restaurant-focused applications, analytics, or market research.
+
+### 1.2. Problem Statement
+Accessing comprehensive, up-to-date, and enriched restaurant data is challenging. Public APIs are often restrictive, expensive, or lack the depth required for sophisticated applications. This project aims to overcome these limitations by creating a proprietary, high-quality dataset through an intelligent web scraping and AI enrichment pipeline.
+
+### 1.3. Target Audience
+*   **Developers:** Building consumer-facing restaurant finders, recommendation engines, or food-tech applications.
+*   **Data Analysts:** Researching market trends, competitive landscapes, and consumer sentiment in the food industry.
+*   **Business Owners:** Seeking competitive intelligence and location-based insights.
+
+---
+
+## 2. Core Features & Requirements
+
+### 2.1. Feature: Configurable Web Scraping Workflow
+The core of the system will be a flexible web scraping workflow capable of extracting data from various restaurant listing websites.
+
+*   **FR-1.1: Scraping Orchestration:** The system must use **n8n** to manage and execute the scraping workflow.
+*   **FR-1.2: Two-Stage Scraping Process:**
+    1.  The workflow will first scrape a list of restaurants from a search/listing page.
+    2.  It will then iterate through each restaurant's detail page link to perform a deep scrape.
+*   **FR-1.3: Core Data Extraction:** The scraper must extract the following data points as a minimum requirement:
+    *   Restaurant Name
+    *   Overall Rating
+    *   Cuisine Type / Category
+    *   Image URLs (at least 3-5, if available)
+*   **FR-1.4: Extended Data Extraction:** The scraper should also attempt to extract the following additional details:
+    *   Full Description
+    *   Physical Address
+    *   Phone Number
+    *   Operating Hours
+    *   Price Range (e.g., $, $$, $$$)
+    *   Total Number of Reviews
+*   **FR-1.5: External Site Configuration:** The workflow must be adaptable to different websites without code changes. All CSS selectors and site-specific parameters (e.g., base URL, pagination logic) will be defined in the `website_configs.json` file.
+*   **FR-1.6: Respectful Scraping:** The workflow must include configurable delays between HTTP requests to avoid overloading target servers and respect their scraping policies.
+
+### 2.2. Feature: Taskmaster AI Data Enrichment
+Once raw data is scraped, it will be sent to Taskmaster AI for intelligent processing and enrichment.
+
+*   **FR-2.1: API Integration:** The system must integrate with the Taskmaster AI API via a Python client (`taskmaster_integration_example.py`).
+*   **FR-2.2: AI Analysis Modules:** The integration will leverage Taskmaster AI to perform the following analyses:
+    *   **Sentiment Analysis:** Score the sentiment of the restaurant's description.
+    *   **Cuisine Categorization:** Standardize and categorize the cuisine type.
+    *   **Data Validation & Quality Score:** Validate contact information (phone, address) and generate a data quality score.
+    *   **Keyword Extraction:** Identify and extract key terms and amenities from the description (e.g., "outdoor seating", "free wifi", "family friendly").
+*   **FR-2.3: Processing Modes:** The system must support two modes of AI processing:
+    1.  **Real-time/Webhook:** Process data immediately as it's scraped via a webhook from the n8n workflow.
+    2.  **Batch Processing:** A standalone Python script will periodically scan the database for unprocessed records and send them to Taskmaster AI in batches.
+
+### 2.3. Feature: Data Persistence Layer
+All scraped and enriched data must be stored efficiently and reliably.
+
+*   **FR-3.1: Database Technology:** The system will use **PostgreSQL** as its primary data store.
+*   **FR-3.2: Enhanced Schema:** The `restaurants` table schema will include dedicated columns for both the raw scraped data and all AI-generated fields (e.g., `ai_sentiment_score`, `ai_cuisine_category`, `ai_keywords`).
+*   **FR-3.3: Data Integrity (Deduplication):** The database insertion logic must handle duplicate entries gracefully. Use an `ON CONFLICT` clause based on a unique combination of `name` and `address` to update existing records rather than creating duplicates.
+*   **FR-3.4: Performance Optimization:** The database schema must include indexes on frequently queried columns (e.g., `name`, `cuisine_type`, `rating`, `ai_cuisine_category`) to ensure fast query performance.
+
+### 2.4. Feature: System Configuration & Administration
+The system must be easy to configure and manage.
+
+*   **FR-4.1: Environment-Based Configuration:** All sensitive information (API keys, database credentials) must be managed through environment variables or a secure configuration file (`mcp-config.json` for MCP context, `.env` for local).
+*   **FR-4.2: Logging:** Implement comprehensive logging for all major processes, including scraping status, AI API calls, and database transactions.
+
+---
+
+## 3. Assumptions & Dependencies
+
+*   **Technology Stack:** The project will be built using n8n, Python, PostgreSQL, and Taskmaster AI.
+*   **API Access:** A valid and active API key for Taskmaster AI is required.
+*   **Infrastructure:** Access to a running PostgreSQL instance and a server/service to host the n8n workflow and Python scripts is necessary.
+*   **Scraping Targets:** It is assumed that the initial target websites for scraping are built with server-rendered HTML and do not have prohibitive anti-scraping measures that would require more advanced techniques (e.g., browser automation, proxy rotation).
+
+---
+
+## 4. Out of Scope
+
+*   **User Interface (UI):** This project focuses exclusively on the backend data pipeline. No front-end application for displaying the data will be built.
+*   **User Authentication:** The system will not include user management or authentication features.
+*   **Advanced Scraping Techniques:** This version will not implement headless browser automation (e.g., Puppeteer, Playwright) or sophisticated proxy/CAPTCHA-solving services.
+
+---
+
+## 5. Success Metrics
+
+*   **Data Acquisition Rate:** The system can successfully scrape and process data from at least 3 different restaurant websites using the external configuration file.
+*   **AI Enrichment Rate:** Over 95% of scraped records are successfully processed by Taskmaster AI and updated in the database with enriched data.
+*   **Data Quality:** The average `ai_data_quality_score` across all processed records is above 8/10.
+*   **Automation Level:** The end-to-end pipeline (scrape → process → store) runs automatically with minimal need for manual intervention.
+*   **Query Performance:** Standard queries for searching restaurants by name or filtering by cuisine should execute in under 200ms. 

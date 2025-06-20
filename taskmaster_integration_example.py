@@ -102,7 +102,7 @@ class TaskmasterAIClient:
 class RestaurantAIProcessor:
     """Main processor for integrating Taskmaster AI with restaurant data"""
     
-    def __init__(self, db_config: Dict[str, str], taskmaster_config: TaskmasterConfig):
+    def __init__(self, db_config: Dict[str, Any], taskmaster_config: TaskmasterConfig):
         self.db_config = db_config
         self.taskmaster_client = TaskmasterAIClient(taskmaster_config)
     
@@ -129,7 +129,7 @@ class RestaurantAIProcessor:
     def save_to_database(self, enhanced_data: Dict[str, Any]) -> bool:
         """Save enhanced restaurant data to database"""
         try:
-            with psycopg2.connect(**self.db_config) as conn:
+            with psycopg2.connect(**self.db_config) as conn:  # type: ignore
                 with conn.cursor() as cur:
                     cur.execute("""
                         INSERT INTO restaurants (
@@ -176,7 +176,7 @@ class RestaurantAIProcessor:
     async def process_unprocessed_restaurants(self, limit: int = 50):
         """Process restaurants that haven't been analyzed by AI yet"""
         try:
-            with psycopg2.connect(**self.db_config) as conn:
+            with psycopg2.connect(**self.db_config) as conn:  # type: ignore
                 with conn.cursor() as cur:
                     # Get unprocessed restaurants
                     cur.execute("""
@@ -245,7 +245,7 @@ class RestaurantAIProcessor:
 class WebhookHandler:
     """Handle webhooks from n8n workflow"""
     
-    def __init__(self, taskmaster_config: TaskmasterConfig, db_config: Dict[str, str]):
+    def __init__(self, taskmaster_config: TaskmasterConfig, db_config: Dict[str, Any]):
         self.taskmaster_config = taskmaster_config
         self.db_config = db_config
         self.processor = RestaurantAIProcessor(db_config, taskmaster_config)
@@ -275,7 +275,7 @@ class WebhookHandler:
                 "error": str(e)
             }
 
-def load_config() -> tuple[TaskmasterConfig, Dict[str, str]]:
+def load_config() -> tuple[TaskmasterConfig, Dict[str, Any]]:
     """Load configuration from environment variables"""
     
     # Taskmaster AI configuration
@@ -288,7 +288,7 @@ def load_config() -> tuple[TaskmasterConfig, Dict[str, str]]:
     )
     
     # Database configuration
-    db_config = {
+    db_config: Dict[str, Any] = {
         "host": os.getenv("DB_HOST", "localhost"),
         "database": os.getenv("DB_NAME", "restaurants"),
         "user": os.getenv("DB_USER", "postgres"),
@@ -298,10 +298,10 @@ def load_config() -> tuple[TaskmasterConfig, Dict[str, str]]:
     
     return taskmaster_config, db_config
 
-def create_database_schema(db_config: Dict[str, str]):
+def create_database_schema(db_config: Dict[str, Any]):
     """Create the enhanced database schema with AI columns"""
     try:
-        with psycopg2.connect(**db_config) as conn:
+        with psycopg2.connect(**db_config) as conn:  # type: ignore
             with conn.cursor() as cur:
                 # Add AI analysis columns if they don't exist
                 cur.execute("""
