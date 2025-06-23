@@ -1,0 +1,202 @@
+[
+  {
+    "restaurantId": 226413,
+    "name": "Dani Brasserie",
+    "link": "https://www.opentable.com/r/dani-brasserie-at-four-seasons-hotel-madrid-madrid",
+    "cuisine": "Bistro",
+    "rating": 4.4,
+    "reviewCount": 2052,
+    "priceBand": "€30 and under",
+    "neighborhood": "Sol",
+    "address": "Calle de Sevilla 3, Madrid, Madrid",
+    "phone": "913 30 62 10",
+    "imageUrl": "https://resizer.otstatic.com/v3/photos/76263896-1?width=320&height=320&webp=true",
+    "description": "Experience the vibrant culinary scene of Madrid at our elegant and dynamic brasserie. Combining the best of Dani García's Michelin-starred dishes with more casual Spanish and international cuisine, our restaurant offers a unique dining experience that captures the essence of Madrid's food culture. Located in the heart of Madrid, Dani Brasserie provides a lively, easygoing, and welcoming atmosphere, reflecting the spirit of the city and its people. Whether you're savoring gourmet creations or en",
+    "coordinates": {
+      "latitude": 40.4170159,
+      "longitude": -3.700389
+    },
+    "features": {
+      "bar": false,
+      "outdoor": false,
+      "counter": false,
+      "highTop": false
+    },
+    "hasTakeout": false,
+    "isPromoted": false,
+    "topReview": "We had the most wonderful late lunch on the last day of our stay in Madrid. The restaurant is elegant, the service excellent, and the food worthy of its Michelin status. We started with the extraordinary guacamole, which was carefully prepared at our table by the superb Alvaro (see photo). He said that the avocados are from Málaga, which has only been growing them for about ten years. The avocados are wonderfully enhanced by the semi-dried tomatoes, edamame, sunflower seeds, and crunchy tempura, For a sort of main course we both ordered the amazing club sandwich with Baeri caviar! We've never had anything quite like it.\nWe were seated inside (so hot & sunny outside) by a window, as we requested. When we were ready to leave Alvaro suggested we walk onto the terrace. Magnifico!\nWe will come back to Dani every time we're in Madrid, which we hope will be often.",
+    "scraped_at": "2025-06-23T06:47:25.306Z",
+    "source": "OpenTable",
+    "search_query": "new york",
+    "extraction_method": "JSON parsing - primary-window-vars",
+    "processed_at": "2025-06-23T06:47:25.313Z",
+    "processing_order": 1,
+    "data_quality": {
+      "has_name": true,
+      "has_link": true,
+      "has_rating": true,
+      "has_cuisine": true,
+      "has_address": true
+    }
+  },
+  {
+    "restaurantId": 324402,
+    "name": "Chambao Madrid",
+    "link": "https://www.opentable.com/r/chambao-madrid",
+    "cuisine": "Meat",
+    "rating": 4.5,
+    "reviewCount": 582,
+    "priceBand": "€51 and over",
+    "neighborhood": "Castellana",
+    "address": "P.º de la Castellana 4, Madrid, Madrid",
+    "phone": "916 00 96 47",
+    "imageUrl": "https://resizer.otstatic.com/v3/photos/53188941-3?width=320&height=320&webp=true",
+    "description": "Chambao Madrid By Grupo RosaNegra<br /><br />Discover the trendiest restaurant in Madrid, an unparalleled culinary paradise featuring beef cuts and seafood, with a bohemian and elegant touch. Its high-level entertainment with a resident DJ, fashion shows, and live performances will make your evenings a captivating experience.<br /><br />Its interior design and gastronomic proposal are an encounter with sophistication and delight for your senses.",
+    "coordinates": {
+      "latitude": 40.4268248,
+      "longitude": -3.6894579
+    },
+    "features": {
+      "bar": true,
+      "outdoor": false,
+      "counter": false,
+      "highTop": false
+    },
+    "hasTakeout": false,
+    "isPromoted": false,
+    "topReview": "Excellent experience, food was fantastic along with brilliant service and entertainment",
+    "scraped_at": "2025-06-23T06:47:25.306Z",
+    "source": "OpenTable",
+    "search_query": "new york",
+    "extraction_method": "JSON parsing - primary-window-vars",
+    "processed_at": "2025-06-23T06:47:25.314Z",
+    "processing_order": 2,
+    "data_quality": {
+      "has_name": true,
+      "has_link": true,
+      "has_rating": true,
+      "has_cuisine": true,
+      "has_address": true
+    }
+  },
+  {
+    "restaurantId": 139080,
+    "name": "Tatel Madrid",
+    "link": "https://www.opentable.com/r/tatel-madrid",
+    "cuisine": "Mediterranean",
+    "rating": 4.6,
+    "reviewCount": 359,
+    "priceBand": "€31 to €50",
+    "neighborhood": "Castellana",
+    "address": "Paseo de la Castellana, 36, Madrid, MD",
+    "phone": "911 72 18 41",
+    "imageUrl": "https://resizer.otstatic.com/v3/photos/69293451-1?width=320&height=320&webp=true",
+    "description": "TATEL is much more than a restaurant, it is a sensational experience that brings together the best of Spanish gastronomy, the culture of the country and the world of entertainment. TATEL Madrid offers high-quality traditional Spanish cuisine along with variations of the classics.\r\n\r\n",
+    "coordinates": {
+      "latitude": 40.432311,
+      "longitude": -3.687226
+    },
+    "features": {
+      "bar": false,
+      "outdoor": false,
+      "counter": false,
+      "highTop": false
+    },
+    "hasTakeout": false,
+    "isPromoted": false,
+    "topReview": "Food was fabulous and service was wonderful.    Jesus really took care of us p",
+    "scraped_at": "2025-06-23T06:47:25.306Z",
+    "source": "OpenTable",
+    "search_query": "new york",
+    "extraction_method": "JSON parsing - primary-window-vars",
+    "processed_at": "2025-06-23T06:47:25.314Z",
+    "processing_order": 3,
+    "data_quality": {
+      "has_name": true,
+      "has_link": true,
+      "has_rating": true,
+      "has_cuisine": true,
+      "has_address": true
+    }
+  },
+  {
+    "restaurantId": 394353,
+    "name": "Makoto Madrid",
+    "link": "https://www.opentable.com/r/makoto-madrid",
+    "cuisine": "Japanese",
+    "rating": 4.6,
+    "reviewCount": 4,
+    "priceBand": "€31 to €50",
+    "neighborhood": "Castellana",
+    "address": "C. del Marqués de Villamagna 1, Madrid, Madrid",
+    "phone": "917 31 43 42",
+    "imageUrl": "https://resizer.otstatic.com/v3/photos/77225543-2?width=320&height=320&webp=true",
+    "description": "Makoto ofrece una visión contemporánea, sofisticada y de confort de la cocina japonesa, fusionando técnicas tradicionales con sabores modernos para crear una experiencia gastronómica llena de sabor y detalle. Su menú destaca sushi meticulosamente elaborado, cortes premium de wagyu y pequeños platos innovadores, todos preparados con ingredientes de la más alta calidad.<br /><br />Más allá del sushi, el menú de Makoto incluye platos vibrantes a base de vegetales, opciones calientes sofisticadas y ",
+    "coordinates": {
+      "latitude": 40.4297153,
+      "longitude": -3.6881229
+    },
+    "features": {
+      "bar": true,
+      "outdoor": false,
+      "counter": true,
+      "highTop": false
+    },
+    "hasTakeout": false,
+    "isPromoted": false,
+    "topReview": "Best experience ever! Delicious food, great cocktails best service! Will be back !",
+    "scraped_at": "2025-06-23T06:47:25.306Z",
+    "source": "OpenTable",
+    "search_query": "new york",
+    "extraction_method": "JSON parsing - primary-window-vars",
+    "processed_at": "2025-06-23T06:47:25.314Z",
+    "processing_order": 4,
+    "data_quality": {
+      "has_name": true,
+      "has_link": true,
+      "has_rating": true,
+      "has_cuisine": true,
+      "has_address": true
+    }
+  },
+  {
+    "restaurantId": 332094,
+    "name": "Restaurante Abya",
+    "link": "https://www.opentable.com/r/restaurante-abya-madrid",
+    "cuisine": "Traditional Spanish",
+    "rating": 4.8,
+    "reviewCount": 36,
+    "priceBand": "€30 and under",
+    "neighborhood": "Castellana",
+    "address": "C. de José Ortega y Gasset 32, Madrid, Madrid",
+    "phone": "910 05 43 04",
+    "imageUrl": "https://resizer.otstatic.com/v3/photos/70155875-1?width=320&height=320&webp=true",
+    "description": "Coming Soon!",
+    "coordinates": {
+      "latitude": 40.4300144,
+      "longitude": -3.6812805
+    },
+    "features": {
+      "bar": false,
+      "outdoor": false,
+      "counter": false,
+      "highTop": false
+    },
+    "hasTakeout": false,
+    "isPromoted": false,
+    "topReview": "Incredible experience. Our waiter was amazing. Food was next level 🔥",
+    "scraped_at": "2025-06-23T06:47:25.306Z",
+    "source": "OpenTable",
+    "search_query": "new york",
+    "extraction_method": "JSON parsing - primary-window-vars",
+    "processed_at": "2025-06-23T06:47:25.315Z",
+    "processing_order": 5,
+    "data_quality": {
+      "has_name": true,
+      "has_link": true,
+      "has_rating": true,
+      "has_cuisine": true,
+      "has_address": true
+    }
+  }
+]
