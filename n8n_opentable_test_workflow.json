@@ -1,5 +1,5 @@
 {
-  "name": "OpenTable Scraper Test - DEBUG",
+  "name": "OpenTable Scraper Test - ScrapingBee",
   "nodes": [
     {
       "parameters": {},
@@ -14,26 +14,30 @@
     },
     {
       "parameters": {
-        "url": "https://www.opentable.com/s/?k=new%20york",
+        "url": "https://app.scrapingbee.com/api/v1/",
         "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "api_key",
+                "value": "PE0EL019IKOKWT8MID15O5HQYGEPDC9FT6EQZK8DKJ7RBLP15MGGTOB8YQQMAKFGAD8Q1VA9RRTNIPK5"
+              },
+              {
+                "name": "url",
+                "value": "https://www.opentable.com/s/?k=new%20york"
+              }
+            ]
+          },
           "response": {
             "response": {
               "fullResponse": false,
               "responseFormat": "string"
             }
-          },
-          "headers": {
-            "header": [
-              {
-                "name": "User-Agent",
-                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-              }
-            ]
           }
         }
       },
       "id": "8482a524-76e3-4d43-9828-569a988185c0",
-      "name": "Fetch OpenTable Page",
+      "name": "Fetch via ScrapingBee",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -108,14 +112,14 @@
       "main": [
         [
           {
-            "node": "Fetch OpenTable Page",
+            "node": "Fetch via ScrapingBee",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Fetch OpenTable Page": {
+    "Fetch via ScrapingBee": {
       "main": [
         [
           {
