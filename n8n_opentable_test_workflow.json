@@ -35,27 +35,7 @@
     },
     {
       "parameters": {
-        "values": {
-          "string": [
-            {
-              "name": "rawHTML",
-              "value": "={{ $json.data }}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
-      "name": "See Raw HTML",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        680,
-        300
-      ]
-    },
-    {
-      "parameters": {
+        "sourceValue": "={{ $('Fetch via ScrapingBee').item.json.data }}",
         "sourceData": "html",
         "extractionValues": {
           "values": [
@@ -90,7 +70,7 @@
       "type": "n8n-nodes-base.htmlExtract",
       "typeVersion": 2,
       "position": [
-        900,
+        680,
         300
       ]
     }
@@ -108,17 +88,6 @@
       ]
     },
     "Fetch via ScrapingBee": {
-      "main": [
-        [
-          {
-            "node": "See Raw HTML",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "See Raw HTML": {
       "main": [
         [
           {
