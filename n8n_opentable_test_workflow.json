@@ -1,5 +1,5 @@
 {
-  "name": "OpenTable Scraper - Final with Headers",
+  "name": "OpenTable Scraper - Final String Version",
   "nodes": [
     {
       "parameters": {},
@@ -19,7 +19,7 @@
           "response": {
             "response": {
               "fullResponse": false,
-              "responseFormat": "file"
+              "responseFormat": "string"
             }
           },
           "headers": {
@@ -43,7 +43,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const cheerio = require('cheerio');\n\n// Get the binary data from the input item using n8n's helper function.\n// $getBinaryData(itemIndex) returns a Buffer.\nconst buffer = await $getBinaryData(0);\n\n// Convert the buffer to a UTF-8 string\nconst html = buffer.toString('utf-8');\n\nconst $ = cheerio.load(html);\n\nconst nameSelector = \"h3[data-test='restaurant-card-name']\";\nconst linkSelector = \"a[data-test='restaurant-card-link']\";\nconst cuisineSelector = \"span[data-test='restaurant-card-cuisine-info']\";\nconst imageSelector = \"img[data-test='restaurant-card-image']\";\n\nconst results = [];\n\nconst names = $(nameSelector);\n\nnames.each((index, element) => {\n  const name = $(element).text();\n  const link = $(linkSelector).eq(index).attr('href');\n  const cuisine = $(cuisineSelector).eq(index).text();\n  const imageUrl = $(imageSelector).eq(index).attr('src');\n\n  results.push({\n    name: name,\n    link: link,\n    cuisine: cuisine,\n    imageUrl: imageUrl\n  });\n});\n\nreturn results;"
+        "jsCode": "const cheerio = require('cheerio');\n\n// The HTML is now a simple string in the 'data' property\nconst html = items[0].json.data;\n\nconst $ = cheerio.load(html);\n\nconst nameSelector = \"h3[data-test='restaurant-card-name']\";\nconst linkSelector = \"a[data-test='restaurant-card-link']\";\nconst cuisineSelector = \"span[data-test='restaurant-card-cuisine-info']\";\nconst imageSelector = \"img[data-test='restaurant-card-image']\";\n\nconst results = [];\n\nconst names = $(nameSelector);\n\nnames.each((index, element) => {\n  const name = $(element).text();\n  const link = $(linkSelector).eq(index).attr('href');\n  const cuisine = $(cuisineSelector).eq(index).text();\n  const imageUrl = $(imageSelector).eq(index).attr('src');\n\n  results.push({\n    name: name,\n    link: link,\n    cuisine: cuisine,\n    imageUrl: imageUrl\n  });\n});\n\nreturn results;"
       },
       "id": "dac1db94-fa39-42e0-919b-e0e70ef3c528",
       "name": "Extract Info with Code",
