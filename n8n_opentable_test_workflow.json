@@ -1,5 +1,6 @@
+
 {
-  "name": "OpenTable Scraper - Final String Version",
+  "name": "OpenTable Scraper - Updated Structure",
   "nodes": [
     {
       "parameters": {},
@@ -43,14 +44,27 @@
     },
     {
       "parameters": {
-        "jsCode": "const cheerio = require('cheerio');\n\n// The HTML is now a simple string in the 'data' property\nconst html = items[0].json.data;\n\nconst $ = cheerio.load(html);\n\nconst nameSelector = \"h3[data-test='restaurant-card-name']\";\nconst linkSelector = \"a[data-test='restaurant-card-link']\";\nconst cuisineSelector = \"span[data-test='restaurant-card-cuisine-info']\";\nconst imageSelector = \"img[data-test='restaurant-card-image']\";\n\nconst results = [];\n\nconst names = $(nameSelector);\n\nnames.each((index, element) => {\n  const name = $(element).text();\n  const link = $(linkSelector).eq(index).attr('href');\n  const cuisine = $(cuisineSelector).eq(index).text();\n  const imageUrl = $(imageSelector).eq(index).attr('src');\n\n  results.push({\n    name: name,\n    link: link,\n    cuisine: cuisine,\n    imageUrl: imageUrl\n  });\n});\n\nreturn results;"
+        "jsCode": "const cheerio = require('cheerio');\n\n// The HTML is now a simple string in the 'data' property\nconst html = items[0].json.data;\n\nconst $ = cheerio.load(html);\n\n// First try to extract from JSON data in script tags\nlet restaurants = [];\n\n// Look for the primary window vars script\nconst scriptContent = $('#primary-window-vars').text();\nif (scriptContent) {\n  try {\n    const jsonData = JSON.parse(scriptContent);\n    const restaurantsData = jsonData?.windowVariables?.__INITIAL_STATE__?.multiSearch?.restaurants;\n    \n    if (restaurantsData && Array.isArray(restaurantsData)) {\n      restaurants = restaurantsData.map(restaurant => ({\n        name: restaurant.name || 'Unknown',\n        link: restaurant.urls?.profileLink?.link || '',\n        cuisine: restaurant.primaryCuisine?.name || 'Unknown',\n        imageUrl: restaurant.photos?.profileV3?.medium?.url || '',\n        rating: restaurant.statistics?.reviews?.ratings?.overall?.rating || 0,\n        reviewCount: restaurant.statistics?.reviews?.allTimeTextReviewCount || 0,\n        priceBand: restaurant.priceBand?.name || 'Unknown',\n        neighborhood: restaurant.neighborhood?.name || 'Unknown',\n        address: restaurant.address ? `${restaurant.address.line1}, ${restaurant.address.city}, ${restaurant.address.state}` : 'Unknown',\n        description: restaurant.description || ''\n      }));\n    }\n  } catch (error) {\n    console.log('Could not parse JSON data:', error.message);\n  }\n}\n\n// Fallback to CSS selectors if JSON parsing failed\nif (restaurants.length === 0) {\n  console.log('Falling back to CSS selectors');\n  \n  // These selectors might work for some OpenTable pages\n  const nameSelector = \"[data-test='restaurant-card-name'], h3[data-test='restaurant-card-name'], .restaurant-name\";\n  const linkSelector = \"[data-test='restaurant-card-link'], a[href*='/r/']\";\n  const cuisineSelector = \"[data-test='restaurant-card-cuisine'], .cuisine-type\";\n  const imageSelector = \"[data-test='restaurant-card-image'], .restaurant-image img\";\n  \n  const names = $(nameSelector);\n  const links = $(linkSelector);\n  const cuisines = $(cuisineSelector);\n  const images = $(imageSelector);\n  \n  const maxLength = Math.max(names.length, links.length, cuisines.length, images.length);\n  \n  for (let i = 0; i < maxLength; i++) {\n    const name = $(names[i]).text().trim() || 'Unknown';\n    const link = $(links[i]).attr('href') || '';\n    const cuisine = $(cuisines[i]).text().trim() || 'Unknown';\n    const imageUrl = $(images[i]).attr('src') || '';\n    \n    if (name && name !== 'Unknown') {\n      restaurants.push({\n        name: name,\n        link: link.startsWith('http') ? link : `https://www.opentable.com${link}`,\n        cuisine: cuisine,\n        imageUrl: imageUrl,\n        rating: 0,\n        reviewCount: 0,\n        priceBand: 'Unknown',\n        neighborhood: 'Unknown',\n        address: 'Unknown',\n        description: ''\n      });\n    }\n  }\n}\n\nconsole.log(`Extracted ${restaurants.length} restaurants`);\nif (restaurants.length > 0) {\n  console.log('Sample restaurant:', restaurants[0]);\n}\n\nreturn restaurants;"
       },
       "id": "dac1db94-fa39-42e0-919b-e0e70ef3c528",
-      "name": "Extract Info with Code",
+      "name": "Extract Restaurant Data",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Add some debugging info and clean up the data\nconst restaurants = items.filter(item => item.json.name && item.json.name !== 'Unknown');\n\nconsole.log(`Processing ${restaurants.length} valid restaurants`);\n\n// Add timestamp and source\nconst processedRestaurants = restaurants.map(restaurant => ({\n  ...restaurant.json,\n  scraped_at: new Date().toISOString(),\n  source: 'OpenTable',\n  search_query: 'new york'\n}));\n\nreturn processedRestaurants;"
+      },
+      "id": "process-data",
+      "name": "Process and Clean Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
         300
       ]
     }
@@ -71,7 +85,18 @@
       "main": [
         [
           {
-            "node": "Extract Info with Code",
+            "node": "Extract Restaurant Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Restaurant Data": {
+      "main": [
+        [
+          {
+            "node": "Process and Clean Data",
             "type": "main",
             "index": 0
           }
@@ -83,4 +108,4 @@
   "meta": {
     "instanceId": "0192b40c03f1f0a5599cfa5317602d78af1f928c4282591b3a88a8e071138389"
   }
-} 
+}
