@@ -48,6 +48,7 @@ export interface IStorage {
     averageScore: number;
   }>;
   deleteReview(reviewId: string, userId: string): Promise<boolean>;
+  getReviewById(reviewId: string, userId: string): Promise<ReviewWithRestaurant | null>;
 
   // Bookmarks
   getUserBookmarks(userId: string): Promise<Bookmark[]>;
@@ -154,6 +155,26 @@ export class DatabaseStorage implements IStorage {
       yelpRating: null,
     }).returning();
     return result[0];
+  }
+
+  async getReviewById(reviewId: string, userId: string): Promise<ReviewWithRestaurant | null> {
+    const review = await db
+      .select({
+        ...reviews,
+        restaurant: restaurants
+      })
+      .from(reviews)
+      .innerJoin(restaurants, eq(reviews.restaurantId, restaurants.id))
+      .where(and(eq(reviews.id, reviewId), eq(reviews.userId, userId)))
+      .limit(1);
+
+    if (review.length === 0) {
+      return null;
+    }
+
+    return {
+      ...review[0],
+    };
   }
 
   async getUserReviews(userId: string, filters?: {
@@ -366,30 +387,30 @@ export class DatabaseStorage implements IStorage {
     let longestStreak = 0;
     let tempStreak = 0;
     let totalDaysBetween = 0;
-    
+
     if (reviewDates.length > 1) {
       const dates = reviewDates.map(r => new Date(r.createdAt));
-      
+
       // Calculate average days between reviews
       for (let i = 0; i < dates.length - 1; i++) {
         const daysDiff = Math.abs((dates[i].getTime() - dates[i + 1].getTime()) / (1000 * 60 * 60 * 24));
         totalDaysBetween += daysDiff;
       }
-      
+
       // Calculate streaks (weeks with reviews)
       const weekGroups = new Map<string, boolean>();
       dates.forEach(date => {
         const weekKey = `${date.getFullYear()}-${Math.floor(date.getTime() / (7 * 24 * 60 * 60 * 1000))}`;
         weekGroups.set(weekKey, true);
       });
-      
+
       const sortedWeeks = Array.from(weekGroups.keys()).sort().reverse();
-      
+
       // Current streak
       if (sortedWeeks.length > 0) {
         const currentWeek = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
         const latestReviewWeek = parseInt(sortedWeeks[0].split('-')[1]);
-        
+
         if (currentWeek - latestReviewWeek <= 1) {
           currentStreak = 1;
           for (let i = 1; i < sortedWeeks.length; i++) {
@@ -403,7 +424,7 @@ export class DatabaseStorage implements IStorage {
           }
         }
       }
-      
+
       // Longest streak
       tempStreak = 1;
       for (let i = 1; i < sortedWeeks.length; i++) {

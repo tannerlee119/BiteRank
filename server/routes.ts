@@ -461,6 +461,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // n8n webhook endpoints
+  app.post("/api/webhooks/review-analysis", requireAuth, async (req, res) => {
+    try {
+      const { reviewId } = req.body;
+      const userId = req.session.userId!;
+      
+      // Get the review with restaurant data
+      const review = await storage.getReviewById(reviewId, userId);
+      if (!review) {
+        return res.status(404).json({ message: "Review not found" });
+      }
+
+      // Prepare data for n8n workflow
+      const webhookData = {
+        reviewId: review.id,
+        userId: userId,
+        restaurantName: review.restaurant.name,
+        restaurantLocation: review.restaurant.location,
+        cuisine: review.restaurant.cuisine,
+        rating: review.rating,
+        score: review.score,
+        note: review.note,
+        favoriteDishes: review.favoriteDishes,
+        labels: review.labels,
+        visitDate: review.visitDate,
+        createdAt: review.createdAt
+      };
+
+      res.json({ 
+        message: "Review data prepared for analysis",
+        data: webhookData 
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/webhooks/review-reminders", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId!;
+      
+      // Get bookmarked restaurants that haven't been reviewed
+      const bookmarks = await storage.getUserBookmarks(userId);
+      const reviews = await storage.getUserReviews(userId);
+      
+      // Find bookmarks without reviews (by restaurant name and location)
+      const reviewedRestaurants = new Set(
+        reviews.map(r => `${r.restaurant.name}-${r.restaurant.location}`)
+      );
+      
+      const unreviewed = bookmarks.filter(bookmark => 
+        !reviewedRestaurants.has(`${bookmark.name}-${bookmark.location}`)
+      );
+
+      // Get restaurants not visited in last 30 days for revisit reminders
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      
+      const recentReviews = reviews.filter(review => 
+        new Date(review.visitDate) >= thirtyDaysAgo
+      );
+      
+      const candidatesForRevisit = reviews.filter(review => 
+        review.rating === "loved" && 
+        new Date(review.visitDate) < thirtyDaysAgo &&
+        !recentReviews.some(recent => 
+          recent.restaurant.name === review.restaurant.name &&
+          recent.restaurant.location === review.restaurant.location
+        )
+      );
+
+      const reminderData = {
+        userId: userId,
+        unreviewedBookmarks: unreviewed.map(b => ({
+          id: b.id,
+          name: b.name,
+          location: b.location,
+          cuisine: b.cuisine,
+          bookmarkedAt: b.createdAt
+        })),
+        revisitCandidates: candidatesForRevisit.slice(0, 5).map(r => ({
+          restaurantName: r.restaurant.name,
+          restaurantLocation: r.restaurant.location,
+          cuisine: r.restaurant.cuisine,
+          lastVisited: r.visitDate,
+          rating: r.rating,
+          score: r.score
+        }))
+      };
+
+      res.json({
+        message: "Reminder data prepared",
+        data: reminderData
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   // Bookmark routes
   app.get("/api/bookmarks", requireAuth, async (req, res) => {
     try {
