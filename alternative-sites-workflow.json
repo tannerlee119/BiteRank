@@ -1,0 +1,30 @@
+
+{
+  "name": "Alternative Restaurant Scraper",
+  "notes": "This workflow targets sites that are easier to scrape than OpenTable",
+  "recommended_sites": [
+    {
+      "name": "Yelp",
+      "url": "https://www.yelp.com/search?find_desc=restaurants&find_loc=New+York%2C+NY",
+      "pros": ["Rich data", "Good structure", "Multiple pages"],
+      "cons": ["Anti-bot measures", "Rate limiting"]
+    },
+    {
+      "name": "TripAdvisor",
+      "url": "https://www.tripadvisor.com/Restaurants-g60763-New_York_City_New_York.html",
+      "pros": ["Clean HTML", "Detailed reviews", "Good images"],
+      "cons": ["Geographic restrictions"]
+    },
+    {
+      "name": "Zomato",
+      "url": "https://www.zomato.com/new-york-city/restaurants",
+      "pros": ["API available", "Good structure"],
+      "cons": ["Regional availability"]
+    }
+  ],
+  "easiest_alternative": {
+    "site": "Local restaurant directory sites",
+    "example": "City-specific restaurant sites",
+    "reason": "Usually have simpler HTML structure and fewer anti-bot measures"
+  }
+}
