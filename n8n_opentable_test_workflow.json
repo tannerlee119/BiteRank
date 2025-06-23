@@ -1,4 +1,19 @@
 
+    {
+      "parameters": {
+        "jsCode": "// City configuration - easily change the target city here\nconst fs = require('fs');\n\ntry {\n  // Read city from config file\n  const config = JSON.parse(fs.readFileSync('workflow-config.json', 'utf8'));\n  const targetCity = config.opentable_config.current_city || 'new york';\n  \n  console.log(`🌆 Targeting city: ${targetCity}`);\n  \n  return [{\n    json: {\n      city: targetCity,\n      encoded_city: encodeURIComponent(targetCity.replace(/ /g, '%20')),\n      config_loaded: true,\n      available_cities: config.opentable_config.available_cities\n    }\n  }];\n  \n} catch (error) {\n  console.log('⚠️ Could not load config, using default city');\n  return [{\n    json: {\n      city: 'new york',\n      encoded_city: 'new%20york',\n      config_loaded: false,\n      error: error.message\n    }\n  }];\n}"
+      },
+      "id": "city-config",
+      "name": "City Configuration",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        340,
+        300
+      ]
+    },
+
+
 {
   "name": "OpenTable Scraper - Improved Extraction",
   "nodes": [
@@ -15,7 +30,7 @@
     },
     {
       "parameters": {
-        "url": "https://app.scrapingbee.com/api/v1/?api_key=PE0EL019IKOKWT8MID15O5HQYGEPDC9FT6EQZK8DKJ7RBLP15MGGTOB8YQQMAKFGAD8Q1VA9RRTNIPK5&url=https%3A%2F%2Fwww.opentable.com%2Fs%2F%3Fk%3Dnew%2520york&forward_headers=true&render_js=true&wait=3000",
+        "url": "https://app.scrapingbee.com/api/v1/?api_key=PE0EL019IKOKWT8MID15O5HQYGEPDC9FT6EQZK8DKJ7RBLP15MGGTOB8YQQMAKFGAD8Q1VA9RRTNIPK5&url=https%3A%2F%2Fwww.opentable.com%2Fs%2F%3Fk%3D{{ $json.city || 'new york' | urlEncode }}&forward_headers=true&render_js=true&wait=3000",
         "options": {
           "response": {
             "response": {
@@ -38,7 +53,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        460,
+        560,
         300
       ]
     },
@@ -51,7 +66,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        680,
+        780,
         300
       ]
     },
@@ -64,13 +79,24 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        900,
+        1000,
         300
       ]
     }
   ],
   "connections": {
     "Start": {
+      "main": [
+        [
+          {
+            "node": "City Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "City Configuration": {
       "main": [
         [
           {

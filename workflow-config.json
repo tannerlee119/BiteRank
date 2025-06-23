@@ -11,7 +11,20 @@
   "opentable_config": {
     "base_url": "https://www.opentable.com",
     "search_endpoint": "/s/?k=",
-    "default_query": "new york"
+    "default_query": "new york",
+    "available_cities": [
+      "new york",
+      "los angeles", 
+      "chicago",
+      "miami",
+      "san francisco",
+      "boston",
+      "seattle",
+      "las vegas",
+      "denver",
+      "atlanta"
+    ],
+    "current_city": "new york"
   },
   "validation_checks": {
     "min_html_length": 1000,
