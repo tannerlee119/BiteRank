@@ -39,7 +39,7 @@
           "string": [
             {
               "name": "fullResponse",
-              "value": "={{ JSON.stringify($json, null, 2) }}"
+              "value": "={{ JSON.stringify(items[0].json, null, 2) }}"
             }
           ]
         },
