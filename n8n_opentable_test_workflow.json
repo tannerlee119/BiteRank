@@ -14,20 +14,8 @@
     },
     {
       "parameters": {
-        "url": "https://app.scrapingbee.com/api/v1/",
+        "url": "https://app.scrapingbee.com/api/v1/?api_key=PE0EL019IKOKWT8MID15O5HQYGEPDC9FT6EQZK8DKJ7RBLP15MGGTOB8YQQMAKFGAD8Q1VA9RRTNIPK5&url=https%3A%2F%2Fwww.opentable.com%2Fs%2F%3Fk%3Dnew%2520york",
         "options": {
-          "queryParameters": {
-            "parameter": [
-              {
-                "name": "api_key",
-                "value": "PE0EL019IKOKWT8MID15O5HQYGEPDC9FT6EQZK8DKJ7RBLP15MGGTOB8YQQMAKFGAD8Q1VA9RRTNIPK5"
-              },
-              {
-                "name": "url",
-                "value": "https://www.opentable.com/s/?k=new%20york"
-              }
-            ]
-          },
           "response": {
             "response": {
               "fullResponse": false,
