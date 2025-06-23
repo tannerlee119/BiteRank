@@ -1,0 +1,110 @@
+{
+  "name": "OpenTable Scraper Test",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "27018783-a079-4469-bc2a-1c7c9135e808",
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://www.opentable.com/s/?k=new%20york",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": false,
+              "responseFormat": "string"
+            }
+          },
+          "headers": {
+            "header": [
+              {
+                "name": "User-Agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+              }
+            ]
+          }
+        }
+      },
+      "id": "8482a524-76e3-4d43-9828-569a988185c0",
+      "name": "Fetch OpenTable Page",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "sourceData": "html",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "restaurant_names",
+              "cssSelector": "h3[data-test='restaurant-card-name']",
+              "returnArray": true
+            },
+            {
+              "key": "restaurant_links",
+              "cssSelector": "a[data-test='restaurant-card-link']",
+              "attribute": "href",
+              "returnArray": true
+            },
+            {
+              "key": "cuisine_types",
+              "cssSelector": "span[data-test='restaurant-card-cuisine-info']",
+              "returnArray": true
+            },
+            {
+              "key": "image_urls",
+              "cssSelector": "img[data-test='restaurant-card-image']",
+              "attribute": "src",
+              "returnArray": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c61b179d-9c24-42b7-8ccb-a3d827f37ccb",
+      "name": "Extract Key Info",
+      "type": "n8n-nodes-base.htmlExtract",
+      "typeVersion": 2,
+      "position": [
+        680,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Fetch OpenTable Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch OpenTable Page": {
+      "main": [
+        [
+          {
+            "node": "Extract Key Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {}
+} 

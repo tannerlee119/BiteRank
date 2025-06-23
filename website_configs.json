@@ -109,6 +109,26 @@
         "next_button": "a.next-page",
         "max_pages": 10
       }
+    },
+    "opentable_new": {
+      "base_url": "https://www.opentable.com",
+      "list_page_selectors": {
+        "restaurant_names": "h3[data-test='restaurant-card-name']",
+        "restaurant_links": "a[data-test='restaurant-card-link']",
+        "cuisine_types": "span[data-test='restaurant-card-cuisine-info']",
+        "image_urls": "img[data-test='restaurant-card-image']"
+      },
+      "detail_page_selectors": {
+        "description": "",
+        "address": "",
+        "phone": "",
+        "hours": "",
+        "reviews_count": ""
+      },
+      "pagination": {
+        "next_button": "",
+        "max_pages": 1
+      }
     }
   },
   "common_settings": {
