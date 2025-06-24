@@ -108,7 +108,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://YOUR_PROJECT.supabase.co/rest/v1/restaurants",
+        "url": "https://yeykodcbgljqnctutujr.supabase.co/rest/v1/restaurants",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "headers": {
