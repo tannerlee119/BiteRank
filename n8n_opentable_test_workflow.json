@@ -120,6 +120,10 @@
             {
               "name": "Prefer",
               "value": "return=representation"
+            },
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlleWtvZGNiZ2xqcW5jdHV0dWpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MzYyMzYsImV4cCI6MjA2NjMxMjIzNn0.jPxYkwLPpbu94GkIm2b9TKrQnPGGHutWKri5DrbNheI"
             }
           ]
         },
