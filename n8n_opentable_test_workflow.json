@@ -124,19 +124,30 @@
             {
               "name": "apikey",
               "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlleWtvZGNiZ2xqcW5jdHV0dWpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MzYyMzYsImV4cCI6MjA2NjMxMjIzNn0.jPxYkwLPpbu94GkIm2b9TKrQnPGGHutWKri5DrbNheI"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlleWtvZGNiZ2xqcW5jdHV0dWpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MzYyMzYsImV4cCI6MjA2NjMxMjIzNn0.jPxYkwLPpbu94GkIm2b9TKrQnPGGHutWKri5DrbNheI"
             }
           ]
         },
         "body": {
           "bodyType": "json",
           "json": {
+            "restaurant_id": "{{$json.restaurant_id}}",
             "name": "{{$json.name}}",
+            "link": "{{$json.link}}",
             "cuisine": "{{$json.cuisine}}",
             "rating": "{{$json.rating}}",
-            "price_range": "{{$json.price_band}}",
-            "description": "{{$json.description}}",
+            "review_count": "{{$json.review_count}}",
+            "price_band": "{{$json.price_band}}",
+            "neighborhood": "{{$json.neighborhood}}",
+            "address": "{{$json.address}}",
+            "phone": "{{$json.phone}}",
             "image_url": "{{$json.image_url}}",
-            "source_url": "{{$json.link}}",
+            "description": "{{$json.description}}",
+            "latitude": "{{$json.latitude}}",
+            "longitude": "{{$json.longitude}}",
             "has_bar": "{{$json.has_bar}}",
             "has_outdoor": "{{$json.has_outdoor}}",
             "has_takeout": "{{$json.has_takeout}}",
