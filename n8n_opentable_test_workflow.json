@@ -129,7 +129,22 @@
         },
         "body": {
           "bodyType": "json",
-          "jsonBody": "={\n  \"name\": \"{{ $json.name }}\",\n  \"cuisine\": \"{{ $json.cuisine }}\",\n  \"rating\": {{ $json.rating }},\n  \"price_range\": \"{{ $json.price_band }}\",\n  \"description\": \"{{ $json.description }}\",\n  \"image_url\": \"{{ $json.image_url }}\",\n  \"source_url\": \"{{ $json.link }}\"\n}"
+          "json": {
+            "name": "{{$json.name}}",
+            "cuisine": "{{$json.cuisine}}",
+            "rating": "{{$json.rating}}",
+            "price_range": "{{$json.price_band}}",
+            "description": "{{$json.description}}",
+            "image_url": "{{$json.image_url}}",
+            "source_url": "{{$json.link}}",
+            "has_bar": "{{$json.has_bar}}",
+            "has_outdoor": "{{$json.has_outdoor}}",
+            "has_takeout": "{{$json.has_takeout}}",
+            "is_promoted": "{{$json.is_promoted}}",
+            "top_review": "{{$json.top_review}}",
+            "scraped_at": "{{$json.scraped_at}}",
+            "source": "{{$json.source}}"
+          }
         }
       },
       "id": "save-to-supabase",
