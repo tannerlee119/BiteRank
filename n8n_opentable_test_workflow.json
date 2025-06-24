@@ -15,7 +15,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// City configuration\ntry {\n  const config = {\n    opentable_config: {\n      current_city: 'new york',\n      available_cities: ['new york', 'los angeles', 'chicago', 'san francisco', 'miami', 'boston', 'seattle', 'austin']\n    }\n  };\n  \n  const targetCity = config.opentable_config.current_city || 'new york';\n  \n  console.log(`🌆 Targeting city: ${targetCity}`);\n  console.log(`📋 Available cities: ${config.opentable_config.available_cities.join(', ')}`);\n  \n  return [{\n    json: {\n      city: targetCity,\n      encoded_city: encodeURIComponent(targetCity.replace(/ /g, '%20')),\n      config_loaded: true,\n      available_cities: config.opentable_config.available_cities,\n      config_status: 'success'\n    }\n  }];\n  \n} catch (error) {\n  console.log('⚠️ Could not load config, using default city');\n  console.log('Error details:', error.message);\n  \n  return [{\n    json: {\n      city: 'new york',\n      encoded_city: 'new%20york',\n      config_loaded: false,\n      error: error.message,\n      config_status: 'failed',\n      fallback_used: true\n    }\n  }];\n}"
+        "jsCode": "// City configuration\ntry {\n  const config = {\n    opentable_config: {\n      current_city: 'new york',\n      available_cities: ['new york', 'los angeles', 'chicago', 'san francisco', 'miami', 'boston', 'seattle', 'austin']\n    }\n  };\n  \n  const targetCity = config.opentable_config.current_city || 'new york';\n  const searchUrl = `https://www.opentable.com/s/?k=${encodeURIComponent(targetCity)}`;\n  \n  console.log(`🌆 Targeting city: ${targetCity}`);\n  console.log(`🔗 Search URL will be: ${searchUrl}`);\n  console.log(`📋 Available cities: ${config.opentable_config.available_cities.join(', ')}`);\n  \n  return [{\n    json: {\n      city: targetCity,\n      encoded_city: encodeURIComponent(targetCity),\n      search_url: searchUrl,\n      config_loaded: true,\n      available_cities: config.opentable_config.available_cities,\n      config_status: 'success'\n    }\n  }];\n  \n} catch (error) {\n  console.log('⚠️ Could not load config, using default city');\n  console.log('Error details:', error.message);\n  \n  return [{\n    json: {\n      city: 'new york',\n      encoded_city: encodeURIComponent('new york'),\n      search_url: 'https://www.opentable.com/s/?k=new%20york',\n      config_loaded: false,\n      error: error.message,\n      config_status: 'failed',\n      fallback_used: true\n    }\n  }];\n}"
       },
       "id": "city-config",
       "name": "City Configuration",
@@ -28,7 +28,7 @@
     },
     {
       "parameters": {
-        "url": "=https://app.scrapingbee.com/api/v1/?api_key=PE0EL019IKOKWT8MID15O5HQYGEPDC9FT6EQZK8DKJ7RBLP15MGGTOB8YQQMAKFGAD8Q1VA9RRTNIPK5&url={{ encodeURIComponent('https://www.opentable.com/s/?k=' + ($json.city || 'new york')) }}&premium_proxy=true&render_js=true&wait=5000&block_resources=false&country_code=US",
+        "url": "=https://app.scrapingbee.com/api/v1/?api_key=PE0EL019IKOKWT8MID15O5HQYGEPDC9FT6EQZK8DKJ7RBLP15MGGTOB8YQQMAKFGAD8Q1VA9RRTNIPK5&url={{ encodeURIComponent('https://www.opentable.com/s/?k=' + $json.city) }}&premium_proxy=true&render_js=true&wait=5000&block_resources=false&country_code=US",
         "options": {
           "response": {
             "response": {
