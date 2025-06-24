@@ -39,8 +39,12 @@ CREATE INDEX idx_restaurants_scraped_at ON restaurants(scraped_at DESC);
 -- Add row level security (RLS) policies if needed
 ALTER TABLE restaurants ENABLE ROW LEVEL SECURITY;
 
--- Create a policy that allows all operations for authenticated users
-CREATE POLICY "Allow all operations for authenticated users" ON restaurants
+-- Create a policy that allows anonymous inserts
+CREATE POLICY "Allow anonymous inserts" ON restaurants
+    FOR INSERT WITH CHECK (true);
+
+-- Create a policy that allows authenticated operations
+CREATE POLICY "Allow authenticated operations" ON restaurants
     FOR ALL USING (auth.role() = 'authenticated');
 
 -- Create a policy that allows read access for anonymous users
