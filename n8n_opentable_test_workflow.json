@@ -28,7 +28,7 @@
     },
     {
       "parameters": {
-        "url": "https://app.scrapingbee.com/api/v1/?api_key=PE0EL019IKOKWT8MID15O5HQYGEPDC9FT6EQZK8DKJ7RBLP15MGGTOB8YQQMAKFGAD8Q1VA9RRTNIPK5&url=https%3A%2F%2Fwww.opentable.com%2Fs%2F%3Fk%3D{{ $json.city || 'new york' | urlEncode }}&forward_headers=true&render_js=true&wait=3000",
+        "url": "https://app.scrapingbee.com/api/v1/?api_key=PE0EL019IKOKWT8MID15O5HQYGEPDC9FT6EQZK8DKJ7RBLP15MGGTOB8YQQMAKFGAD8Q1VA9RRTNIPK5&url={{ encodeURIComponent('https://www.opentable.com/s/?k=' + ($json.city || 'new york')) }}&premium_proxy=true&render_js=true&wait=5000&block_resources=false&country_code=US",
         "options": {
           "response": {
             "response": {
@@ -36,11 +36,46 @@
               "responseFormat": "string"
             }
           },
+          "timeout": {
+            "response": 30000
+          },
           "headers": {
             "header": [
               {
-                "name": "User-Agent",
-                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                "name": "Accept",
+                "value": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8"
+              },
+              {
+                "name": "Accept-Language",
+                "value": "en-US,en;q=0.9"
+              },
+              {
+                "name": "Accept-Encoding",
+                "value": "gzip, deflate, br"
+              },
+              {
+                "name": "Cache-Control",
+                "value": "no-cache"
+              },
+              {
+                "name": "Pragma",
+                "value": "no-cache"
+              },
+              {
+                "name": "Sec-Fetch-Dest",
+                "value": "document"
+              },
+              {
+                "name": "Sec-Fetch-Mode",
+                "value": "navigate"
+              },
+              {
+                "name": "Sec-Fetch-Site",
+                "value": "none"
+              },
+              {
+                "name": "Upgrade-Insecure-Requests",
+                "value": "1"
               }
             ]
           }
