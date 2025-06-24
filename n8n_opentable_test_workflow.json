@@ -1,5 +1,6 @@
+
 {
-  "name": "OpenTable Scraper - Improved Extraction",
+  "name": "OpenTable to Supabase - Simple Scraper",
   "nodes": [
     {
       "parameters": {},
@@ -11,17 +12,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// City configuration\ntry {\n  const config = {\n    opentable_config: {\n      current_city: 'new york',\n      available_cities: ['new york', 'los angeles', 'chicago', 'san francisco', 'miami', 'boston', 'seattle', 'austin']\n    }\n  };\n  \n  const targetCity = config.opentable_config.current_city || 'new york';\n  const searchUrl = `https://www.opentable.com/s/?k=${encodeURIComponent(targetCity)}`;\n  \n  console.log(`🌆 Targeting city: ${targetCity}`);\n  console.log(`🔗 Search URL will be: ${searchUrl}`);\n  console.log(`📋 Available cities: ${config.opentable_config.available_cities.join(', ')}`);\n  \n  return [{\n    json: {\n      city: targetCity,\n      encoded_city: encodeURIComponent(targetCity),\n      search_url: searchUrl,\n      config_loaded: true,\n      available_cities: config.opentable_config.available_cities,\n      config_status: 'success'\n    }\n  }];\n  \n} catch (error) {\n  console.log('⚠️ Could not load config, using default city');\n  console.log('Error details:', error.message);\n  \n  return [{\n    json: {\n      city: 'new york',\n      encoded_city: encodeURIComponent('new york'),\n      search_url: 'https://www.opentable.com/s/?k=new%20york',\n      config_loaded: false,\n      error: error.message,\n      config_status: 'failed',\n      fallback_used: true\n    }\n  }];\n}"
-      },
-      "id": "city-config",
-      "name": "City Configuration",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [340, 300]
-    },
-    {
-      "parameters": {
-        "url": "=https://app.scrapingbee.com/api/v1/?api_key=PE0EL019IKOKWT8MID15O5HQYGEPDC9FT6EQZK8DKJ7RBLP15MGGTOB8YQQMAKFGAD8Q1VA9RRTNIPK5&url={{ encodeURIComponent($json.search_url) }}&premium_proxy=true&render_js=true&wait=5000&block_resources=false&country_code=US",
+        "url": "https://app.scrapingbee.com/api/v1/?api_key=PE0EL019IKOKWT8MID15O5HQYGEPDC9FT6EQZK8DKJ7RBLP15MGGTOB8YQQMAKFGAD8Q1VA9RRTNIPK5&url=https%3A%2F%2Fwww.opentable.com%2Fs%2F&premium_proxy=true&render_js=true&wait=5000&block_resources=false&country_code=US",
         "options": {
           "response": {
             "response": {
@@ -41,62 +32,140 @@
                 "value": "en-US,en;q=0.9"
               },
               {
-                "name": "Accept-Encoding",
-                "value": "gzip, deflate, br"
-              },
-              {
-                "name": "Cache-Control",
-                "value": "no-cache"
-              },
-              {
-                "name": "Pragma",
-                "value": "no-cache"
-              },
-              {
-                "name": "Sec-Fetch-Dest",
-                "value": "document"
-              },
-              {
-                "name": "Sec-Fetch-Mode",
-                "value": "navigate"
-              },
-              {
-                "name": "Sec-Fetch-Site",
-                "value": "none"
-              },
-              {
-                "name": "Upgrade-Insecure-Requests",
-                "value": "1"
+                "name": "User-Agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
               }
             ]
           }
         }
       },
-      "id": "8482a524-76e3-4d43-9828-569a988185c0",
-      "name": "Fetch via ScrapingBee",
+      "id": "fetch-opentable",
+      "name": "Fetch OpenTable Data",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [560, 300]
+      "position": [360, 300]
     },
     {
       "parameters": {
-        "jsCode": "// Extract restaurant data\nlet html = '';\nlet inputData = {};\ntry {\n  inputData = items[0] && items[0].json ? items[0].json : {};\n  html = inputData.data || inputData.body || inputData || '';\n  if (typeof html !== 'string') {\n    html = String(html);\n  }\n  console.log('HTML data received, length:', html.length, 'characters');\n  console.log('Target city from input:', inputData.city || 'unknown');\n  console.log('Search URL used:', inputData.search_url || 'unknown');\n  console.log('Input data keys:', Object.keys(inputData));\n  \n  // Check if we got the wrong location\n  const targetCity = (inputData.city || 'new york').toLowerCase();\n  const wrongLocationKeywords = ['los angeles', 'atlanta', 'chicago', 'miami', 'boston', 'seattle'];\n  const detectedWrongLocation = wrongLocationKeywords.find(city => \n    html.toLowerCase().includes(city) && city !== targetCity\n  );\n  \n  if (detectedWrongLocation && !targetCity.includes(detectedWrongLocation)) {\n    console.log(`WARNING: Expected ${targetCity} but detected ${detectedWrongLocation} in HTML`);\n    return [{\n      json: {\n        error: 'Location mismatch detected',\n        expected_city: targetCity,\n        detected_city: detectedWrongLocation,\n        html_sample: html.substring(0, 500)\n      }\n    }];\n  }\n} catch (error) {\n  console.log('Error getting HTML data:', error.message);\n  return [{ json: { error: 'Failed to get HTML data', details: error.message } }];\n}\n\nif (!html || html.length === 0) {\n  console.log('No HTML data found');\n  return [{ json: { error: 'No HTML data received', html_length: 0 } }];\n}\n\n// Check for access restrictions\nif (html.includes('Access Denied') || html.includes('Blocked') || html.includes('Rate Limited') || html.includes('403 Forbidden')) {\n  console.log('Access restricted detected');\n  return [{ json: { error: 'Access restricted by website', html_sample: html.substring(0, 200) } }];\n}\n\nlet restaurants = [];\nlet debugInfo = {\n  strategies_attempted: [],\n  html_contains_script: html.includes('<script'),\n  html_contains_json: html.includes('application/json'),\n  html_sample: html.substring(0, 500)\n};\n\n// Strategy 1: Extract from primary-window-vars script tag\ntry {\n  debugInfo.strategies_attempted.push('primary-window-vars');\n  console.log('Attempting Strategy 1: primary-window-vars script tag');\n  \n  const scriptMatch = html.match(/<script id=\"primary-window-vars\" type=\"application\\/json\">(.*?)<\\/script>/s);\n  \n  if (scriptMatch) {\n    console.log('Found primary-window-vars script tag');\n    const jsonContent = scriptMatch[1];\n    \n    if (jsonContent && jsonContent.length > 0) {\n      const data = JSON.parse(jsonContent);\n      console.log('Successfully parsed JSON from primary-window-vars');\n      \n      const possiblePaths = [\n        data?.windowVariables?.__INITIAL_STATE__?.multiSearch?.restaurants,\n        data?.windowVariables?.__APOLLO_STATE__?.restaurants,\n        data?.windowVariables?.__INITIAL_STATE__?.restaurants,\n        data?.multiSearch?.restaurants\n      ];\n      \n      for (const restaurantData of possiblePaths) {\n        if (restaurantData && Array.isArray(restaurantData) && restaurantData.length > 0) {\n          console.log(`Found ${restaurantData.length} restaurants in data structure`);\n          \n          const limitedRestaurants = restaurantData.slice(0, 5);\n          \n          for (const restaurant of limitedRestaurants) {\n            try {\n              const restaurantObj = {\n                restaurantId: restaurant.restaurantId || null,\n                name: restaurant.name || 'Unknown',\n                link: restaurant.urls?.profileLink?.link ? \n                  (restaurant.urls.profileLink.link.startsWith('http') ? \n                    restaurant.urls.profileLink.link : \n                    'https://www.opentable.com' + restaurant.urls.profileLink.link) : '',\n                cuisine: restaurant.primaryCuisine?.name || 'Unknown',\n                rating: restaurant.statistics?.reviews?.ratings?.overall?.rating || 0,\n                reviewCount: restaurant.statistics?.reviews?.allTimeTextReviewCount || 0,\n                priceBand: restaurant.priceBand?.name || 'Unknown',\n                neighborhood: restaurant.neighborhood?.name || 'Unknown',\n                address: restaurant.address ? \n                  [restaurant.address.line1, restaurant.address.city, restaurant.address.state]\n                    .filter(Boolean).join(', ') : 'Unknown',\n                phone: restaurant.contactInformation?.formattedPhoneNumber || '',\n                imageUrl: restaurant.photos?.profileV3?.medium?.url ? \n                  (restaurant.photos.profileV3.medium.url.startsWith('http') ? \n                    restaurant.photos.profileV3.medium.url : \n                    'https:' + restaurant.photos.profileV3.medium.url) : '',\n                description: (restaurant.description || '').substring(0, 500),\n                coordinates: {\n                  latitude: restaurant.coordinates?.latitude || null,\n                  longitude: restaurant.coordinates?.longitude || null\n                },\n                features: {\n                  bar: restaurant.features?.bar || false,\n                  outdoor: restaurant.features?.outdoor || false,\n                  counter: restaurant.features?.counter || false,\n                  highTop: restaurant.features?.highTop || false\n                },\n                hasTakeout: restaurant.hasTakeout || false,\n                isPromoted: restaurant.isPromoted || false,\n                topReview: restaurant.topReview?.highlightedText || '',\n                scraped_at: new Date().toISOString(),\n                source: 'OpenTable',\n                search_city: inputData.city || 'new york',\n                search_query: inputData.city || 'new york',\n                extraction_method: 'JSON parsing - primary-window-vars',\n                url_used: html.includes('Los Angeles') ? 'los-angeles-detected' : 'new-york-intended'\n              };\n              \n              restaurants.push(restaurantObj);\n              \n            } catch (error) {\n              console.log('Error processing individual restaurant:', error.message);\n            }\n          }\n          \n          if (restaurants.length > 0) {\n            break;\n          }\n        }\n      }\n    }\n  }\n} catch (error) {\n  console.log('Strategy 1 failed:', error.message);\n}\n\n// Final results\nif (restaurants.length > 0) {\n  console.log(`Successfully extracted ${restaurants.length} restaurants`);\n  console.log('Sample restaurant:', JSON.stringify(restaurants[0], null, 2));\n  return restaurants.map(r => ({ json: r }));\n} else {\n  console.log('No restaurants found with any strategy');\n  return [{\n    json: {\n      error: 'No restaurants extracted',\n      debug_info: debugInfo,\n      strategies_attempted: debugInfo.strategies_attempted,\n      html_length: html.length,\n      contains_restaurant_text: html.toLowerCase().includes('restaurant'),\n      contains_opentable_text: html.toLowerCase().includes('opentable')\n    }\n  }];\n}"
+        "jsCode": "// Extract restaurant data from OpenTable HTML\nlet html = '';\ntry {\n  const inputData = items[0] && items[0].json ? items[0].json : {};\n  html = inputData.data || inputData.body || inputData || '';\n  if (typeof html !== 'string') {\n    html = String(html);\n  }\n  console.log('HTML data received, length:', html.length, 'characters');\n} catch (error) {\n  console.log('Error getting HTML data:', error.message);\n  return [{ json: { error: 'Failed to get HTML data', details: error.message } }];\n}\n\nif (!html || html.length === 0) {\n  console.log('No HTML data found');\n  return [{ json: { error: 'No HTML data received' } }];\n}\n\nlet restaurants = [];\n\n// Extract from primary-window-vars script tag\ntry {\n  console.log('Attempting to extract restaurant data from JSON');\n  \n  const scriptMatch = html.match(/<script id=\"primary-window-vars\" type=\"application\\/json\">(.*?)<\\/script>/s);\n  \n  if (scriptMatch) {\n    console.log('Found primary-window-vars script tag');\n    const jsonContent = scriptMatch[1];\n    \n    if (jsonContent && jsonContent.length > 0) {\n      const data = JSON.parse(jsonContent);\n      console.log('Successfully parsed JSON from primary-window-vars');\n      \n      // Try different possible paths for restaurant data\n      const possiblePaths = [\n        data?.windowVariables?.__INITIAL_STATE__?.multiSearch?.restaurants,\n        data?.windowVariables?.__APOLLO_STATE__?.restaurants,\n        data?.windowVariables?.__INITIAL_STATE__?.restaurants,\n        data?.multiSearch?.restaurants\n      ];\n      \n      for (const restaurantData of possiblePaths) {\n        if (restaurantData && Array.isArray(restaurantData) && restaurantData.length > 0) {\n          console.log(`Found ${restaurantData.length} restaurants in data structure`);\n          \n          // Process up to 10 restaurants\n          const limitedRestaurants = restaurantData.slice(0, 10);\n          \n          for (const restaurant of limitedRestaurants) {\n            try {\n              const restaurantObj = {\n                restaurant_id: restaurant.restaurantId || null,\n                name: restaurant.name || 'Unknown',\n                link: restaurant.urls?.profileLink?.link ? \n                  (restaurant.urls.profileLink.link.startsWith('http') ? \n                    restaurant.urls.profileLink.link : \n                    'https://www.opentable.com' + restaurant.urls.profileLink.link) : '',\n                cuisine: restaurant.primaryCuisine?.name || 'Unknown',\n                rating: restaurant.statistics?.reviews?.ratings?.overall?.rating || 0,\n                review_count: restaurant.statistics?.reviews?.allTimeTextReviewCount || 0,\n                price_band: restaurant.priceBand?.name || 'Unknown',\n                neighborhood: restaurant.neighborhood?.name || 'Unknown',\n                address: restaurant.address ? \n                  [restaurant.address.line1, restaurant.address.city, restaurant.address.state]\n                    .filter(Boolean).join(', ') : 'Unknown',\n                phone: restaurant.contactInformation?.formattedPhoneNumber || '',\n                image_url: restaurant.photos?.profileV3?.medium?.url ? \n                  (restaurant.photos.profileV3.medium.url.startsWith('http') ? \n                    restaurant.photos.profileV3.medium.url : \n                    'https:' + restaurant.photos.profileV3.medium.url) : '',\n                description: (restaurant.description || '').substring(0, 500),\n                latitude: restaurant.coordinates?.latitude || null,\n                longitude: restaurant.coordinates?.longitude || null,\n                has_bar: restaurant.features?.bar || false,\n                has_outdoor: restaurant.features?.outdoor || false,\n                has_takeout: restaurant.hasTakeout || false,\n                is_promoted: restaurant.isPromoted || false,\n                top_review: restaurant.topReview?.highlightedText || '',\n                scraped_at: new Date().toISOString(),\n                source: 'OpenTable'\n              };\n              \n              restaurants.push(restaurantObj);\n              \n            } catch (error) {\n              console.log('Error processing individual restaurant:', error.message);\n            }\n          }\n          \n          if (restaurants.length > 0) {\n            break;\n          }\n        }\n      }\n    }\n  }\n} catch (error) {\n  console.log('JSON extraction failed:', error.message);\n}\n\n// Return results\nif (restaurants.length > 0) {\n  console.log(`Successfully extracted ${restaurants.length} restaurants`);\n  return restaurants.map(r => ({ json: r }));\n} else {\n  console.log('No restaurants found');\n  return [{\n    json: {\n      error: 'No restaurants extracted',\n      html_length: html.length,\n      contains_restaurant_text: html.toLowerCase().includes('restaurant'),\n      html_sample: html.substring(0, 500)\n    }\n  }];\n}"
       },
-      "id": "dac1db94-fa39-42e0-919b-e0e70ef3c528",
+      "id": "extract-restaurants",
       "name": "Extract Restaurant Data",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [780, 300]
+      "position": [580, 300]
     },
     {
       "parameters": {
-        "jsCode": "// Debug and validate extracted data\nconst results = items || [];\n\nconsole.log(`Received ${results.length} items from extraction`);\n\nif (results.length === 0) {\n  console.log('No items received from previous node');\n  return [{ json: { error: 'No data received from extraction node' } }];\n}\n\n// Check if we got error information\nconst firstItem = results[0];\nif (firstItem.json && firstItem.json.error) {\n  console.log('Extraction failed with error:', firstItem.json.error);\n  console.log('Debug info:', JSON.stringify(firstItem.json.debug_info || {}, null, 2));\n  return results;\n}\n\n// Filter valid restaurants\nconst validRestaurants = results.filter(item => {\n  return item.json && \n         item.json.name && \n         item.json.name !== 'Unknown' && \n         item.json.name.length > 0 &&\n         !item.json.error;\n});\n\nconsole.log(`Found ${validRestaurants.length} valid restaurants out of ${results.length} total items`);\n\nif (validRestaurants.length === 0) {\n  console.log('No valid restaurants found. First item details:');\n  console.log(JSON.stringify(firstItem, null, 2));\n  return [{\n    json: {\n      error: 'No valid restaurants after filtering',\n      total_items: results.length,\n      sample_item: firstItem.json || firstItem\n    }\n  }];\n}\n\n// Process valid restaurants\nconst processedRestaurants = validRestaurants.map((item, index) => {\n  const restaurant = item.json;\n  \n  return {\n    ...restaurant,\n    processed_at: new Date().toISOString(),\n    processing_order: index + 1,\n    data_quality: {\n      has_name: !!restaurant.name,\n      has_link: !!restaurant.link,\n      has_rating: !!restaurant.rating,\n      has_cuisine: !!restaurant.cuisine,\n      has_address: !!restaurant.address\n    }\n  };\n});\n\nconsole.log('Successfully processed restaurants:');\nprocessedRestaurants.forEach((r, i) => {\n  console.log(`${i + 1}. ${r.name} (${r.cuisine}) - ${r.extraction_method}`);\n});\n\nreturn processedRestaurants.map(restaurant => ({ json: restaurant }));"
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "resource": "row",
+        "operation": "create",
+        "tableId": "restaurants",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "restaurant_id",
+              "fieldValue": "={{ $json.restaurant_id }}"
+            },
+            {
+              "fieldId": "name",
+              "fieldValue": "={{ $json.name }}"
+            },
+            {
+              "fieldId": "link",
+              "fieldValue": "={{ $json.link }}"
+            },
+            {
+              "fieldId": "cuisine",
+              "fieldValue": "={{ $json.cuisine }}"
+            },
+            {
+              "fieldId": "rating",
+              "fieldValue": "={{ $json.rating }}"
+            },
+            {
+              "fieldId": "review_count",
+              "fieldValue": "={{ $json.review_count }}"
+            },
+            {
+              "fieldId": "price_band",
+              "fieldValue": "={{ $json.price_band }}"
+            },
+            {
+              "fieldId": "neighborhood",
+              "fieldValue": "={{ $json.neighborhood }}"
+            },
+            {
+              "fieldId": "address",
+              "fieldValue": "={{ $json.address }}"
+            },
+            {
+              "fieldId": "phone",
+              "fieldValue": "={{ $json.phone }}"
+            },
+            {
+              "fieldId": "image_url",
+              "fieldValue": "={{ $json.image_url }}"
+            },
+            {
+              "fieldId": "description",
+              "fieldValue": "={{ $json.description }}"
+            },
+            {
+              "fieldId": "latitude",
+              "fieldValue": "={{ $json.latitude }}"
+            },
+            {
+              "fieldId": "longitude",
+              "fieldValue": "={{ $json.longitude }}"
+            },
+            {
+              "fieldId": "has_bar",
+              "fieldValue": "={{ $json.has_bar }}"
+            },
+            {
+              "fieldId": "has_outdoor",
+              "fieldValue": "={{ $json.has_outdoor }}"
+            },
+            {
+              "fieldId": "has_takeout",
+              "fieldValue": "={{ $json.has_takeout }}"
+            },
+            {
+              "fieldId": "is_promoted",
+              "fieldValue": "={{ $json.is_promoted }}"
+            },
+            {
+              "fieldId": "top_review",
+              "fieldValue": "={{ $json.top_review }}"
+            },
+            {
+              "fieldId": "scraped_at",
+              "fieldValue": "={{ $json.scraped_at }}"
+            },
+            {
+              "fieldId": "source",
+              "fieldValue": "={{ $json.source }}"
+            }
+          ]
+        }
       },
-      "id": "process-data",
-      "name": "Process and Clean Data",
+      "id": "save-to-supabase",
+      "name": "Save to Supabase",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [800, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Summary of results\nconst results = items || [];\nconst successful = results.filter(item => !item.json.error);\nconst errors = results.filter(item => item.json.error);\n\nconsole.log(`Processing complete:`);\nconsole.log(`- Successful saves: ${successful.length}`);\nconsole.log(`- Errors: ${errors.length}`);\n\nif (successful.length > 0) {\n  console.log('Successfully saved restaurants:');\n  successful.forEach((item, i) => {\n    console.log(`${i + 1}. ${item.json.name} (${item.json.cuisine})`);\n  });\n}\n\nif (errors.length > 0) {\n  console.log('Errors encountered:');\n  errors.forEach((item, i) => {\n    console.log(`${i + 1}. ${item.json.error}`);\n  });\n}\n\nreturn [{\n  json: {\n    summary: {\n      total_processed: results.length,\n      successful_saves: successful.length,\n      errors: errors.length,\n      timestamp: new Date().toISOString()\n    },\n    restaurants_saved: successful.map(item => ({\n      name: item.json.name,\n      cuisine: item.json.cuisine,\n      rating: item.json.rating\n    }))\n  }\n}];"
+      },
+      "id": "process-results",
+      "name": "Process Results",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1000, 300]
+      "position": [1020, 300]
     }
   ],
   "connections": {
@@ -104,25 +173,14 @@
       "main": [
         [
           {
-            "node": "City Configuration",
+            "node": "Fetch OpenTable Data",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "City Configuration": {
-      "main": [
-        [
-          {
-            "node": "Fetch via ScrapingBee",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Fetch via ScrapingBee": {
+    "Fetch OpenTable Data": {
       "main": [
         [
           {
@@ -137,7 +195,18 @@
       "main": [
         [
           {
-            "node": "Process and Clean Data",
+            "node": "Save to Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to Supabase": {
+      "main": [
+        [
+          {
+            "node": "Process Results",
             "type": "main",
             "index": 0
           }
