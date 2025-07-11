@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { StatsCards } from "@/components/stats-cards";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { BarChart2, ThumbsUp, Meh, ThumbsDown, Calendar, TrendingUp, Award, MapPin, Utensils, Clock, Flame, Target } from "lucide-react";
+import { BarChart2, ThumbsUp, Meh, ThumbsDown, Calendar, TrendingUp, Award, MapPin, Utensils, Clock, Flame, Target, Heart } from "lucide-react";
 import { useLocation } from "wouter";
 
 export default function StatsPage() {
