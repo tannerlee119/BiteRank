@@ -267,6 +267,206 @@ export default function StatsPage() {
             </div>
           </Card>
 
+          {/* Achievement System */}
+          <Card className="p-6">
+            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+              <Award className="w-5 h-5" />
+              Food Explorer Achievements
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Review Milestone Badges */}
+              <div className={`p-4 rounded-lg border-2 transition-all ${
+                totalReviews >= 10 ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'
+              }`}>
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-full ${
+                    totalReviews >= 10 ? 'bg-green-100' : 'bg-gray-100'
+                  }`}>
+                    <Utensils className={`w-5 h-5 ${
+                      totalReviews >= 10 ? 'text-green-600' : 'text-gray-400'
+                    }`} />
+                  </div>
+                  <div>
+                    <p className="font-medium">Food Enthusiast</p>
+                    <p className="text-sm text-gray-500">Write 10 reviews</p>
+                    <p className="text-xs text-green-600">{totalReviews >= 10 ? '✓ Unlocked' : `${totalReviews}/10`}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className={`p-4 rounded-lg border-2 transition-all ${
+                (stats?.cuisineCount || 0) >= 5 ? 'bg-purple-50 border-purple-200' : 'bg-gray-50 border-gray-200'
+              }`}>
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-full ${
+                    (stats?.cuisineCount || 0) >= 5 ? 'bg-purple-100' : 'bg-gray-100'
+                  }`}>
+                    <MapPin className={`w-5 h-5 ${
+                      (stats?.cuisineCount || 0) >= 5 ? 'text-purple-600' : 'text-gray-400'
+                    }`} />
+                  </div>
+                  <div>
+                    <p className="font-medium">Globe Trotter</p>
+                    <p className="text-sm text-gray-500">Try 5 different cuisines</p>
+                    <p className="text-xs text-purple-600">{(stats?.cuisineCount || 0) >= 5 ? '✓ Unlocked' : `${stats?.cuisineCount || 0}/5`}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className={`p-4 rounded-lg border-2 transition-all ${
+                (stats?.currentStreak || 0) >= 4 ? 'bg-orange-50 border-orange-200' : 'bg-gray-50 border-gray-200'
+              }`}>
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-full ${
+                    (stats?.currentStreak || 0) >= 4 ? 'bg-orange-100' : 'bg-gray-100'
+                  }`}>
+                    <Flame className={`w-5 h-5 ${
+                      (stats?.currentStreak || 0) >= 4 ? 'text-orange-600' : 'text-gray-400'
+                    }`} />
+                  </div>
+                  <div>
+                    <p className="font-medium">On Fire</p>
+                    <p className="text-sm text-gray-500">4 week review streak</p>
+                    <p className="text-xs text-orange-600">{(stats?.currentStreak || 0) >= 4 ? '✓ Unlocked' : `${stats?.currentStreak || 0}/4 weeks`}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className={`p-4 rounded-lg border-2 transition-all ${
+                likedPercentage >= 80 ? 'bg-yellow-50 border-yellow-200' : 'bg-gray-50 border-gray-200'
+              }`}>
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-full ${
+                    likedPercentage >= 80 ? 'bg-yellow-100' : 'bg-gray-100'
+                  }`}>
+                    <Target className={`w-5 h-5 ${
+                      likedPercentage >= 80 ? 'text-yellow-600' : 'text-gray-400'
+                    }`} />
+                  </div>
+                  <div>
+                    <p className="font-medium">Great Taste</p>
+                    <p className="text-sm text-gray-500">80% success rate</p>
+                    <p className="text-xs text-yellow-600">{likedPercentage >= 80 ? '✓ Unlocked' : `${likedPercentage}%/80%`}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className={`p-4 rounded-lg border-2 transition-all ${
+                totalReviews >= 50 ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-200'
+              }`}>
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-full ${
+                    totalReviews >= 50 ? 'bg-blue-100' : 'bg-gray-100'
+                  }`}>
+                    <TrendingUp className={`w-5 h-5 ${
+                      totalReviews >= 50 ? 'text-blue-600' : 'text-gray-400'
+                    }`} />
+                  </div>
+                  <div>
+                    <p className="font-medium">Food Expert</p>
+                    <p className="text-sm text-gray-500">Write 50 reviews</p>
+                    <p className="text-xs text-blue-600">{totalReviews >= 50 ? '✓ Unlocked' : `${totalReviews}/50`}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className={`p-4 rounded-lg border-2 transition-all ${
+                (stats?.uniqueFavoriteDishes || 0) >= 20 ? 'bg-indigo-50 border-indigo-200' : 'bg-gray-50 border-gray-200'
+              }`}>
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-full ${
+                    (stats?.uniqueFavoriteDishes || 0) >= 20 ? 'bg-indigo-100' : 'bg-gray-100'
+                  }`}>
+                    <Heart className={`w-5 h-5 ${
+                      (stats?.uniqueFavoriteDishes || 0) >= 20 ? 'text-indigo-600' : 'text-gray-400'
+                    }`} />
+                  </div>
+                  <div>
+                    <p className="font-medium">Dish Collector</p>
+                    <p className="text-sm text-gray-500">Try 20 favorite dishes</p>
+                    <p className="text-xs text-indigo-600">{(stats?.uniqueFavoriteDishes || 0) >= 20 ? '✓ Unlocked' : `${stats?.uniqueFavoriteDishes || 0}/20`}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Food Journey Timeline */}
+          <Card className="p-6">
+            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+              <Calendar className="w-5 h-5" />
+              Your Food Discovery Timeline
+            </h2>
+            {stats?.monthlyReviews && stats.monthlyReviews.length > 0 ? (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                    <p className="text-sm text-blue-600 font-medium">Journey Started</p>
+                    <p className="text-2xl font-bold text-blue-700">
+                      {stats.monthlyReviews[stats.monthlyReviews.length - 1]?.month || 'N/A'}
+                    </p>
+                    <p className="text-xs text-blue-500">First review month</p>
+                  </div>
+                  
+                  <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
+                    <p className="text-sm text-green-600 font-medium">Most Active Month</p>
+                    <p className="text-2xl font-bold text-green-700">
+                      {stats.monthlyReviews.find((m: any) => 
+                        m.count === Math.max(...stats.monthlyReviews.map((month: any) => month.count))
+                      )?.month || 'N/A'}
+                    </p>
+                    <p className="text-xs text-green-500">
+                      {Math.max(...stats.monthlyReviews.map((month: any) => month.count))} reviews
+                    </p>
+                  </div>
+                  
+                  <div className="p-4 bg-gradient-to-r from-purple-50 to-violet-50 rounded-lg border border-purple-200">
+                    <p className="text-sm text-purple-600 font-medium">Total Journey</p>
+                    <p className="text-2xl font-bold text-purple-700">
+                      {Math.max(1, Math.ceil((Date.now() - new Date(stats.monthlyReviews[stats.monthlyReviews.length - 1]?.month + ' 1, 2024').getTime()) / (1000 * 60 * 60 * 24 * 30)))}
+                    </p>
+                    <p className="text-xs text-purple-500">months exploring</p>
+                  </div>
+                </div>
+
+                {/* Mini timeline */}
+                <div className="relative">
+                  <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200"></div>
+                  <div className="space-y-4">
+                    {stats.monthlyReviews.slice(0, 6).map((month: any, index: number) => (
+                      <div key={index} className="relative flex items-center">
+                        <div className={`w-8 h-8 rounded-full border-4 border-white z-10 flex items-center justify-center text-xs font-bold ${
+                          month.count > 0 
+                            ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg' 
+                            : 'bg-gray-200 text-gray-500'
+                        }`}>
+                          {month.count || 0}
+                        </div>
+                        <div className="ml-4 flex-1">
+                          <p className="font-medium text-gray-900">{month.month}</p>
+                          <p className="text-sm text-gray-500">
+                            {month.count} review{month.count !== 1 ? 's' : ''}
+                            {month.count > 0 && (
+                              <span className="ml-2 text-xs text-blue-600 font-medium">
+                                🍽️ Active month
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                <p className="text-lg font-medium text-gray-500">Your journey begins now!</p>
+                <p className="text-sm text-gray-400">Start reviewing to see your timeline</p>
+              </div>
+            )}
+          </Card>
+
           {/* Summary Stats */}
           <Card className="p-6">
             <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
