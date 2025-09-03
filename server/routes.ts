@@ -39,22 +39,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userData = insertUserSchema.parse(req.body);
 
       // Check if user already exists
-      const existingUser = await storage.getUserByEmail(userData.email);
+      const existingUser = await storage.getUserByUsername(userData.username);
       if (existingUser) {
-        return res.status(400).json({ message: "User already exists" });
+        return res.status(400).json({ message: "Username already taken" });
       }
 
       // Hash password
       const passwordHash = await bcrypt.hash(userData.password, 10);
 
       const user = await storage.createUser({
-        email: userData.email,
+        username: userData.username,
         displayName: userData.displayName,
         passwordHash,
       });
 
       req.session.userId = user.id;
-      res.json({ user: { id: user.id, email: user.email, displayName: user.displayName } });
+      res.json({ user: { id: user.id, username: user.username, displayName: user.displayName } });
     } catch (error: any) {
       res.status(400).json({ message: error.message });
     }
@@ -62,9 +62,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/auth/login", async (req, res) => {
     try {
-      const { email, password } = req.body;
+      const { username, password } = req.body;
 
-      const user = await storage.getUserByEmail(email);
+      const user = await storage.getUserByUsername(username);
       if (!user) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
@@ -75,7 +75,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       req.session.userId = user.id;
-      res.json({ user: { id: user.id, email: user.email, displayName: user.displayName } });
+      res.json({ user: { id: user.id, username: user.username, displayName: user.displayName } });
     } catch (error: any) {
       res.status(400).json({ message: error.message });
     }
@@ -96,7 +96,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return res.status(401).json({ message: "User not found" });
       }
-      res.json({ user: { id: user.id, email: user.email, displayName: user.displayName } });
+      res.json({ user: { id: user.id, username: user.username, displayName: user.displayName } });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
@@ -104,14 +104,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/auth/profile", requireAuth, async (req, res) => {
     try {
-      const { displayName, email, password } = req.body;
+      const { displayName, username, password } = req.body;
       const userId = req.session.userId!;
 
-      // If email is being changed, check if it's already taken
-      if (email) {
-        const existingUser = await storage.getUserByEmail(email);
+      // If username is being changed, check if it's already taken
+      if (username) {
+        const existingUser = await storage.getUserByUsername(username);
         if (existingUser && existingUser.id !== userId) {
-          return res.status(400).json({ message: "Email already in use" });
+          return res.status(400).json({ message: "Username already taken" });
         }
       }
 
@@ -123,7 +123,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const updatedUser = await storage.updateUser(userId, {
         displayName,
-        email,
+        username,
         passwordHash,
       });
 
@@ -134,7 +134,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ 
         user: { 
           id: updatedUser.id, 
-          email: updatedUser.email, 
+          username: updatedUser.username, 
           displayName: updatedUser.displayName 
         } 
       });

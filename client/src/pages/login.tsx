@@ -20,12 +20,12 @@ import { Utensils } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 
 const loginSchema = z.object({
-  email: z.string().email("Invalid email address"),
+  username: z.string().min(3, "Username must be at least 3 characters"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
 const registerSchema = z.object({
-  email: z.string().email("Invalid email address"),
+  username: z.string().min(3, "Username must be at least 3 characters").max(20, "Username must be less than 20 characters"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string().min(6, "Password must be at least 6 characters"),
   displayName: z.string().min(2, "Display name must be at least 2 characters"),
@@ -42,7 +42,7 @@ export default function LoginPage() {
   const loginForm = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "",
+      username: "",
       password: "",
     },
   });
@@ -50,7 +50,7 @@ export default function LoginPage() {
   const registerForm = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      email: "",
+      username: "",
       password: "",
       confirmPassword: "",
       displayName: "",
@@ -130,14 +130,14 @@ export default function LoginPage() {
                   <form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-4">
                     <FormField
                       control={loginForm.control}
-                      name="email"
+                      name="username"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email</FormLabel>
+                          <FormLabel>Username</FormLabel>
                           <FormControl>
                             <Input
-                              type="email"
-                              placeholder="Enter your email"
+                              type="text"
+                              placeholder="Enter your username"
                               {...field}
                             />
                           </FormControl>
@@ -218,14 +218,14 @@ export default function LoginPage() {
 
                     <FormField
                       control={registerForm.control}
-                      name="email"
+                      name="username"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email</FormLabel>
+                          <FormLabel>Username</FormLabel>
                           <FormControl>
                             <Input
-                              type="email"
-                              placeholder="Enter your email"
+                              type="text"
+                              placeholder="Enter your username"
                               {...field}
                             />
                           </FormControl>

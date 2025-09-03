@@ -3,7 +3,7 @@ import { apiRequest } from "@/lib/queryClient";
 
 export interface User {
   id: string;
-  email: string;
+  username: string;
   displayName: string;
 }
 
@@ -32,7 +32,7 @@ export function useAuth() {
   });
 
   const loginMutation = useMutation({
-    mutationFn: async (credentials: { email: string; password: string }) => {
+    mutationFn: async (credentials: { username: string; password: string }) => {
       const response = await apiRequest("POST", "/api/auth/login", credentials);
       return response.json();
     },
@@ -45,7 +45,7 @@ export function useAuth() {
   });
 
   const registerMutation = useMutation({
-    mutationFn: async (userData: { email: string; password: string; displayName: string }) => {
+    mutationFn: async (userData: { username: string; password: string; displayName: string }) => {
       const response = await apiRequest("POST", "/api/auth/register", userData);
       return response.json();
     },
@@ -69,7 +69,7 @@ export function useAuth() {
   });
 
   const updateUserMutation = useMutation({
-    mutationFn: async (userData: { displayName?: string; email?: string; password?: string }) => {
+    mutationFn: async (userData: { displayName?: string; username?: string; password?: string }) => {
       const response = await apiRequest("PUT", "/api/auth/profile", userData);
       return response.json();
     },

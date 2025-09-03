@@ -22,9 +22,9 @@ import postgres from "postgres";
 export interface IStorage {
   // Users
   getUser(id: string): Promise<User | undefined>;
-  getUserByEmail(email: string): Promise<User | undefined>;
-  createUser(user: { email: string; displayName: string; passwordHash: string }): Promise<User>;
-  updateUser(id: string, data: { displayName?: string; email?: string; passwordHash?: string }): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(user: { username: string; displayName: string; passwordHash: string }): Promise<User>;
+  updateUser(id: string, data: { displayName?: string; username?: string; passwordHash?: string }): Promise<User | undefined>;
 
   // Restaurants
   getRestaurantByNameAndLocation(name: string, location: string): Promise<Restaurant | undefined>;
@@ -98,20 +98,20 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getUserByEmail(email: string): Promise<User | undefined> {
+  async getUserByUsername(username: string): Promise<User | undefined> {
     try {
-      const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+      const result = await db.select().from(users).where(eq(users.username, username)).limit(1);
       return result[0];
     } catch (error: any) {
-      console.error("Database error in getUserByEmail:", error);
+      console.error("Database error in getUserByUsername:", error);
       throw new Error(`Database connection failed: ${error.message}`);
     }
   }
 
-  async createUser(insertUser: { email: string; displayName: string; passwordHash: string }): Promise<User> {
+  async createUser(insertUser: { username: string; displayName: string; passwordHash: string }): Promise<User> {
     try {
       const result = await db.insert(users).values({
-        email: insertUser.email,
+        username: insertUser.username,
         displayName: insertUser.displayName,
         passwordHash: insertUser.passwordHash,
       }).returning();
@@ -122,7 +122,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async updateUser(id: string, data: { displayName?: string; email?: string; passwordHash?: string }): Promise<User | undefined> {
+  async updateUser(id: string, data: { displayName?: string; username?: string; passwordHash?: string }): Promise<User | undefined> {
     try {
       const result = await db
         .update(users)

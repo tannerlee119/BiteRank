@@ -9,7 +9,7 @@ import { useLocation } from "wouter";
 export function ProfilePage() {
   const { user, updateUser } = useAuth();
   const [displayName, setDisplayName] = useState(user?.displayName || "");
-  const [email, setEmail] = useState(user?.email || "");
+  const [username, setUsername] = useState(user?.username || "");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -39,7 +39,7 @@ export function ProfilePage() {
     try {
       await updateUser({
         displayName,
-        email,
+        username,
         ...(password && { password }),
       });
 
@@ -81,12 +81,12 @@ export function ProfilePage() {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="username">Username</Label>
           <Input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            id="username"
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             required
           />
         </div>
