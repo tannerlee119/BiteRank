@@ -146,13 +146,71 @@ class SupabaseStorage implements IStorage {
 
   // Placeholder implementations for other methods
   async getRestaurantByNameAndLocation(name: string, location: string): Promise<Restaurant | undefined> {
-    // TODO: Implement
-    return undefined;
+    try {
+      const { data, error } = await supabase
+        .from('restaurants')
+        .select('*')
+        .eq('name', name)
+        .eq('city', location)
+        .single();
+      
+      if (error) throw error;
+      return {
+        id: data.id,
+        name: data.name,
+        city: data.city,
+        address: data.address,
+        cuisine: data.cuisine,
+        priceRange: data.price_range,
+        phoneNumber: data.phone_number,
+        website: data.website,
+        latitude: data.latitude,
+        longitude: data.longitude,
+        createdAt: new Date(data.created_at)
+      } as Restaurant;
+    } catch (error: any) {
+      console.error("Error in getRestaurantByNameAndLocation:", error);
+      if (error.code === 'PGRST116') return undefined; // Not found
+      throw new Error(`Database connection failed: ${error.message}`);
+    }
   }
 
   async createRestaurant(restaurant: InsertRestaurant): Promise<Restaurant> {
-    // TODO: Implement
-    throw new Error("Not implemented");
+    try {
+      const { data, error } = await supabase
+        .from('restaurants')
+        .insert([{
+          name: restaurant.name,
+          city: restaurant.city,
+          address: restaurant.address,
+          cuisine: restaurant.cuisine,
+          price_range: restaurant.priceRange,
+          phone_number: restaurant.phoneNumber,
+          website: restaurant.website,
+          latitude: restaurant.latitude,
+          longitude: restaurant.longitude,
+        }])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return {
+        id: data.id,
+        name: data.name,
+        city: data.city,
+        address: data.address,
+        cuisine: data.cuisine,
+        priceRange: data.price_range,
+        phoneNumber: data.phone_number,
+        website: data.website,
+        latitude: data.latitude,
+        longitude: data.longitude,
+        createdAt: new Date(data.created_at)
+      } as Restaurant;
+    } catch (error: any) {
+      console.error("Error in createRestaurant:", error);
+      throw new Error(`Database connection failed: ${error.message}`);
+    }
   }
 
   async updateRestaurant(id: string, data: Partial<InsertRestaurant>): Promise<Restaurant | undefined> {
@@ -160,9 +218,49 @@ class SupabaseStorage implements IStorage {
     return undefined;
   }
 
-  async createReview(review: any): Promise<Review> {
-    // TODO: Implement
-    throw new Error("Not implemented");
+  async createReview(review: { userId: string; restaurantId: string; overallRating: number; foodRating?: number; serviceRating?: number; atmosphereRating?: number; title: string; comment: string; favoriteDishes?: string[]; photoUrls?: string[]; visitDate?: Date; wouldRecommend?: number }): Promise<Review> {
+    try {
+      const { data, error } = await supabase
+        .from('reviews')
+        .insert([{
+          user_id: review.userId,
+          restaurant_id: review.restaurantId,
+          overall_rating: review.overallRating,
+          food_rating: review.foodRating,
+          service_rating: review.serviceRating,
+          atmosphere_rating: review.atmosphereRating,
+          title: review.title,
+          comment: review.comment,
+          favorite_dishes: review.favoriteDishes,
+          photo_urls: review.photoUrls,
+          visit_date: review.visitDate,
+          would_recommend: review.wouldRecommend,
+        }])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return {
+        id: data.id,
+        userId: data.user_id,
+        restaurantId: data.restaurant_id,
+        overallRating: data.overall_rating,
+        foodRating: data.food_rating,
+        serviceRating: data.service_rating,
+        atmosphereRating: data.atmosphere_rating,
+        title: data.title,
+        comment: data.comment,
+        favoriteDishes: data.favorite_dishes,
+        photoUrls: data.photo_urls,
+        visitDate: data.visit_date ? new Date(data.visit_date) : null,
+        wouldRecommend: data.would_recommend,
+        createdAt: new Date(data.created_at),
+        updatedAt: new Date(data.updated_at)
+      } as Review;
+    } catch (error: any) {
+      console.error("Error in createReview:", error);
+      throw new Error(`Database connection failed: ${error.message}`);
+    }
   }
 
   async getReviewsByUser(userId: string): Promise<ReviewWithRestaurant[]> {
@@ -201,13 +299,50 @@ class SupabaseStorage implements IStorage {
   }
 
   async getUserStats(userId: string): Promise<any> {
-    // TODO: Implement
-    return {};
+    try {
+      // Get basic user stats
+      const [reviewCount, bookmarkCount] = await Promise.all([
+        supabase.from('reviews').select('id', { count: 'exact' }).eq('user_id', userId),
+        supabase.from('bookmarks').select('id', { count: 'exact' }).eq('user_id', userId)
+      ]);
+
+      return {
+        totalReviews: reviewCount.count || 0,
+        totalBookmarks: bookmarkCount.count || 0,
+        averageRating: 0, // Will implement more complex queries later
+        uniqueFavoriteDishes: 0,
+        reviewsThisMonth: 0,
+        reviewsThisYear: 0,
+        topCuisines: [],
+        recentActivity: []
+      };
+    } catch (error: any) {
+      console.error("Error in getUserStats:", error);
+      throw new Error(`Database connection failed: ${error.message}`);
+    }
   }
 
   async getGlobalStats(): Promise<any> {
-    // TODO: Implement
-    return {};
+    try {
+      // Get basic global stats
+      const [userCount, restaurantCount, reviewCount] = await Promise.all([
+        supabase.from('users').select('id', { count: 'exact' }),
+        supabase.from('restaurants').select('id', { count: 'exact' }),
+        supabase.from('reviews').select('id', { count: 'exact' })
+      ]);
+
+      return {
+        totalUsers: userCount.count || 0,
+        totalRestaurants: restaurantCount.count || 0,
+        totalReviews: reviewCount.count || 0,
+        averageRating: 0, // Will implement more complex queries later
+        topRestaurants: [],
+        topCuisines: []
+      };
+    } catch (error: any) {
+      console.error("Error in getGlobalStats:", error);
+      throw new Error(`Database connection failed: ${error.message}`);
+    }
   }
 }
 

@@ -94,6 +94,9 @@ export const insertReviewSchema = createInsertSchema(reviews).omit({
   atmosphereRating: z.number().min(1).max(5).optional(),
   title: z.string().min(1, "Review title is required"),
   comment: z.string().min(10, "Comment must be at least 10 characters"),
+  favoriteDishes: z.array(z.string()).optional(),
+  photoUrls: z.array(z.string()).optional(),
+  visitDate: z.string().optional(), // Will be parsed to Date on server
   wouldRecommend: z.number().min(0).max(1).optional(),
   // For creating new restaurants on the fly
   restaurantName: z.string().optional(),

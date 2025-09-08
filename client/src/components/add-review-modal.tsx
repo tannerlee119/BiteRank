@@ -98,7 +98,18 @@ export function AddReviewModal({ open, onOpenChange, prefilledData }: AddReviewM
   const onSubmit = (data: InsertReview) => {
     console.log("Form data:", data);
     console.log("Form errors:", form.formState.errors);
-    createReviewMutation.mutate(data);
+    
+    // Transform favoriteDishes from string to array
+    const favoriteDishesString = data.favoriteDishes as unknown as string;
+    const transformedData = {
+      ...data,
+      favoriteDishes: favoriteDishesString && favoriteDishesString.trim()
+        ? favoriteDishesString.split(',').map(dish => dish.trim()).filter(dish => dish.length > 0)
+        : undefined
+    };
+    
+    console.log("Transformed data:", transformedData);
+    createReviewMutation.mutate(transformedData);
   };
 
   return (
