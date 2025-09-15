@@ -185,11 +185,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Use the precise score from the frontend (Beli-style rating)
-      const score = reviewData.score;
-
-      // favoriteDishes is already an array from frontend transformation
-      const favoriteDishes = reviewData.favoriteDishes || null;
+      console.log("About to process favoriteDishes:", typeof reviewData.favoriteDishes, reviewData.favoriteDishes);
+      
+      // Simple assignment - favoriteDishes is already an array
+      const favoriteDishes = reviewData.favoriteDishes;
+      
+      console.log("Final favoriteDishes:", favoriteDishes);
 
       const review = await storage.createReview({
         userId: req.session.userId!,
@@ -197,7 +198,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         overallRating: reviewData.overallRating,
         title: reviewData.title,
         comment: reviewData.comment,
-        favoriteDishes,
+        favoriteDishes: favoriteDishes,
         photoUrls: null,
         wouldRecommend: reviewData.wouldRecommend,
       });
