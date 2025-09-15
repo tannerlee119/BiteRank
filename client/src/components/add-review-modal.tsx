@@ -124,7 +124,7 @@ export function AddReviewModal({ open, onOpenChange, prefilledData }: AddReviewM
       restaurantCuisine: data.restaurantCuisine,
       rating: data.rating as "like" | "alright" | "dislike",
       score: data.score,
-      overallRating: data.rating === "like" ? 5 : data.rating === "dislike" ? 1 : 3,
+      overallRating: Math.round(data.score), // Store the actual score until migration
       title: data.note && data.note.length > 0 ? data.note.substring(0, 50) : "Review", // Default title if no note
       comment: data.note && data.note.length > 0 ? data.note : "No additional comments",
       favoriteDishes: data.favoriteDishes && data.favoriteDishes.trim()
