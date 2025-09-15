@@ -482,10 +482,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         reviewId: review.id,
         userId: userId,
         restaurantName: review.restaurant.name,
-        restaurantLocation: review.restaurant.location,
+        restaurantLocation: review.restaurant.city,
         cuisine: review.restaurant.cuisine,
-        rating: review.rating,
-        score: review.score,
+        rating: review.overallRating,
+        score: review.overallRating,
         note: review.note,
         favoriteDishes: review.favoriteDishes,
         labels: review.labels,
@@ -547,11 +547,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })),
         revisitCandidates: candidatesForRevisit.slice(0, 5).map(r => ({
           restaurantName: r.restaurant.name,
-          restaurantLocation: r.restaurant.location,
+          restaurantLocation: r.restaurant.city,
           cuisine: r.restaurant.cuisine,
           lastVisited: r.visitDate,
-          rating: r.rating,
-          score: r.score
+          rating: r.overallRating,
+          score: r.overallRating
         }))
       };
 
@@ -660,8 +660,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         review: {
           id: review.id,
-          rating: review.rating,
-          score: review.score,
+          rating: review.overallRating,
+          score: review.overallRating,
           note: review.note,
           favoriteDishes: review.favoriteDishes,
           labels: review.labels,

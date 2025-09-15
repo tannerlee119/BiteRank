@@ -89,9 +89,9 @@ export default function Dashboard() {
   const allReviews = reviewsData ? [...reviewsData].sort((a, b) => {
     switch (sortBy) {
       case "rating-high":
-        return (b.score || 0) - (a.score || 0);
+        return (b.overallRating || 0) - (a.overallRating || 0);
       case "rating-low":
-        return (a.score || 0) - (b.score || 0);
+        return (a.overallRating || 0) - (b.overallRating || 0);
       case "newest":
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       case "oldest":
@@ -140,8 +140,8 @@ export default function Dashboard() {
     },
   });
 
-  // Get highly rated reviews (score 3 - "Loved")
-  const highlyRatedReviews = allReviews?.filter(review => review.score === 3).slice(0, 3) || [];
+  // Get highly rated reviews (overallRating 5 - "Loved")
+  const highlyRatedReviews = allReviews?.filter(review => review.overallRating === 5).slice(0, 3) || [];
 
   return (
     <>

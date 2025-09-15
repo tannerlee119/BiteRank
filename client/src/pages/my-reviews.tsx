@@ -48,9 +48,9 @@ export default function MyReviewsPage() {
   const reviews = reviewsData ? [...reviewsData].sort((a, b) => {
     switch (sortBy) {
       case "rating-high":
-        return (b.score || 0) - (a.score || 0);
+        return (b.overallRating || 0) - (a.overallRating || 0);
       case "rating-low":
-        return (a.score || 0) - (b.score || 0);
+        return (a.overallRating || 0) - (b.overallRating || 0);
       case "newest":
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       case "oldest":

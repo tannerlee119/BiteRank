@@ -34,6 +34,7 @@ export const reviews = pgTable("reviews", {
   restaurantId: uuid("restaurant_id").notNull().references(() => restaurants.id, { onDelete: "cascade" }),
   
   // Rating system
+  rating: text("rating").notNull(), // like, alright, dislike
   overallRating: integer("overall_rating").notNull(), // 1-5 stars
   foodRating: integer("food_rating"), // 1-5 stars (optional)
   serviceRating: integer("service_rating"), // 1-5 stars (optional)
@@ -88,6 +89,7 @@ export const insertReviewSchema = createInsertSchema(reviews).omit({
   createdAt: true,
   updatedAt: true,
 }).extend({
+  rating: z.enum(["like", "alright", "dislike"]),
   overallRating: z.number().min(1).max(5),
   foodRating: z.number().min(1).max(5).optional(),
   serviceRating: z.number().min(1).max(5).optional(),
