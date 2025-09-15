@@ -188,14 +188,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Use the precise score from the frontend (Beli-style rating)
       const score = reviewData.score;
 
-      // Parse comma-separated strings into arrays
-      const favoriteDishes = reviewData.favoriteDishes 
-        ? reviewData.favoriteDishes.split(',').map(dish => dish.trim()).filter(dish => dish.length > 0)
-        : null;
-
-      const labels = reviewData.labels
-        ? reviewData.labels.split(',').map(label => label.trim()).filter(label => label.length > 0)
-        : null;
+      // favoriteDishes is already an array from frontend transformation
+      const favoriteDishes = reviewData.favoriteDishes || null;
 
       const review = await storage.createReview({
         userId: req.session.userId!,
