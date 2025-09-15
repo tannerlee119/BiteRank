@@ -27,10 +27,12 @@ export interface IStorage {
 
   // Reviews
   createReview(review: { userId: string; restaurantId: string; overallRating: number; foodRating?: number; serviceRating?: number; atmosphereRating?: number; title: string; comment: string; favoriteDishes?: string[]; photoUrls?: string[]; visitDate?: Date; wouldRecommend?: number }): Promise<Review>;
+  getUserReviews(userId: string, filters?: { rating?: string; location?: string; search?: string; }): Promise<ReviewWithRestaurant[]>;
   getReviewsByUser(userId: string): Promise<ReviewWithRestaurant[]>;
   getReviewsByRestaurant(restaurantId: string): Promise<ReviewWithRestaurant[]>;
   getAllReviews(): Promise<ReviewWithRestaurant[]>;
   deleteReview(id: string, userId: string): Promise<boolean>;
+  getUserReviewStats(userId: string): Promise<{ likedCount: number; alrightCount: number; dislikedCount: number; totalReviews: number; averageRating: number; }>;
 
   // Bookmarks
   createBookmark(bookmark: { userId: string; restaurantId: string }): Promise<Bookmark>;
@@ -40,6 +42,7 @@ export interface IStorage {
   // Stats
   getUserStats(userId: string): Promise<any>;
   getGlobalStats(): Promise<any>;
+  getMostReviewedLocations(limit: number): Promise<any[]>;
 }
 
 class SupabaseStorage implements IStorage {
@@ -263,9 +266,58 @@ class SupabaseStorage implements IStorage {
     }
   }
 
+  async getUserReviews(userId: string, filters?: { rating?: string; location?: string; search?: string; }): Promise<ReviewWithRestaurant[]> {
+    try {
+      let query = supabase
+        .from('reviews')
+        .select(`
+          *,
+          restaurants (*)
+        `)
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      return data?.map(row => ({
+        id: row.id,
+        userId: row.user_id,
+        restaurantId: row.restaurant_id,
+        overallRating: row.overall_rating,
+        foodRating: row.food_rating,
+        serviceRating: row.service_rating,
+        atmosphereRating: row.atmosphere_rating,
+        title: row.title,
+        comment: row.comment,
+        favoriteDishes: row.favorite_dishes,
+        photoUrls: row.photo_urls,
+        visitDate: row.visit_date ? new Date(row.visit_date) : null,
+        wouldRecommend: row.would_recommend,
+        createdAt: new Date(row.created_at),
+        updatedAt: new Date(row.updated_at),
+        restaurant: {
+          id: row.restaurants.id,
+          name: row.restaurants.name,
+          city: row.restaurants.city,
+          address: row.restaurants.address,
+          cuisine: row.restaurants.cuisine,
+          priceRange: row.restaurants.price_range,
+          phoneNumber: row.restaurants.phone_number,
+          website: row.restaurants.website,
+          latitude: row.restaurants.latitude,
+          longitude: row.restaurants.longitude,
+          createdAt: new Date(row.restaurants.created_at)
+        }
+      })) || [];
+    } catch (error: any) {
+      console.error("Error in getUserReviews:", error);
+      throw new Error(`Database connection failed: ${error.message}`);
+    }
+  }
+
   async getReviewsByUser(userId: string): Promise<ReviewWithRestaurant[]> {
-    // TODO: Implement
-    return [];
+    return this.getUserReviews(userId);
   }
 
   async getReviewsByRestaurant(restaurantId: string): Promise<ReviewWithRestaurant[]> {
@@ -296,6 +348,41 @@ class SupabaseStorage implements IStorage {
   async deleteBookmark(userId: string, restaurantId: string): Promise<boolean> {
     // TODO: Implement
     return false;
+  }
+
+  async getUserReviewStats(userId: string): Promise<{ likedCount: number; alrightCount: number; dislikedCount: number; totalReviews: number; averageRating: number; }> {
+    try {
+      const { data: reviews, error } = await supabase
+        .from('reviews')
+        .select('overall_rating')
+        .eq('user_id', userId);
+
+      if (error) throw error;
+
+      const totalReviews = reviews?.length || 0;
+      let likedCount = 0;
+      let alrightCount = 0;
+      let dislikedCount = 0;
+      let totalRating = 0;
+
+      reviews?.forEach(review => {
+        totalRating += review.overall_rating;
+        if (review.overall_rating >= 4) likedCount++;
+        else if (review.overall_rating >= 3) alrightCount++;
+        else dislikedCount++;
+      });
+
+      return {
+        likedCount,
+        alrightCount,
+        dislikedCount,
+        totalReviews,
+        averageRating: totalReviews > 0 ? totalRating / totalReviews : 0
+      };
+    } catch (error: any) {
+      console.error("Error in getUserReviewStats:", error);
+      throw new Error(`Database connection failed: ${error.message}`);
+    }
   }
 
   async getUserStats(userId: string): Promise<any> {
@@ -341,6 +428,36 @@ class SupabaseStorage implements IStorage {
       };
     } catch (error: any) {
       console.error("Error in getGlobalStats:", error);
+      throw new Error(`Database connection failed: ${error.message}`);
+    }
+  }
+
+  async getMostReviewedLocations(limit: number): Promise<any[]> {
+    try {
+      const { data, error } = await supabase
+        .from('restaurants')
+        .select(`
+          city,
+          id
+        `)
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+      if (error) throw error;
+
+      // Group by city and count
+      const locationCounts: { [key: string]: number } = {};
+      data?.forEach(restaurant => {
+        locationCounts[restaurant.city] = (locationCounts[restaurant.city] || 0) + 1;
+      });
+
+      // Convert to array and sort by count
+      return Object.entries(locationCounts)
+        .map(([location, count]) => ({ location, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, limit);
+    } catch (error: any) {
+      console.error("Error in getMostReviewedLocations:", error);
       throw new Error(`Database connection failed: ${error.message}`);
     }
   }

@@ -162,18 +162,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/reviews", requireAuth, async (req, res) => {
     try {
+      console.log("Raw request body:", req.body);
       const reviewData = insertReviewSchema.parse(req.body);
+      console.log("Parsed review data:", reviewData);
 
       // Find or create restaurant
       let restaurant = await storage.getRestaurantByNameAndLocation(
         reviewData.restaurantName,
-        reviewData.restaurantLocation
+        reviewData.restaurantCity
       );
 
       if (!restaurant) {
+        console.log("Creating restaurant with data:", {
+          name: reviewData.restaurantName,
+          city: reviewData.restaurantCity,
+          cuisine: reviewData.restaurantCuisine,
+        });
         restaurant = await storage.createRestaurant({
           name: reviewData.restaurantName,
-          location: reviewData.restaurantLocation,
+          city: reviewData.restaurantCity,
           cuisine: reviewData.restaurantCuisine,
         });
       }
@@ -190,13 +197,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ? reviewData.labels.split(',').map(label => label.trim()).filter(label => label.length > 0)
         : null;
 
-      const review = await storage.createReview(req.session.userId!, restaurant.id, {
-        rating: reviewData.rating,
-        score,
-        note: reviewData.note || null,
+      const review = await storage.createReview({
+        userId: req.session.userId!,
+        restaurantId: restaurant.id,
+        overallRating: reviewData.overallRating,
+        title: reviewData.title,
+        comment: reviewData.comment,
         favoriteDishes,
         photoUrls: null,
-        labels,
+        wouldRecommend: reviewData.wouldRecommend,
       });
 
       // Trigger webhook for n8n

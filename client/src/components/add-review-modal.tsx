@@ -3,6 +3,24 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { insertReviewSchema, type InsertReview } from "@shared/schema";
+import { z } from "zod";
+
+// Frontend form schema - accepts strings for arrays
+const reviewFormSchema = z.object({
+  restaurantName: z.string().min(1, "Restaurant name is required"),
+  restaurantLocation: z.string().min(1, "Location is required"),
+  restaurantCuisine: z.string().optional(),
+  rating: z.string(),
+  score: z.number(),
+  note: z.string().optional().refine(
+    (val) => !val || val.length >= 10,
+    { message: "Review must be at least 10 characters if provided" }
+  ),
+  favoriteDishes: z.string().optional(), // String on frontend
+  labels: z.string().optional(),
+});
+
+type ReviewFormData = z.infer<typeof reviewFormSchema>;
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -49,8 +67,8 @@ export function AddReviewModal({ open, onOpenChange, prefilledData }: AddReviewM
   const queryClient = useQueryClient();
   const [numericalScore, setNumericalScore] = useState([7.5]);
 
-  const form = useForm<InsertReview>({
-    resolver: zodResolver(insertReviewSchema),
+  const form = useForm<ReviewFormData>({
+    resolver: zodResolver(reviewFormSchema),
     defaultValues: {
       restaurantName: "",
       restaurantLocation: "",
@@ -95,21 +113,32 @@ export function AddReviewModal({ open, onOpenChange, prefilledData }: AddReviewM
     },
   });
 
-  const onSubmit = (data: InsertReview) => {
+  const onSubmit = (data: ReviewFormData) => {
     console.log("Form data:", data);
     console.log("Form errors:", form.formState.errors);
     
-    // Transform favoriteDishes from string to array
-    const favoriteDishesString = data.favoriteDishes as unknown as string;
-    const transformedData = {
-      ...data,
-      favoriteDishes: favoriteDishesString && favoriteDishesString.trim()
-        ? favoriteDishesString.split(',').map(dish => dish.trim()).filter(dish => dish.length > 0)
-        : undefined
+    // Transform form data to API format
+    const apiData: InsertReview = {
+      restaurantName: data.restaurantName,
+      restaurantCity: data.restaurantLocation, // API expects 'restaurantCity'
+      restaurantCuisine: data.restaurantCuisine,
+      overallRating: data.rating === "like" ? 5 : data.rating === "dislike" ? 1 : 3,
+      title: data.note && data.note.length > 0 ? data.note.substring(0, 50) : "Review", // Default title if no note
+      comment: data.note && data.note.length > 0 ? data.note : "No additional comments",
+      favoriteDishes: data.favoriteDishes && data.favoriteDishes.trim()
+        ? data.favoriteDishes.split(',').map(dish => dish.trim()).filter(dish => dish.length > 0)
+        : undefined,
+      // Add other required fields with defaults
+      foodRating: undefined,
+      serviceRating: undefined,
+      atmosphereRating: undefined,
+      photoUrls: undefined,
+      visitDate: undefined,
+      wouldRecommend: data.rating === "like" ? 1 : data.rating === "dislike" ? 0 : undefined,
     };
     
-    console.log("Transformed data:", transformedData);
-    createReviewMutation.mutate(transformedData);
+    console.log("Transformed API data:", apiData);
+    createReviewMutation.mutate(apiData);
   };
 
   return (
