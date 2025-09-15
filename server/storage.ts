@@ -233,6 +233,7 @@ export class DatabaseStorage implements IStorage {
         userId: reviews.userId,
         restaurantId: reviews.restaurantId,
         rating: reviews.rating,
+        score: reviews.score,
         overallRating: reviews.overallRating,
         note: reviews.note,
         favoriteDishes: reviews.favoriteDishes,
@@ -259,6 +260,7 @@ export class DatabaseStorage implements IStorage {
       userId: row.userId,
       restaurantId: row.restaurantId,
       rating: row.rating,
+      score: row.score,
       overallRating: row.overallRating,
       note: row.note,
       favoriteDishes: row.favoriteDishes,
@@ -325,7 +327,7 @@ export class DatabaseStorage implements IStorage {
     // Get average score
     const avgResult = await db
       .select({
-        averageScore: sql<number>`avg(${reviews.overallRating})`.as('averageScore'),
+        averageScore: sql<number>`avg(${reviews.score})`.as('averageScore'),
       })
       .from(reviews)
       .where(eq(reviews.userId, userId));

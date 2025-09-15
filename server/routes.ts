@@ -484,8 +484,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         restaurantName: review.restaurant.name,
         restaurantLocation: review.restaurant.city,
         cuisine: review.restaurant.cuisine,
-        rating: review.overallRating,
-        score: review.overallRating,
+        rating: review.rating,
+        score: review.score,
         note: review.note,
         favoriteDishes: review.favoriteDishes,
         labels: review.labels,
@@ -550,8 +550,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           restaurantLocation: r.restaurant.city,
           cuisine: r.restaurant.cuisine,
           lastVisited: r.visitDate,
-          rating: r.overallRating,
-          score: r.overallRating
+          rating: r.rating,
+          score: r.score
         }))
       };
 
@@ -660,8 +660,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         review: {
           id: review.id,
-          rating: review.overallRating,
-          score: review.overallRating,
+          rating: review.rating,
+          score: review.score,
           note: review.note,
           favoriteDishes: review.favoriteDishes,
           labels: review.labels,

@@ -125,9 +125,9 @@ export function ReviewModal({ review, open, onOpenChange }: ReviewModalProps) {
             <div className="flex items-center space-x-3">
               <div className="text-right">
                 <div className="text-2xl font-bold text-neutral-900">
-                  {review.overallRating}
+                  {review.score.toFixed(1)}
                 </div>
-                <div className="text-xs text-gray-500">out of 5</div>
+                <div className="text-xs text-gray-500">out of 10</div>
               </div>
               <Badge className={`${getRatingColor(review.rating)} text-white`}>
                 {getRatingLabel(review.rating)}
