@@ -78,7 +78,7 @@ export function RestaurantCard({ review, onClick }: RestaurantCardProps) {
           <div className="flex items-center space-x-3">
             <div className="text-right">
               <div className="text-2xl font-bold text-neutral-900">
-                {review.overallRating ? review.overallRating.toFixed(1) : review.score ? review.score.toFixed(1) : 'N/A'}
+                {review.overallRating ? review.overallRating.toFixed(1) : 'N/A'}
               </div>
               <div className="text-xs text-gray-500">out of 10</div>
             </div>

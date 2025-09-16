@@ -35,7 +35,6 @@ export const reviews = pgTable("reviews", {
   
   // Rating system
   rating: text("rating").notNull(), // like, alright, dislike
-  score: real("score").notNull(), // 0-10 scale
   overallRating: real("overall_rating").notNull(), // 0-10 scale
   foodRating: integer("food_rating"), // 1-5 stars (optional)
   serviceRating: integer("service_rating"), // 1-5 stars (optional)
@@ -91,7 +90,6 @@ export const insertReviewSchema = createInsertSchema(reviews).omit({
   updatedAt: true,
 }).extend({
   rating: z.enum(["like", "alright", "dislike"]),
-  score: z.number().min(0).max(10),
   overallRating: z.number().min(0).max(10),
   foodRating: z.number().min(1).max(5).optional(),
   serviceRating: z.number().min(1).max(5).optional(),

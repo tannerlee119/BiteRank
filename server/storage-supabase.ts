@@ -303,13 +303,12 @@ class SupabaseStorage implements IStorage {
 
       // Transform data first
       let reviews = data?.map(row => {
-        console.log(`Raw row data for review ${row.id}: rating=${row.rating}, score=${row.score}, overall_rating=${row.overall_rating}`);
+        console.log(`Raw row data for review ${row.id}: rating=${row.rating}, overall_rating=${row.overall_rating}`);
         return {
           id: row.id,
           userId: row.user_id,
           restaurantId: row.restaurant_id,
           rating: row.rating,
-          score: row.score,
           overallRating: row.overall_rating,
           foodRating: row.food_rating,
           serviceRating: row.service_rating,
