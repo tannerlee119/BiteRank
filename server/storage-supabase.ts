@@ -331,8 +331,41 @@ class SupabaseStorage implements IStorage {
   }
 
   async deleteReview(id: string, userId: string): Promise<boolean> {
-    // TODO: Implement
-    return false;
+    console.log(`SupabaseStorage: Attempting to delete review ${id} for user ${userId}`);
+
+    // First, check if the review exists at all
+    const existingReview = await supabase
+      .from('reviews')
+      .select('id, user_id')
+      .eq('id', id)
+      .single();
+
+    console.log(`SupabaseStorage: Review lookup result:`, existingReview);
+
+    if (existingReview.error) {
+      console.log(`SupabaseStorage: Review ${id} not found:`, existingReview.error);
+      return false;
+    }
+
+    if (existingReview.data.user_id !== userId) {
+      console.log(`SupabaseStorage: Review ${id} belongs to user ${existingReview.data.user_id}, not ${userId}`);
+      return false;
+    }
+
+    // Delete the review
+    const { error } = await supabase
+      .from('reviews')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', userId);
+
+    if (error) {
+      console.log(`SupabaseStorage: Error deleting review:`, error);
+      return false;
+    }
+
+    console.log(`SupabaseStorage: Successfully deleted review ${id}`);
+    return true;
   }
 
   async createBookmark(bookmark: { userId: string; restaurantId: string }): Promise<Bookmark> {

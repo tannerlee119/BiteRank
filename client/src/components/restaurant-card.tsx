@@ -22,9 +22,7 @@ export function RestaurantCard({ review, onClick }: RestaurantCardProps) {
 
   const deleteMutation = useMutation({
     mutationFn: async (reviewId: string) => {
-      console.log("Attempting to delete review:", reviewId);
       await apiRequest("DELETE", `/api/reviews/${reviewId}`);
-      console.log("Delete request completed successfully");
     },
     onSuccess: () => {
       setShowDeleteDialog(false);
