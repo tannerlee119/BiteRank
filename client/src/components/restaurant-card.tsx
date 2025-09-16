@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -6,6 +7,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { getRatingColor, getRatingLabel } from "@/lib/auth";
+import { DeleteConfirmationDialog } from "./delete-confirmation-dialog";
 import type { ReviewWithRestaurant } from "@shared/schema";
 
 interface RestaurantCardProps {
@@ -16,12 +18,16 @@ interface RestaurantCardProps {
 export function RestaurantCard({ review, onClick }: RestaurantCardProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const deleteMutation = useMutation({
     mutationFn: async (reviewId: string) => {
+      console.log("Attempting to delete review:", reviewId);
       await apiRequest("DELETE", `/api/reviews/${reviewId}`);
+      console.log("Delete request completed successfully");
     },
     onSuccess: () => {
+      setShowDeleteDialog(false);
       queryClient.invalidateQueries({ queryKey: ["/api/reviews"] });
       queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
       toast({
@@ -29,10 +35,12 @@ export function RestaurantCard({ review, onClick }: RestaurantCardProps) {
         description: "Your review has been deleted successfully.",
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("Delete review error:", error);
+      setShowDeleteDialog(false);
       toast({
         title: "Error",
-        description: "Failed to delete review. Please try again.",
+        description: error?.message || "Failed to delete review. Please try again.",
         variant: "destructive",
       });
     },
@@ -40,9 +48,11 @@ export function RestaurantCard({ review, onClick }: RestaurantCardProps) {
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click when clicking delete
-    if (window.confirm("Are you sure you want to delete this review?")) {
-      deleteMutation.mutate(review.id);
-    }
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = () => {
+    deleteMutation.mutate(review.id);
   };
 
   return (
@@ -109,5 +119,14 @@ export function RestaurantCard({ review, onClick }: RestaurantCardProps) {
         </div>
       </CardContent>
     </Card>
+
+    <DeleteConfirmationDialog
+      open={showDeleteDialog}
+      onOpenChange={setShowDeleteDialog}
+      onConfirm={confirmDelete}
+      title="Delete Review"
+      description={`Are you sure you want to delete your review of ${review.restaurant.name}? This action cannot be undone.`}
+      isLoading={deleteMutation.isPending}
+    />
   );
 }
