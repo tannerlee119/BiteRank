@@ -22,11 +22,13 @@ export function ReviewModal({ review, open, onOpenChange }: ReviewModalProps) {
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [editedReview, setEditedReview] = useState<{
-    note: string;
+    title: string;
+    comment: string;
     favoriteDishes: string[];
     labels: string[];
   }>({
-    note: "",
+    title: "",
+    comment: "",
     favoriteDishes: [],
     labels: [],
   });
@@ -35,7 +37,8 @@ export function ReviewModal({ review, open, onOpenChange }: ReviewModalProps) {
   useEffect(() => {
     if (review) {
       setEditedReview({
-        note: review.note || "",
+        title: review.title || "",
+        comment: review.comment || "",
         favoriteDishes: review.favoriteDishes || [],
         labels: review.labels || [],
       });
@@ -89,7 +92,8 @@ export function ReviewModal({ review, open, onOpenChange }: ReviewModalProps) {
   const handleCancel = () => {
     if (review) {
       setEditedReview({
-        note: review.note || "",
+        title: review.title || "",
+        comment: review.comment || "",
         favoriteDishes: review.favoriteDishes || [],
         labels: review.labels || [],
       });
@@ -114,7 +118,7 @@ export function ReviewModal({ review, open, onOpenChange }: ReviewModalProps) {
             <div>
               <p className="text-sm text-gray-600 flex items-center mb-2">
                 <MapPin className="w-4 h-4 mr-1" />
-                {review.restaurant.location}
+                {review.restaurant.city}
               </p>
               {review.restaurant.cuisine && (
                 <p className="text-sm text-gray-500 capitalize">
@@ -129,8 +133,8 @@ export function ReviewModal({ review, open, onOpenChange }: ReviewModalProps) {
                 </div>
                 <div className="text-xs text-gray-500">out of 10</div>
               </div>
-              <Badge className={`${getRatingColor(review.rating || (review.overallRating >= 6.6 ? 'like' : review.overallRating <= 3.4 ? 'dislike' : 'alright'))} text-white`}>
-                {getRatingLabel(review.rating || (review.overallRating >= 6.6 ? 'like' : review.overallRating <= 3.4 ? 'dislike' : 'alright'))}
+              <Badge className={`${getRatingColor(review.overallRating >= 6.6 ? 'like' : review.overallRating <= 3.4 ? 'dislike' : 'alright')} text-white`}>
+                {getRatingLabel(review.overallRating >= 6.6 ? 'like' : review.overallRating <= 3.4 ? 'dislike' : 'alright')}
               </Badge>
             </div>
           </div>
@@ -140,11 +144,21 @@ export function ReviewModal({ review, open, onOpenChange }: ReviewModalProps) {
             <div className="space-y-4">
               <div>
                 <label className="text-sm font-semibold text-gray-700 mb-2 block">
+                  Title
+                </label>
+                <Input
+                  value={editedReview.title}
+                  onChange={(e) => setEditedReview(prev => ({ ...prev, title: e.target.value }))}
+                  placeholder="Review title..."
+                />
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-gray-700 mb-2 block">
                   Review
                 </label>
                 <Textarea
-                  value={editedReview.note}
-                  onChange={(e) => setEditedReview(prev => ({ ...prev, note: e.target.value }))}
+                  value={editedReview.comment}
+                  onChange={(e) => setEditedReview(prev => ({ ...prev, comment: e.target.value }))}
                   placeholder="Write your review..."
                   className="min-h-[100px]"
                 />
@@ -170,10 +184,15 @@ export function ReviewModal({ review, open, onOpenChange }: ReviewModalProps) {
             </div>
           ) : (
             <>
-              {review.note && (
+              {(review.title || review.comment) && (
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h4 className="text-sm font-semibold text-gray-700 mb-2">Review</h4>
-                  <p className="text-gray-700">{review.note}</p>
+                  {review.title && (
+                    <h5 className="font-medium text-gray-900 mb-2">{review.title}</h5>
+                  )}
+                  {review.comment && (
+                    <p className="text-gray-700">{review.comment}</p>
+                  )}
                 </div>
               )}
 
