@@ -92,7 +92,7 @@ export const insertReviewSchema = createInsertSchema(reviews).omit({
 }).extend({
   rating: z.enum(["like", "alright", "dislike"]),
   score: z.number().min(0).max(10),
-  overallRating: z.number().min(1).max(5),
+  overallRating: z.number().min(0).max(10),
   foodRating: z.number().min(1).max(5).optional(),
   serviceRating: z.number().min(1).max(5).optional(),
   atmosphereRating: z.number().min(1).max(5).optional(),
