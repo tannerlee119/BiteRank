@@ -36,7 +36,7 @@ export const reviews = pgTable("reviews", {
   // Rating system
   rating: text("rating").notNull(), // like, alright, dislike
   score: real("score").notNull(), // 0-10 scale
-  overallRating: integer("overall_rating").notNull(), // 1-5 stars
+  overallRating: real("overall_rating").notNull(), // 0-10 scale
   foodRating: integer("food_rating"), // 1-5 stars (optional)
   serviceRating: integer("service_rating"), // 1-5 stars (optional)
   atmosphereRating: integer("atmosphere_rating"), // 1-5 stars (optional)

@@ -27,7 +27,7 @@ export interface IStorage {
 
   // Reviews
   createReview(review: { userId: string; restaurantId: string; overallRating: number; foodRating?: number; serviceRating?: number; atmosphereRating?: number; title: string; comment: string; favoriteDishes?: string[]; photoUrls?: string[]; visitDate?: Date; wouldRecommend?: number }): Promise<Review>;
-  getUserReviews(userId: string, filters?: { rating?: string; location?: string; search?: string; }): Promise<ReviewWithRestaurant[]>;
+  getUserReviews(userId: string, filters?: { rating?: string; location?: string; search?: string; cuisine?: string; tags?: string; }): Promise<ReviewWithRestaurant[]>;
   getReviewsByUser(userId: string): Promise<ReviewWithRestaurant[]>;
   getReviewsByRestaurant(restaurantId: string): Promise<ReviewWithRestaurant[]>;
   getAllReviews(): Promise<ReviewWithRestaurant[]>;
@@ -266,24 +266,45 @@ class SupabaseStorage implements IStorage {
     }
   }
 
-  async getUserReviews(userId: string, filters?: { rating?: string; location?: string; search?: string; }): Promise<ReviewWithRestaurant[]> {
+  async getUserReviews(userId: string, filters?: { rating?: string; location?: string; search?: string; cuisine?: string; tags?: string; }): Promise<ReviewWithRestaurant[]> {
     try {
+      console.log(`SupabaseStorage: getUserReviews for user ${userId} with filters:`, filters);
+
       let query = supabase
         .from('reviews')
         .select(`
           *,
           restaurants (*)
         `)
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false });
+        .eq('user_id', userId);
+
+      // Apply filters
+      if (filters?.rating) {
+        console.log(`Filtering by rating: ${filters.rating}`);
+        query = query.eq('rating', filters.rating);
+      }
+
+      // Note: For simplicity and reliability, we'll do all filtering except rating in post-processing
+      // This ensures we can search across all fields including joined table data
+
+      // Always order by created_at descending
+      query = query.order('created_at', { ascending: false });
 
       const { data, error } = await query;
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase query error:", error);
+        throw error;
+      }
 
-      return data?.map(row => ({
+      console.log(`Found ${data?.length || 0} reviews from database`);
+
+      // Transform data first
+      let reviews = data?.map(row => ({
         id: row.id,
         userId: row.user_id,
         restaurantId: row.restaurant_id,
+        rating: row.rating,
+        score: row.score,
         overallRating: row.overall_rating,
         foodRating: row.food_rating,
         serviceRating: row.service_rating,
@@ -292,6 +313,7 @@ class SupabaseStorage implements IStorage {
         comment: row.comment,
         favoriteDishes: row.favorite_dishes,
         photoUrls: row.photo_urls,
+        labels: row.labels,
         visitDate: row.visit_date ? new Date(row.visit_date) : null,
         wouldRecommend: row.would_recommend,
         createdAt: new Date(row.created_at),
@@ -310,6 +332,53 @@ class SupabaseStorage implements IStorage {
           createdAt: new Date(row.restaurants.created_at)
         }
       })) || [];
+
+      // Apply post-processing filters for joined table fields
+      if (filters?.location) {
+        console.log(`Post-filtering by location: ${filters.location}`);
+        reviews = reviews.filter(review =>
+          review.restaurant.city?.toLowerCase().includes(filters.location!.toLowerCase())
+        );
+      }
+
+      if (filters?.cuisine) {
+        console.log(`Post-filtering by cuisine: ${filters.cuisine}`);
+        reviews = reviews.filter(review =>
+          review.restaurant.cuisine?.toLowerCase().includes(filters.cuisine!.toLowerCase())
+        );
+      }
+
+      if (filters?.search) {
+        console.log(`Post-filtering by search: ${filters.search}`);
+        reviews = reviews.filter(review => {
+          const searchTerm = filters.search!.toLowerCase();
+
+          // Search in multiple fields
+          const restaurantNameMatch = review.restaurant.name?.toLowerCase().includes(searchTerm);
+          const titleMatch = review.title?.toLowerCase().includes(searchTerm);
+          const commentMatch = review.comment?.toLowerCase().includes(searchTerm);
+          const favoriteDishesMatch = review.favoriteDishes?.some(dish =>
+            dish.toLowerCase().includes(searchTerm)
+          );
+          const labelsMatch = review.labels?.some(label =>
+            label.toLowerCase().includes(searchTerm)
+          );
+
+          return restaurantNameMatch || titleMatch || commentMatch || favoriteDishesMatch || labelsMatch;
+        });
+      }
+
+      if (filters?.tags && filters.tags.trim()) {
+        console.log(`Post-filtering by tags: ${filters.tags}`);
+        reviews = reviews.filter(review =>
+          review.labels?.some(label =>
+            label.toLowerCase().includes(filters.tags!.toLowerCase())
+          )
+        );
+      }
+
+      console.log(`Final filtered results: ${reviews.length} reviews`);
+      return reviews;
     } catch (error: any) {
       console.error("Error in getUserReviews:", error);
       throw new Error(`Database connection failed: ${error.message}`);
