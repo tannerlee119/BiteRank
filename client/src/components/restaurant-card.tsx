@@ -82,8 +82,8 @@ export function RestaurantCard({ review, onClick }: RestaurantCardProps) {
               </div>
               <div className="text-xs text-gray-500">out of 10</div>
             </div>
-            <Badge className={`${getRatingColor(review.rating || (review.overallRating >= 6.6 ? 'like' : review.overallRating <= 3.4 ? 'dislike' : 'alright'))} text-white`}>
-              {getRatingLabel(review.rating || (review.overallRating >= 6.6 ? 'like' : review.overallRating <= 3.4 ? 'dislike' : 'alright'))}
+            <Badge className={`${getRatingColor(review.overallRating >= 6.6 ? 'like' : review.overallRating <= 3.4 ? 'dislike' : 'alright')} text-white`}>
+              {getRatingLabel(review.overallRating >= 6.6 ? 'like' : review.overallRating <= 3.4 ? 'dislike' : 'alright')}
             </Badge>
           </div>
         </div>
