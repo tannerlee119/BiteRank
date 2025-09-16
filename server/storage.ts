@@ -470,10 +470,27 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteReview(reviewId: string, userId: string): Promise<boolean> {
+    console.log(`Storage: Attempting to delete review ${reviewId} for user ${userId}`);
+
+    // First, check if the review exists at all
+    const existingReview = await db
+      .select()
+      .from(reviews)
+      .where(eq(reviews.id, reviewId))
+      .limit(1);
+
+    console.log(`Storage: Found ${existingReview.length} reviews with ID ${reviewId}`);
+
+    if (existingReview.length > 0) {
+      console.log(`Storage: Review belongs to user ${existingReview[0].userId}, deleting user is ${userId}`);
+    }
+
     const result = await db
       .delete(reviews)
       .where(and(eq(reviews.id, reviewId), eq(reviews.userId, userId)))
       .returning();
+
+    console.log(`Storage: Delete operation affected ${result.length} rows`);
 
     return result.length > 0;
   }

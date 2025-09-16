@@ -226,7 +226,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/reviews/:id", requireAuth, async (req, res) => {
     try {
       const { id } = req.params;
-      const success = await storage.deleteReview(id, req.session.userId!);
+      const userId = req.session.userId!;
+
+      console.log(`Attempting to delete review ${id} for user ${userId}`);
+
+      const success = await storage.deleteReview(id, userId);
+
+      console.log(`Delete operation result: ${success}`);
 
       if (!success) {
         return res.status(404).json({ message: "Review not found" });

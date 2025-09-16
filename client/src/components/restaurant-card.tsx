@@ -56,10 +56,11 @@ export function RestaurantCard({ review, onClick }: RestaurantCardProps) {
   };
 
   return (
-    <Card 
-      className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
-      onClick={onClick}
-    >
+    <>
+      <Card
+        className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+        onClick={onClick}
+      >
       <CardContent className="p-6">
         <div className="flex items-start justify-between">
           <div className="flex-1">
@@ -118,15 +119,16 @@ export function RestaurantCard({ review, onClick }: RestaurantCardProps) {
           </Button>
         </div>
       </CardContent>
-    </Card>
+      </Card>
 
-    <DeleteConfirmationDialog
-      open={showDeleteDialog}
-      onOpenChange={setShowDeleteDialog}
-      onConfirm={confirmDelete}
-      title="Delete Review"
-      description={`Are you sure you want to delete your review of ${review.restaurant.name}? This action cannot be undone.`}
-      isLoading={deleteMutation.isPending}
-    />
+      <DeleteConfirmationDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onConfirm={confirmDelete}
+        title="Delete Review"
+        description={`Are you sure you want to delete your review of ${review.restaurant.name}? This action cannot be undone.`}
+        isLoading={deleteMutation.isPending}
+      />
+    </>
   );
 }
