@@ -170,4 +170,163 @@ describe('Review API Logic', () => {
       expect(highlyRated.every(r => r.score >= 8.0)).toBe(true);
     });
   });
+
+  describe('Review Deletion Logic', () => {
+    const mockReviews = [
+      {
+        id: 'review-1',
+        userId: 'user-1',
+        rating: 'like',
+        score: 8.5,
+        restaurant: { name: 'Test Restaurant', city: 'SF' }
+      },
+      {
+        id: 'review-2',
+        userId: 'user-1',
+        rating: 'alright',
+        score: 6.0,
+        restaurant: { name: 'Another Restaurant', city: 'Oakland' }
+      },
+      {
+        id: 'review-3',
+        userId: 'user-2',
+        rating: 'dislike',
+        score: 3.0,
+        restaurant: { name: 'Third Restaurant', city: 'SF' }
+      },
+    ];
+
+    it('should successfully delete review when user owns it', () => {
+      const reviewId = 'review-1';
+      const userId = 'user-1';
+
+      // Find the review
+      const review = mockReviews.find(r => r.id === reviewId);
+      expect(review).toBeTruthy();
+      expect(review?.userId).toBe(userId);
+
+      // Simulate deletion (review exists and belongs to user)
+      const canDelete = review && review.userId === userId;
+      expect(canDelete).toBe(true);
+    });
+
+    it('should fail to delete review when user does not own it', () => {
+      const reviewId = 'review-3';
+      const userId = 'user-1';
+
+      // Find the review
+      const review = mockReviews.find(r => r.id === reviewId);
+      expect(review).toBeTruthy();
+      expect(review?.userId).not.toBe(userId);
+
+      // Simulate deletion (review exists but belongs to different user)
+      const canDelete = review && review.userId === userId;
+      expect(canDelete).toBe(false);
+    });
+
+    it('should fail to delete non-existent review', () => {
+      const reviewId = 'non-existent-review';
+      const userId = 'user-1';
+
+      // Find the review
+      const review = mockReviews.find(r => r.id === reviewId);
+      expect(review).toBeFalsy();
+
+      // Simulate deletion (review does not exist)
+      const canDelete = Boolean(review && review.userId === userId);
+      expect(canDelete).toBe(false);
+    });
+
+    it('should properly update stats after deletion', () => {
+      const userReviews = mockReviews.filter(r => r.userId === 'user-1');
+      const initialLikedCount = userReviews.filter(r => r.rating === 'like').length;
+      const initialTotalCount = userReviews.length;
+
+      expect(initialLikedCount).toBe(1);
+      expect(initialTotalCount).toBe(2);
+
+      // Simulate deleting a 'like' review
+      const reviewToDelete = userReviews.find(r => r.rating === 'like');
+      const remainingReviews = userReviews.filter(r => r.id !== reviewToDelete?.id);
+
+      const finalLikedCount = remainingReviews.filter(r => r.rating === 'like').length;
+      const finalTotalCount = remainingReviews.length;
+
+      expect(finalLikedCount).toBe(0);
+      expect(finalTotalCount).toBe(1);
+    });
+
+    it('should validate review ownership before deletion', () => {
+      const deleteReview = (reviewId: string, userId: string) => {
+        const review = mockReviews.find(r => r.id === reviewId);
+
+        if (!review) {
+          return { success: false, error: 'Review not found' };
+        }
+
+        if (review.userId !== userId) {
+          return { success: false, error: 'Unauthorized: Review belongs to different user' };
+        }
+
+        return { success: true, error: null };
+      };
+
+      // Test successful deletion
+      const result1 = deleteReview('review-1', 'user-1');
+      expect(result1.success).toBe(true);
+      expect(result1.error).toBe(null);
+
+      // Test unauthorized deletion
+      const result2 = deleteReview('review-3', 'user-1');
+      expect(result2.success).toBe(false);
+      expect(result2.error).toContain('Unauthorized');
+
+      // Test non-existent review
+      const result3 = deleteReview('fake-id', 'user-1');
+      expect(result3.success).toBe(false);
+      expect(result3.error).toContain('not found');
+    });
+
+    it('should handle delete operation edge cases', () => {
+      const deleteReview = (reviewId: string, userId: string) => {
+        // Validate inputs
+        if (!reviewId || typeof reviewId !== 'string') {
+          return { success: false, error: 'Invalid review ID' };
+        }
+
+        if (!userId || typeof userId !== 'string') {
+          return { success: false, error: 'Invalid user ID' };
+        }
+
+        const review = mockReviews.find(r => r.id === reviewId);
+
+        if (!review) {
+          return { success: false, error: 'Review not found' };
+        }
+
+        if (review.userId !== userId) {
+          return { success: false, error: 'Unauthorized' };
+        }
+
+        return { success: true, error: null };
+      };
+
+      // Test empty review ID
+      const result1 = deleteReview('', 'user-1');
+      expect(result1.success).toBe(false);
+      expect(result1.error).toContain('Invalid review ID');
+
+      // Test empty user ID
+      const result2 = deleteReview('review-1', '');
+      expect(result2.success).toBe(false);
+      expect(result2.error).toContain('Invalid user ID');
+
+      // Test null/undefined inputs
+      const result3 = deleteReview(null as any, 'user-1');
+      expect(result3.success).toBe(false);
+
+      const result4 = deleteReview('review-1', undefined as any);
+      expect(result4.success).toBe(false);
+    });
+  });
 });

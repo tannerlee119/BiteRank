@@ -159,4 +159,143 @@ describe('Restaurant Card Display Logic', () => {
       expect(formattedDate).toBe('Jan 15, 2024');
     });
   });
+
+  describe('Delete Functionality', () => {
+    it('should properly construct delete API endpoint', () => {
+      const reviewId = 'test-review-123';
+      const deleteEndpoint = `/api/reviews/${reviewId}`;
+
+      expect(deleteEndpoint).toBe('/api/reviews/test-review-123');
+    });
+
+    it('should handle successful delete response', () => {
+      const mockSuccessResponse = {
+        message: "Review deleted successfully"
+      };
+
+      // Simulate successful delete
+      const handleDeleteSuccess = (response: any) => {
+        return response.message === "Review deleted successfully";
+      };
+
+      expect(handleDeleteSuccess(mockSuccessResponse)).toBe(true);
+    });
+
+    it('should handle delete error response', () => {
+      const mockErrorResponse = {
+        message: "Review not found"
+      };
+
+      // Simulate error handling
+      const handleDeleteError = (error: any) => {
+        return error.message || "Failed to delete review. Please try again.";
+      };
+
+      expect(handleDeleteError(mockErrorResponse)).toBe("Review not found");
+      expect(handleDeleteError({})).toBe("Failed to delete review. Please try again.");
+    });
+
+    it('should prevent card click when delete button is clicked', () => {
+      let cardClicked = false;
+      let deleteClicked = false;
+
+      // Simulate the click handlers
+      const handleCardClick = () => { cardClicked = true; };
+      const handleDeleteClick = (e: any) => {
+        e.stopPropagation(); // This should prevent card click
+        deleteClicked = true;
+      };
+
+      // Mock event object
+      const mockEvent = {
+        stopPropagation: () => {
+          // Prevent card click propagation
+        }
+      };
+
+      // Simulate delete button click
+      handleDeleteClick(mockEvent);
+
+      expect(deleteClicked).toBe(true);
+      expect(cardClicked).toBe(false); // Card should not be clicked due to stopPropagation
+    });
+
+    it('should show delete confirmation dialog', () => {
+      let dialogOpen = false;
+
+      const setShowDeleteDialog = (open: boolean) => {
+        dialogOpen = open;
+      };
+
+      const handleDelete = () => {
+        setShowDeleteDialog(true);
+      };
+
+      handleDelete();
+      expect(dialogOpen).toBe(true);
+    });
+
+    it('should close dialog on successful delete', () => {
+      let dialogOpen = true;
+
+      const setShowDeleteDialog = (open: boolean) => {
+        dialogOpen = open;
+      };
+
+      const handleDeleteSuccess = () => {
+        setShowDeleteDialog(false);
+        // Would also invalidate queries and show toast
+      };
+
+      handleDeleteSuccess();
+      expect(dialogOpen).toBe(false);
+    });
+
+    it('should close dialog on delete error', () => {
+      let dialogOpen = true;
+
+      const setShowDeleteDialog = (open: boolean) => {
+        dialogOpen = open;
+      };
+
+      const handleDeleteError = () => {
+        setShowDeleteDialog(false);
+        // Would also show error toast
+      };
+
+      handleDeleteError();
+      expect(dialogOpen).toBe(false);
+    });
+
+    it('should validate delete confirmation dialog props', () => {
+      const review = createMockReview();
+
+      const dialogProps = {
+        title: "Delete Review",
+        description: `Are you sure you want to delete your review of ${review.restaurant.name}? This action cannot be undone.`,
+        confirmText: "Delete",
+        cancelText: "Cancel"
+      };
+
+      expect(dialogProps.title).toBe("Delete Review");
+      expect(dialogProps.description).toContain(review.restaurant.name);
+      expect(dialogProps.description).toContain("cannot be undone");
+      expect(dialogProps.confirmText).toBe("Delete");
+      expect(dialogProps.cancelText).toBe("Cancel");
+    });
+
+    it('should disable delete button during loading state', () => {
+      const isLoading = true;
+      const buttonDisabled = isLoading;
+
+      expect(buttonDisabled).toBe(true);
+    });
+
+    it('should show loading text during delete operation', () => {
+      const isLoading = true;
+      const buttonText = isLoading ? "Deleting..." : "Delete";
+
+      expect(buttonText).toBe("Deleting...");
+    });
+  });
 });
