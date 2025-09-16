@@ -471,6 +471,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Discover endpoint - public restaurants aggregated by reviews
+  app.get("/api/discover", async (req, res) => {
+    try {
+      const { search, cuisine, city } = req.query;
+
+      const restaurants = await storage.getDiscoverRestaurants({
+        search: search as string,
+        cuisine: cuisine as string,
+        city: city as string,
+      });
+
+      res.json(restaurants);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   // n8n webhook endpoints
   app.post("/api/webhooks/review-analysis", requireAuth, async (req, res) => {
     try {

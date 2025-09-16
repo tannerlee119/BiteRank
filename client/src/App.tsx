@@ -14,6 +14,7 @@ import MyReviewsPage from "@/pages/my-reviews";
 import StatsPage from "@/pages/stats";
 import RecommendationsPage from "@/pages/recommendations";
 import BookmarkedPage from "@/pages/bookmarked";
+import DiscoverPage from "@/pages/discover";
 import React, { useState } from "react";
 
 function AuthenticatedApp() {
@@ -45,6 +46,7 @@ function AuthenticatedApp() {
           <Route path="/profile" component={ProfilePage} />
           <Route path="/my-reviews" component={MyReviewsPage} />
           <Route path="/stats" component={StatsPage} />
+          <Route path="/discover" component={DiscoverPage} />
           <Route path="/recommendations" component={RecommendationsPage} />
           <Route path="/bookmarked" component={BookmarkedPage} />
           <Route component={NotFound} />

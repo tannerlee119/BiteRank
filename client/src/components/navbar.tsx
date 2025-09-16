@@ -31,7 +31,7 @@ export function Navbar({ onAddReview }: NavbarProps) {
     { path: "/", label: "Home", icon: Home },
     { path: "/my-reviews", label: "My Reviews", icon: List },
     { path: "/stats", label: "Stats", icon: BarChart2 },
-    { path: "/recommendations", label: "Discover", icon: MapPin },
+    { path: "/discover", label: "Discover", icon: MapPin },
     { path: "/bookmarked", label: "Bookmarks", icon: Bookmark },
   ];
 

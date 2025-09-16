@@ -43,6 +43,9 @@ export interface IStorage {
   getUserStats(userId: string): Promise<any>;
   getGlobalStats(): Promise<any>;
   getMostReviewedLocations(limit: number): Promise<any[]>;
+
+  // Discover
+  getDiscoverRestaurants(filters?: { search?: string; cuisine?: string; city?: string; }): Promise<any[]>;
 }
 
 class SupabaseStorage implements IStorage {
@@ -563,6 +566,111 @@ class SupabaseStorage implements IStorage {
         .slice(0, limit);
     } catch (error: any) {
       console.error("Error in getMostReviewedLocations:", error);
+      throw new Error(`Database connection failed: ${error.message}`);
+    }
+  }
+
+  async getDiscoverRestaurants(filters?: { search?: string; cuisine?: string; city?: string; }): Promise<any[]> {
+    try {
+      // Get all restaurants with their reviews and aggregate data
+      const { data: restaurants, error } = await supabase
+        .from('restaurants')
+        .select(`
+          id,
+          name,
+          city,
+          cuisine,
+          address,
+          price_range,
+          reviews (
+            id,
+            rating,
+            overall_rating,
+            favorite_dishes,
+            created_at
+          )
+        `);
+
+      if (error) throw error;
+
+      // Filter and aggregate the restaurant data
+      const aggregatedRestaurants = restaurants
+        ?.filter(restaurant => {
+          // Only include restaurants that have reviews
+          if (!restaurant.reviews || restaurant.reviews.length === 0) return false;
+
+          // Apply filters
+          if (filters?.search && !restaurant.name.toLowerCase().includes(filters.search.toLowerCase())) {
+            return false;
+          }
+          if (filters?.cuisine && restaurant.cuisine?.toLowerCase() !== filters.cuisine.toLowerCase()) {
+            return false;
+          }
+          if (filters?.city && restaurant.city?.toLowerCase() !== filters.city.toLowerCase()) {
+            return false;
+          }
+
+          return true;
+        })
+        .map(restaurant => {
+          const reviews = restaurant.reviews || [];
+
+          // Calculate aggregated metrics
+          const totalReviews = reviews.length;
+          const averageRating = reviews.reduce((sum, review) => sum + review.overall_rating, 0) / totalReviews;
+
+          // Count rating distribution
+          const ratingDistribution = {
+            like: reviews.filter(r => r.overall_rating >= 6.6).length,
+            alright: reviews.filter(r => r.overall_rating > 3.4 && r.overall_rating < 6.6).length,
+            dislike: reviews.filter(r => r.overall_rating <= 3.4).length
+          };
+
+          // Aggregate favorite dishes
+          const allDishes = reviews
+            .flatMap(review => review.favorite_dishes || [])
+            .filter(dish => dish && dish.trim().length > 0);
+
+          // Count dish frequency and get top dishes
+          const dishCounts: { [key: string]: number } = {};
+          allDishes.forEach(dish => {
+            const normalizedDish = dish.trim().toLowerCase();
+            dishCounts[normalizedDish] = (dishCounts[normalizedDish] || 0) + 1;
+          });
+
+          const favoriteDishes = Object.entries(dishCounts)
+            .sort(([,a], [,b]) => b - a)
+            .slice(0, 5)
+            .map(([dish]) => dish);
+
+          // Extract popular labels/tags (would need to implement this based on review content)
+          const popularLabels: string[] = [];
+
+          return {
+            id: restaurant.id,
+            name: restaurant.name,
+            city: restaurant.city,
+            cuisine: restaurant.cuisine,
+            address: restaurant.address,
+            priceRange: restaurant.price_range,
+            averageRating: Math.round(averageRating * 10) / 10,
+            totalReviews,
+            favoriteDishes,
+            popularLabels,
+            ratingDistribution
+          };
+        })
+        .sort((a, b) => {
+          // Sort by average rating (descending), then by number of reviews (descending)
+          if (b.averageRating !== a.averageRating) {
+            return b.averageRating - a.averageRating;
+          }
+          return b.totalReviews - a.totalReviews;
+        }) || [];
+
+      return aggregatedRestaurants;
+    } catch (error: any) {
+      console.error("Error in getDiscoverRestaurants:", error);
       throw new Error(`Database connection failed: ${error.message}`);
     }
   }
