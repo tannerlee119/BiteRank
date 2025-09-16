@@ -127,10 +127,10 @@ export function ReviewModal({ review, open, onOpenChange }: ReviewModalProps) {
                 <div className="text-2xl font-bold text-neutral-900">
                   {review.score ? review.score.toFixed(1) : (review.overallRating || 'N/A')}
                 </div>
-                <div className="text-xs text-gray-500">out of {review.score ? '10' : (review.overallRating > 5 ? '10' : '5')}</div>
+                <div className="text-xs text-gray-500">out of {review.score ? '10' : '5'}</div>
               </div>
-              <Badge className={`${getRatingColor(review.rating || (review.overallRating >= (review.overallRating > 5 ? 6.6 : 4) ? 'like' : review.overallRating <= (review.overallRating > 5 ? 3.4 : 2) ? 'dislike' : 'alright'))} text-white`}>
-                {getRatingLabel(review.rating || (review.overallRating >= (review.overallRating > 5 ? 6.6 : 4) ? 'like' : review.overallRating <= (review.overallRating > 5 ? 3.4 : 2) ? 'dislike' : 'alright'))}
+              <Badge className={`${getRatingColor(review.rating || (review.overallRating >= 4 ? 'like' : review.overallRating <= 2 ? 'dislike' : 'alright'))} text-white`}>
+                {getRatingLabel(review.rating || (review.overallRating >= 4 ? 'like' : review.overallRating <= 2 ? 'dislike' : 'alright'))}
               </Badge>
             </div>
           </div>
