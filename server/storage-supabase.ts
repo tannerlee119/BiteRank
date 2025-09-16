@@ -299,39 +299,42 @@ class SupabaseStorage implements IStorage {
       console.log(`Found ${data?.length || 0} reviews from database`);
 
       // Transform data first
-      let reviews = data?.map(row => ({
-        id: row.id,
-        userId: row.user_id,
-        restaurantId: row.restaurant_id,
-        rating: row.rating,
-        score: row.score,
-        overallRating: row.overall_rating,
-        foodRating: row.food_rating,
-        serviceRating: row.service_rating,
-        atmosphereRating: row.atmosphere_rating,
-        title: row.title,
-        comment: row.comment,
-        favoriteDishes: row.favorite_dishes,
-        photoUrls: row.photo_urls,
-        labels: row.labels,
-        visitDate: row.visit_date ? new Date(row.visit_date) : null,
-        wouldRecommend: row.would_recommend,
-        createdAt: new Date(row.created_at),
-        updatedAt: new Date(row.updated_at),
-        restaurant: {
-          id: row.restaurants.id,
-          name: row.restaurants.name,
-          city: row.restaurants.city,
-          address: row.restaurants.address,
-          cuisine: row.restaurants.cuisine,
-          priceRange: row.restaurants.price_range,
-          phoneNumber: row.restaurants.phone_number,
-          website: row.restaurants.website,
-          latitude: row.restaurants.latitude,
-          longitude: row.restaurants.longitude,
-          createdAt: new Date(row.restaurants.created_at)
-        }
-      })) || [];
+      let reviews = data?.map(row => {
+        console.log(`Raw row data for review ${row.id}: rating=${row.rating}, score=${row.score}, overall_rating=${row.overall_rating}`);
+        return {
+          id: row.id,
+          userId: row.user_id,
+          restaurantId: row.restaurant_id,
+          rating: row.rating,
+          score: row.score,
+          overallRating: row.overall_rating,
+          foodRating: row.food_rating,
+          serviceRating: row.service_rating,
+          atmosphereRating: row.atmosphere_rating,
+          title: row.title,
+          comment: row.comment,
+          favoriteDishes: row.favorite_dishes,
+          photoUrls: row.photo_urls,
+          labels: row.labels,
+          visitDate: row.visit_date ? new Date(row.visit_date) : null,
+          wouldRecommend: row.would_recommend,
+          createdAt: new Date(row.created_at),
+          updatedAt: new Date(row.updated_at),
+          restaurant: {
+            id: row.restaurants.id,
+            name: row.restaurants.name,
+            city: row.restaurants.city,
+            address: row.restaurants.address,
+            cuisine: row.restaurants.cuisine,
+            priceRange: row.restaurants.price_range,
+            phoneNumber: row.restaurants.phone_number,
+            website: row.restaurants.website,
+            latitude: row.restaurants.latitude,
+            longitude: row.restaurants.longitude,
+            createdAt: new Date(row.restaurants.created_at)
+          }
+        };
+      }) || [];
 
       // Apply post-processing filters for joined table fields
       if (filters?.location) {
