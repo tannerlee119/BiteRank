@@ -281,13 +281,7 @@ class SupabaseStorage implements IStorage {
         `)
         .eq('user_id', userId);
 
-      // Apply filters
-      if (filters?.rating) {
-        console.log(`Filtering by rating: ${filters.rating}`);
-        query = query.eq('rating', filters.rating);
-      }
-
-      // Note: For simplicity and reliability, we'll do all filtering except rating in post-processing
+      // Note: For simplicity and reliability, we'll do all filtering in post-processing
       // This ensures we can search across all fields including joined table data
 
       // Always order by created_at descending
@@ -339,6 +333,17 @@ class SupabaseStorage implements IStorage {
       }) || [];
 
       // Apply post-processing filters for joined table fields
+      if (filters?.rating) {
+        console.log(`Post-filtering by rating: ${filters.rating}`);
+        reviews = reviews.filter(review => {
+          // Calculate category from overallRating instead of using the broken rating field
+          const calculatedRating = review.overallRating >= 6.6 ? 'like' :
+                                    review.overallRating <= 3.4 ? 'dislike' :
+                                    'alright';
+          return calculatedRating === filters.rating;
+        });
+      }
+
       if (filters?.location) {
         console.log(`Post-filtering by location: ${filters.location}`);
         reviews = reviews.filter(review =>

@@ -144,16 +144,6 @@ export function ReviewModal({ review, open, onOpenChange }: ReviewModalProps) {
             <div className="space-y-4">
               <div>
                 <label className="text-sm font-semibold text-gray-700 mb-2 block">
-                  Title
-                </label>
-                <Input
-                  value={editedReview.title}
-                  onChange={(e) => setEditedReview(prev => ({ ...prev, title: e.target.value }))}
-                  placeholder="Review title..."
-                />
-              </div>
-              <div>
-                <label className="text-sm font-semibold text-gray-700 mb-2 block">
                   Review
                 </label>
                 <Textarea
@@ -184,15 +174,10 @@ export function ReviewModal({ review, open, onOpenChange }: ReviewModalProps) {
             </div>
           ) : (
             <>
-              {(review.title || review.comment) && (
+              {review.comment && (
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h4 className="text-sm font-semibold text-gray-700 mb-2">Review</h4>
-                  {review.title && (
-                    <h5 className="font-medium text-gray-900 mb-2">{review.title}</h5>
-                  )}
-                  {review.comment && (
-                    <p className="text-gray-700">{review.comment}</p>
-                  )}
+                  <p className="text-gray-700">{review.comment}</p>
                 </div>
               )}
 
